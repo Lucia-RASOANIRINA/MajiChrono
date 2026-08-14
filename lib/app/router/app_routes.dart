@@ -8,7 +8,17 @@ class AppRoutes {
   const AppRoutes._();
 
   static const String splash = '/';
-  static const String roleSelect = '/role';
+
+  // --- Authentification (module 1) --------------------------------------
+  static const String authPhone = '/auth/phone';
+  static const String authOtp = '/auth/otp';
+  static const String authProfile = '/auth/profile';
+  static const String authPin = '/auth/pin';
+  static const String authLock = '/auth/lock';
+
+  /// Vrai pour toute route du parcours d'authentification.
+  static bool isAuthRoute(String location) => location.startsWith('/auth');
+
   static const String settings = '/settings';
   static const String dataUsage = '/settings/data';
   static const String devPanel = '/dev';

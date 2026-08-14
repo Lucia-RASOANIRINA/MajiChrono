@@ -33,6 +33,13 @@ dependencies:
   shared_preferences: ^2.3.3
   flutter_secure_storage: ^9.2.2
 
+  # --- Authentification (module 1) ---
+  # Biometrie de reconnexion (EXI-T04).
+  local_auth: ^2.3.0
+  # Derivation du code PIN : le PIN n'est jamais stocke, seule son empreinte
+  # salee l'est (EXI-T04, EXI-SEC03).
+  crypto: ^3.0.6
+
   # --- Socle ---
   connectivity_plus: ^6.1.0
   logger: ^2.5.0

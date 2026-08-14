@@ -25,7 +25,6 @@ class SocleHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final config = ref.watch(appConfigProvider);
     final status = ref.watch(networkStatusProvider);
     final meter = ref.watch(dataMeterProvider);

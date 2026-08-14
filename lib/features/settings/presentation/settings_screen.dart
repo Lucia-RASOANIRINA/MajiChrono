@@ -6,16 +6,46 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
-import 'package:majichrono/core/session/user_role.dart';
+import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
-/// Reglages du socle : langue (EXI-T05), apparence, consommation (EXI-T07).
+/// Reglages : langue (EXI-T05), apparence, consommation (EXI-T07), verrou et
+/// deconnexion (EXI-T04, EXI-SEC10).
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
+
+  Future<void> _confirmSignOut(
+    BuildContext context,
+    WidgetRef ref,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: Text(l10n.authSignOut),
+        content: Text(l10n.authSignOutConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: Text(l10n.commonCancel),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: Text(l10n.commonConfirm),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed ?? false) {
+      await ref.read(authControllerProvider.notifier).signOut();
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
     final locale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
     final config = ref.watch(appConfigProvider);
@@ -82,11 +112,21 @@ class SettingsScreen extends ConsumerWidget {
                 ],
                 const Divider(height: 1),
                 ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: Text(l10n.settingsSwitchProfile),
-                  onTap: () async {
-                    await ref.read(activeRoleProvider.notifier).clear();
-                  },
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text(l10n.authPinTitle),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.authPin),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: Icon(Icons.logout, color: theme.colorScheme.error),
+                  title: Text(
+                    l10n.authSignOut,
+                    style: TextStyle(color: theme.colorScheme.error),
+                  ),
+                  // Action destructrice : confirmee, et l'utilisateur est
+                  // prevenu de ce qu'elle efface (§15.2.6, EXI-SEC10).
+                  onTap: () => _confirmSignOut(context, ref, l10n),
                 ),
               ],
             ),

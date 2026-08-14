@@ -83,6 +83,125 @@ class AppLocalizationsFr extends AppLocalizations {
   String get networkSyncing => 'Synchronisation en cours...';
 
   @override
+  String get authPhoneTitle => 'Votre numero';
+
+  @override
+  String get authPhoneSubtitle =>
+      'Nous vous envoyons un code par SMS pour verifier ce numero.';
+
+  @override
+  String get authPhoneLabel => 'Numero de telephone';
+
+  @override
+  String get authPhoneHint => '034 12 345 67';
+
+  @override
+  String get authPhoneInvalid => 'Numero malgache invalide';
+
+  @override
+  String authPhoneOperator(String operator) {
+    return 'Operateur reconnu : $operator';
+  }
+
+  @override
+  String get authOtpTitle => 'Code de verification';
+
+  @override
+  String authOtpSentTo(String phone) {
+    return 'Code envoye au $phone';
+  }
+
+  @override
+  String authOtpExpiresIn(String time) {
+    return 'Expire dans $time';
+  }
+
+  @override
+  String get authOtpExpired => 'Code expire. Demandez-en un nouveau.';
+
+  @override
+  String get authOtpResend => 'Renvoyer le code';
+
+  @override
+  String authOtpInvalid(int count) {
+    return 'Code incorrect. Il reste $count tentative(s).';
+  }
+
+  @override
+  String get authOtpLocked => 'Trop de tentatives. Demandez un nouveau code.';
+
+  @override
+  String authOtpSimulated(String code) {
+    return 'Code simule : $code';
+  }
+
+  @override
+  String get authProfileTitle => 'Votre profil';
+
+  @override
+  String get authProfileSubtitle =>
+      'Ce choix est definitif : il determine l\'application que vous utilisez.';
+
+  @override
+  String get authProfileName => 'Votre nom';
+
+  @override
+  String get authProfileNameHint => 'Nom vu par les autres';
+
+  @override
+  String get authProfileNameRequired => 'Indiquez votre nom';
+
+  @override
+  String get authProfileAdminNote =>
+      'Le profil exploitation est attribue par MajiChrono, il ne se choisit pas ici.';
+
+  @override
+  String get authPinTitle => 'Creez un code a 4 chiffres';
+
+  @override
+  String get authPinSubtitle =>
+      'Il protege votre compte a la reouverture de l\'application.';
+
+  @override
+  String get authPinConfirmTitle => 'Confirmez votre code';
+
+  @override
+  String get authPinMismatch => 'Les deux codes ne correspondent pas';
+
+  @override
+  String get authPinLater => 'Plus tard';
+
+  @override
+  String get authPinSaved => 'Code enregistre';
+
+  @override
+  String get authLockTitle => 'Application verrouillee';
+
+  @override
+  String get authLockSubtitle => 'Saisissez votre code pour continuer';
+
+  @override
+  String get authLockBiometrics => 'Utiliser la biometrie';
+
+  @override
+  String get authBiometricsReason => 'Deverrouiller MajiChrono';
+
+  @override
+  String get authLockWrongPin => 'Code incorrect';
+
+  @override
+  String get authSignOut => 'Se deconnecter';
+
+  @override
+  String get authSignOutConfirm =>
+      'Se deconnecter effacera les donnees de cet appareil. Continuer ?';
+
+  @override
+  String authWelcome(String name) {
+    return 'Bonjour $name';
+  }
+
+  @override
   String get roleChooseTitle => 'Je suis';
 
   @override

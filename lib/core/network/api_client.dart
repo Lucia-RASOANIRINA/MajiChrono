@@ -4,6 +4,7 @@ import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/logging/app_logger.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/network/error_mapper.dart';
+import 'package:majichrono/core/network/interceptors/auth_refresh_interceptor.dart';
 import 'package:majichrono/core/network/interceptors/data_meter_interceptor.dart';
 import 'package:majichrono/core/network/interceptors/idempotency_interceptor.dart';
 import 'package:majichrono/core/network/interceptors/logging_interceptor.dart';
@@ -54,6 +55,18 @@ class ApiClient {
       DataMeterInterceptor(dataMeter),
       LoggingInterceptor(logger ?? AppLogger.instance),
     ]);
+  }
+
+  /// Branche le rattrapage de jeton expire (EXI-T03).
+  ///
+  /// Pose apres coup, et non dans le constructeur, parce que le rafraichissement
+  /// est assure par le repository d'authentification, lequel a besoin de ce
+  /// meme client pour appeler `/auth/refresh` : les brancher ensemble a la
+  /// construction creerait un cycle.
+  void attachRefreshHandler(Future<String?> Function() onRefresh) {
+    _dio.interceptors.add(
+      AuthRefreshInterceptor(onRefresh: onRefresh, dio: _dio),
+    );
   }
 
   final AppConfig _config;

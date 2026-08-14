@@ -83,6 +83,125 @@ class AppLocalizationsMg extends AppLocalizations {
   String get networkSyncing => 'Manao fampifanarahana...';
 
   @override
+  String get authPhoneTitle => 'Ny laharanao';
+
+  @override
+  String get authPhoneSubtitle =>
+      'Handefasanay kaody amin\'ny SMS io laharana io mba hamarinana azy.';
+
+  @override
+  String get authPhoneLabel => 'Laharana finday';
+
+  @override
+  String get authPhoneHint => '034 12 345 67';
+
+  @override
+  String get authPhoneInvalid => 'Laharana malagasy tsy mety';
+
+  @override
+  String authPhoneOperator(String operator) {
+    return 'Mpandraharaha fantatra : $operator';
+  }
+
+  @override
+  String get authOtpTitle => 'Kaody fanamarinana';
+
+  @override
+  String authOtpSentTo(String phone) {
+    return 'Kaody nalefa tany amin\'ny $phone';
+  }
+
+  @override
+  String authOtpExpiresIn(String time) {
+    return 'Lany afaka $time';
+  }
+
+  @override
+  String get authOtpExpired => 'Lany ny kaody. Mangataha vaovao.';
+
+  @override
+  String get authOtpResend => 'Alefaso indray ny kaody';
+
+  @override
+  String authOtpInvalid(int count) {
+    return 'Kaody diso. Mbola misy $count andrana.';
+  }
+
+  @override
+  String get authOtpLocked => 'Be loatra ny andrana. Mangataha kaody vaovao.';
+
+  @override
+  String authOtpSimulated(String code) {
+    return 'Kaody an-tsary : $code';
+  }
+
+  @override
+  String get authProfileTitle => 'Ny andraikitrao';
+
+  @override
+  String get authProfileSubtitle =>
+      'Tsy azo ovaina intsony ity safidy ity : izy no mamaritra ny fampiharana ampiasainao.';
+
+  @override
+  String get authProfileName => 'Ny anaranao';
+
+  @override
+  String get authProfileNameHint => 'Anarana hitan\'ny hafa';
+
+  @override
+  String get authProfileNameRequired => 'Ampidiro ny anaranao';
+
+  @override
+  String get authProfileAdminNote =>
+      'Ny andraikitra mpandrindra dia omen\'ny MajiChrono, tsy safidiana eto.';
+
+  @override
+  String get authPinTitle => 'Mamorona kaody misy isa efatra';
+
+  @override
+  String get authPinSubtitle =>
+      'Miaro ny kaontinao rehefa sokafana indray ny fampiharana.';
+
+  @override
+  String get authPinConfirmTitle => 'Hamafiso ny kaodinao';
+
+  @override
+  String get authPinMismatch => 'Tsy mitovy ny kaody roa';
+
+  @override
+  String get authPinLater => 'Aoriana';
+
+  @override
+  String get authPinSaved => 'Voatahiry ny kaody';
+
+  @override
+  String get authLockTitle => 'Voahidy ny fampiharana';
+
+  @override
+  String get authLockSubtitle => 'Ampidiro ny kaodinao hanohizana';
+
+  @override
+  String get authLockBiometrics => 'Ampiasao ny biometria';
+
+  @override
+  String get authBiometricsReason => 'Sokafy ny MajiChrono';
+
+  @override
+  String get authLockWrongPin => 'Kaody diso';
+
+  @override
+  String get authSignOut => 'Hivoaka';
+
+  @override
+  String get authSignOutConfirm =>
+      'Ny fivoahana dia hamafa ny angona ao amin\'ity finday ity. Hanohy ?';
+
+  @override
+  String authWelcome(String name) {
+    return 'Salama $name';
+  }
+
+  @override
   String get roleChooseTitle => 'Izaho dia';
 
   @override

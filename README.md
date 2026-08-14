@@ -187,7 +187,7 @@ Chaque module est construit, testé sur émulateur, puis validé avant le suivan
 | Module | Objet | Lot du cahier des charges | État |
 |---|---|---|---|
 | 0 | Socle technique et coquille navigable | Lot 0 | Livré |
-| 1 | Authentification et session | Lot 1 | À faire |
+| 1 | Authentification et session | Lot 1 | Livré |
 | 2 | Expéditeur : création de course | Lot 1 | À faire |
 | 3 | Suivi cartographique et notifications | Lot 1 | À faire |
 | 4 | Livreur : KYC, file, progression | Lot 2 | À faire |
@@ -233,18 +233,54 @@ qui sert les trois profils.
 Reste ouvert sur ce module : l'épinglage de certificat à double empreinte
 (EXI-SEC02), qui attend le certificat de production, et sera posé au module 10.
 
-### Module 1 — Authentification et session
+### Module 1 — Authentification et session (livré)
 
-| Tâche | Profil | Exigences |
+| Tâche | Profil | Exigences | État |
+|---|---|---|---|
+| Saisie et normalisation du numéro malgache `+261 3x xx xxx xx` | Transverse | EXI-T01 | Fait |
+| Détection de l'opérateur par préfixe : Orange, Airtel, YAS | Transverse | EXI-T01, M11 | Fait |
+| Code OTP à 6 chiffres, validité 5 minutes, 3 tentatives, usage unique | Transverse | EXI-T01 | Fait |
+| Renvoi de code et compte à rebours d'expiration | Transverse | EXI-T01 | Fait |
+| Choix du profil client ou livreur, définitif | Transverse | EXI-T02 | Fait |
+| Refus serveur du profil exploitation réclamé par le mobile | Transverse | EXI-T02 | Fait |
+| Jeton d'accès 15 minutes, rafraîchissement 30 jours, rotation à chaque usage | Transverse | EXI-T03 | Fait |
+| Rejeu automatique d'une requête après expiration du jeton | Transverse | EXI-T03 | Fait |
+| Rafraîchissement partagé : deux expirations simultanées, une seule rotation | Transverse | EXI-T03 | Fait |
+| Code PIN à 4 chiffres, dérivé et jamais stocké en clair | Transverse | EXI-T04 | Fait |
+| Compteur de tentatives : cinq échecs détruisent le verrou | Transverse | EXI-T04 | Fait |
+| Déverrouillage biométrique quand l'appareil le permet | Transverse | EXI-T04 | Fait |
+| Verrouillage automatique après 5 minutes d'inactivité | Livreur, Exploitation | EXI-SEC07 | Fait |
+| Session et compte relus au démarrage, y compris sans réseau | Transverse | EXI-T03, EXI-P07 | Fait |
+| Déconnexion : effacement complet des données de l'appareil | Transverse | EXI-SEC10 | Fait |
+| Navigation entièrement pilotée par l'état de session | Transverse | EXI-T02 | Fait |
+
+**Numéros de recette.** Le backend simulé pré-inscrit trois comptes, qui évitent
+de rejouer le choix de profil et donnent accès au profil exploitation, que
+l'inscription mobile ne peut pas produire :
+
+| Numéro | Profil | Nom |
 |---|---|---|
-| Inscription par numéro malgache `+261 3x xx xxx xx` | Transverse | EXI-T01 |
-| Vérification par code OTP à 6 chiffres, 5 minutes, 3 tentatives | Transverse | EXI-T01 |
-| Choix du profil à l'inscription, client ou livreur | Transverse | EXI-T02 |
-| Jeton d'accès de 15 minutes, jeton de rafraîchissement de 30 jours, rotation | Transverse | EXI-T03 |
-| Reconnexion par biométrie ou code PIN à 4 chiffres | Transverse | EXI-T04 |
-| Verrouillage automatique après 5 minutes d'inactivité | Livreur, Exploitation | EXI-SEC07 |
-| Effacement complet des données locales à la déconnexion | Transverse | EXI-SEC10 |
-| Écran de profil et modification du compte | Transverse | §12.2 |
+| `034 00 000 01` | Expéditeur | Hery Rakoto |
+| `033 00 000 02` | Livreur | Naina Andria |
+| `032 00 000 03` | Exploitation | Miora Rasoa |
+
+Tout autre numéro valide crée un compte neuf et passe par le choix de profil.
+En mode simulé, le code OTP est affiché à l'écran dans un encart signalé : sans
+passerelle SMS, c'est le seul moyen de dérouler le parcours.
+
+**Deux points de conception à connaître.**
+
+Le §12.2 ne prévoit aucun point d'entrée d'inscription : le cycle de session
+s'arrête à `otp/request`, `otp/verify`, `refresh` et `logout`. Plutôt que
+d'ajouter une route hors contrat, l'inscription se fait en deux temps sur les
+routes existantes — la vérification OTP ouvre une session, puis `PATCH /me` pose
+le profil. Un compte tout juste créé existe donc réellement, mais sans profil.
+
+Le profil fait partie des informations portées par le jeton. Le modifier sans
+réémettre la session laisserait circuler un jeton qui contredit le compte : le
+serveur croirait le profil posé, le jeton dirait le contraire, et une seconde
+tentative de choix passerait au travers du contrôle. Toute donnée d'identité qui
+change entraîne donc une rotation des jetons.
 
 ### Module 2 — Expéditeur : création de course
 
@@ -396,7 +432,14 @@ géolocalisé, photographié et signé par les deux parties.
 | `redaction_test.dart` | Numéros, OTP, soldes et positions absents des journaux |
 | `translation_completeness_test.dart` | Aucune clé manquante ni orpheline entre français et malgache, paramètres cohérents |
 | `no_literal_strings_test.dart` | Aucun libellé écrit en dur dans les widgets |
-| `widget_test.dart` | Démarrage, bascule de langue, coquille par profil, permanence du bandeau réseau |
+| `malagasy_phone_test.dart` | Normalisation du numéro, rejets, opérateur, forme masquée |
+| `auth_flow_test.dart` | Parcours complet OTP, profil, rotation des jetons, code PIN, réseau dégradé |
+| `widget_test.dart` | Redirections par état de session, bascule de langue, permanence du bandeau réseau |
+
+Le parcours d'authentification est testé à travers la **pile réelle** — client
+dio, intercepteurs, transport simulé — et non contre des bouchons. C'est le seul
+moyen de vérifier que la clé d'idempotence, l'en-tête d'autorisation et la
+rotation des jetons fonctionnent ensemble, et pas seulement isolément.
 
 Deux de ces tests méritent une explication, car ils protègent contre des défauts
 qui ne cassent rien à la compilation :

@@ -242,6 +242,210 @@ abstract class AppLocalizations {
   /// **'Synchronisation en cours...'**
   String get networkSyncing;
 
+  /// No description provided for @authPhoneTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre numero'**
+  String get authPhoneTitle;
+
+  /// No description provided for @authPhoneSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous vous envoyons un code par SMS pour verifier ce numero.'**
+  String get authPhoneSubtitle;
+
+  /// No description provided for @authPhoneLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero de telephone'**
+  String get authPhoneLabel;
+
+  /// No description provided for @authPhoneHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'034 12 345 67'**
+  String get authPhoneHint;
+
+  /// No description provided for @authPhoneInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero malgache invalide'**
+  String get authPhoneInvalid;
+
+  /// No description provided for @authPhoneOperator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Operateur reconnu : {operator}'**
+  String authPhoneOperator(String operator);
+
+  /// No description provided for @authOtpTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de verification'**
+  String get authOtpTitle;
+
+  /// No description provided for @authOtpSentTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code envoye au {phone}'**
+  String authOtpSentTo(String phone);
+
+  /// No description provided for @authOtpExpiresIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expire dans {time}'**
+  String authOtpExpiresIn(String time);
+
+  /// No description provided for @authOtpExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code expire. Demandez-en un nouveau.'**
+  String get authOtpExpired;
+
+  /// No description provided for @authOtpResend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Renvoyer le code'**
+  String get authOtpResend;
+
+  /// No description provided for @authOtpInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code incorrect. Il reste {count} tentative(s).'**
+  String authOtpInvalid(int count);
+
+  /// No description provided for @authOtpLocked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trop de tentatives. Demandez un nouveau code.'**
+  String get authOtpLocked;
+
+  /// No description provided for @authOtpSimulated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code simule : {code}'**
+  String authOtpSimulated(String code);
+
+  /// No description provided for @authProfileTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre profil'**
+  String get authProfileTitle;
+
+  /// No description provided for @authProfileSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce choix est definitif : il determine l\'application que vous utilisez.'**
+  String get authProfileSubtitle;
+
+  /// No description provided for @authProfileName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre nom'**
+  String get authProfileName;
+
+  /// No description provided for @authProfileNameHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom vu par les autres'**
+  String get authProfileNameHint;
+
+  /// No description provided for @authProfileNameRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Indiquez votre nom'**
+  String get authProfileNameRequired;
+
+  /// No description provided for @authProfileAdminNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le profil exploitation est attribue par MajiChrono, il ne se choisit pas ici.'**
+  String get authProfileAdminNote;
+
+  /// No description provided for @authPinTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creez un code a 4 chiffres'**
+  String get authPinTitle;
+
+  /// No description provided for @authPinSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il protege votre compte a la reouverture de l\'application.'**
+  String get authPinSubtitle;
+
+  /// No description provided for @authPinConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmez votre code'**
+  String get authPinConfirmTitle;
+
+  /// No description provided for @authPinMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les deux codes ne correspondent pas'**
+  String get authPinMismatch;
+
+  /// No description provided for @authPinLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus tard'**
+  String get authPinLater;
+
+  /// No description provided for @authPinSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code enregistre'**
+  String get authPinSaved;
+
+  /// No description provided for @authLockTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Application verrouillee'**
+  String get authLockTitle;
+
+  /// No description provided for @authLockSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre code pour continuer'**
+  String get authLockSubtitle;
+
+  /// No description provided for @authLockBiometrics.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utiliser la biometrie'**
+  String get authLockBiometrics;
+
+  /// No description provided for @authBiometricsReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deverrouiller MajiChrono'**
+  String get authBiometricsReason;
+
+  /// No description provided for @authLockWrongPin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code incorrect'**
+  String get authLockWrongPin;
+
+  /// No description provided for @authSignOut.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se deconnecter'**
+  String get authSignOut;
+
+  /// No description provided for @authSignOutConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se deconnecter effacera les donnees de cet appareil. Continuer ?'**
+  String get authSignOutConfirm;
+
+  /// No description provided for @authWelcome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Bonjour {name}'**
+  String authWelcome(String name);
+
   /// No description provided for @roleChooseTitle.
   ///
   /// In fr, this message translates to:

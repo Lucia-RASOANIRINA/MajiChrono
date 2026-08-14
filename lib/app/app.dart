@@ -8,6 +8,7 @@ import 'package:majichrono/app/theme/app_theme.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/core/i18n/mg_material_localizations.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
+import 'package:majichrono/features/auth/presentation/widgets/inactivity_lock.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
@@ -54,7 +55,8 @@ class MajiChronoApp extends ConsumerWidget {
             textScaler: media.textScaler.clamp(minScaleFactor: 0.9, maxScaleFactor: 1.4),
           ),
           child: Builder(
-            builder: (inner) => Column(
+            builder: (inner) => InactivityLock(
+              child: Column(
               children: [
                 // Le bandeau reseau est pose **au-dessus du Navigator**, et non
                 // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
@@ -74,6 +76,7 @@ class MajiChronoApp extends ConsumerWidget {
                   ),
                 ),
               ],
+              ),
             ),
           ),
         );

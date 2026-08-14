@@ -6,8 +6,15 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/shell/module_placeholder.dart';
 import 'package:majichrono/app/shell/role_shell.dart';
 import 'package:majichrono/core/session/user_role.dart';
+import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
+import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
+import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/auth/presentation/screens/lock_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/otp_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/phone_input_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/pin_setup_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/profile_choice_screen.dart';
 import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
-import 'package:majichrono/features/onboarding/presentation/role_select_screen.dart';
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
@@ -21,10 +28,10 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 /// d'ouvrir l'ecran concerne depuis une notification (EXI-N04) et d'honorer le
 /// lien de suivi public envoye par SMS (EXI-C24).
 final routerProvider = Provider<GoRouter>((ref) {
-  // Pont Riverpod -> Listenable : le routeur reevalue ses redirections quand le
-  // role change, sans etre reconstruit (ce qui perdrait la pile de navigation).
-  final refresh = ValueNotifier<UserRole?>(ref.read(activeRoleProvider));
-  ref.listen<UserRole?>(activeRoleProvider, (_, next) => refresh.value = next);
+  // Pont Riverpod -> Listenable : le routeur reevalue ses redirections quand la
+  // session change, sans etre reconstruit (ce qui perdrait la pile de navigation).
+  final refresh = ValueNotifier<Object?>(null);
+  ref.listen(authControllerProvider, (_, next) => refresh.value = next);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
@@ -33,41 +40,65 @@ final routerProvider = Provider<GoRouter>((ref) {
     refreshListenable: refresh,
     debugLogDiagnostics: false,
     redirect: (context, state) {
-      final role = ref.read(activeRoleProvider);
+      final auth = ref.read(authControllerProvider).valueOrNull;
       final location = state.matchedLocation;
 
       // Le suivi public est accessible sans compte : le destinataire
       // n'installe rien et n'a pas de session (EXI-C24).
       if (location.startsWith('/track/')) return null;
 
-      if (role == null) {
-        return location == AppRoutes.roleSelect ? null : AppRoutes.roleSelect;
-      }
+      // Toute la navigation decoule de l'etat de session, et de lui seul. Le
+      // filtrage exhaustif garantit qu'un etat ajoute plus tard ne pourra pas
+      // etre oublie ici.
+      return switch (auth) {
+        // Session en cours de relecture : on reste sur l'ecran d'attente.
+        null || AuthUnknown() =>
+          location == AppRoutes.splash ? null : AppRoutes.splash,
 
-      final home = switch (role) {
-        UserRole.client => AppRoutes.clientHome,
-        UserRole.driver => AppRoutes.driverHome,
-        UserRole.admin => AppRoutes.adminHome,
+        AuthUnauthenticated() =>
+          AppRoutes.isAuthRoute(location) ? null : AppRoutes.authPhone,
+
+        // Session ouverte, profil pas encore pose (EXI-T02).
+        AuthProfilePending() =>
+          location == AppRoutes.authProfile ? null : AppRoutes.authProfile,
+
+        // Verrou local : rien d'autre n'est atteignable (EXI-T04, EXI-SEC07).
+        AuthLocked() => location == AppRoutes.authLock ? null : AppRoutes.authLock,
+
+        AuthAuthenticated(:final account) => _redirectForRole(account.role, location),
       };
-
-      if (location == AppRoutes.splash || location == AppRoutes.roleSelect) {
-        return home;
-      }
-
-      // Cloisonnement des profils : un client ne peut pas atteindre une route
-      // livreur par lien profond.
-      final prefix = '/${role.wireName == 'client' ? 'client' : role.wireName}';
-      final isRoleRoute =
-          location.startsWith('/client') ||
-          location.startsWith('/driver') ||
-          location.startsWith('/admin');
-      if (isRoleRoute && !location.startsWith(prefix)) return home;
-
-      return null;
     },
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashScreen()),
-      GoRoute(path: AppRoutes.roleSelect, builder: (_, _) => const RoleSelectScreen()),
+      GoRoute(
+        path: AppRoutes.authPhone,
+        builder: (_, _) => const PhoneInputScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authOtp,
+        builder: (context, state) =>
+            OtpScreen(challenge: state.extra! as OtpChallenge),
+      ),
+      GoRoute(
+        path: AppRoutes.authProfile,
+        builder: (_, _) => const ProfileChoiceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authLock,
+        builder: (context, state) {
+          final auth = ProviderScope.containerOf(context)
+              .read(authControllerProvider)
+              .valueOrNull;
+          return auth is AuthLocked
+              ? LockScreen(state: auth)
+              : const _SplashScreen();
+        },
+      ),
+      GoRoute(
+        path: AppRoutes.authPin,
+        builder: (context, _) =>
+            PinSetupScreen(onDone: () => context.pop()),
+      ),
       GoRoute(path: AppRoutes.settings, builder: (_, _) => const SettingsScreen()),
       GoRoute(path: AppRoutes.dataUsage, builder: (_, _) => const DataUsageScreen()),
       GoRoute(path: AppRoutes.devPanel, builder: (_, _) => const DevPanelScreen()),
@@ -319,6 +350,30 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
     ),
   ],
 );
+
+/// Cloisonnement des profils : un client ne peut pas atteindre une route
+/// livreur, meme par lien profond depuis une notification.
+String? _redirectForRole(UserRole role, String location) {
+  final home = switch (role) {
+    UserRole.client => AppRoutes.clientHome,
+    UserRole.driver => AppRoutes.driverHome,
+    UserRole.admin => AppRoutes.adminHome,
+  };
+
+  // Le parcours d'authentification est termine : y revenir n'a plus de sens,
+  // sauf pour la creation du code PIN, qui se fait session ouverte.
+  if (location == AppRoutes.splash ||
+      (AppRoutes.isAuthRoute(location) && location != AppRoutes.authPin)) {
+    return home;
+  }
+
+  final isRoleRoute = location.startsWith('/client') ||
+      location.startsWith('/driver') ||
+      location.startsWith('/admin');
+  if (isRoleRoute && !location.startsWith('/${role.wireName}')) return home;
+
+  return null;
+}
 
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
