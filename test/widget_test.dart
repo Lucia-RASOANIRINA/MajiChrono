@@ -16,6 +16,7 @@ import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dar
 import 'package:majichrono/features/auth/presentation/controllers/auth_controller.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
 import 'helpers/in_memory_database.dart';
@@ -73,6 +74,10 @@ void main() {
         // test` s'execute sur le poste, ou la bibliotheque native SQLite livree
         // pour Android n'est pas chargee.
         pendingSyncCountProvider.overrideWith((ref) => Stream.value(0)),
+        // Idem pour les courses : sans valeur immediate, l'accueil expediteur
+        // affiche un squelette qui s'anime en boucle, et `pumpAndSettle`
+        // n'atteint jamais l'etat stable qu'il attend.
+        deliveriesProvider.overrideWith((ref) => Stream.value(const [])),
         authControllerProvider.overrideWith(() => _FixedAuthController(auth)),
       ],
       child: const MajiChronoApp(),

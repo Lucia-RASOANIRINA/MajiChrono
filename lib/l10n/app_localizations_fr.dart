@@ -262,6 +262,262 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminHomeTitle => 'Supervision';
 
   @override
+  String get newDeliveryTitle => 'Nouvelle course';
+
+  @override
+  String get stepAddresses => 'Adresses';
+
+  @override
+  String get stepPackage => 'Colis';
+
+  @override
+  String get stepReview => 'Recapitulatif';
+
+  @override
+  String get addrPickupTitle => 'Adresse de depart';
+
+  @override
+  String get addrDropoffTitle => 'Adresse d\'arrivee';
+
+  @override
+  String get addrDistrict => 'Quartier';
+
+  @override
+  String get addrDistrictHint => 'Ambohipo';
+
+  @override
+  String get addrLandmark => 'Point de repere';
+
+  @override
+  String get addrLandmarkHint => 'Apres l\'epicerie Tsiky, portail vert';
+
+  @override
+  String get addrLandmarkHelp =>
+      'C\'est ce qui permet au livreur de vous trouver.';
+
+  @override
+  String get addrContactPhone => 'Telephone sur place';
+
+  @override
+  String get addrContactName => 'Nom du contact';
+
+  @override
+  String get addrStreet => 'Rue et numero';
+
+  @override
+  String get addrOptional => 'facultatif';
+
+  @override
+  String get addrRequired => 'Champ obligatoire';
+
+  @override
+  String get addrSaveToBook => 'Enregistrer dans mes adresses';
+
+  @override
+  String get addrLabel => 'Nom de l\'adresse';
+
+  @override
+  String get addrLabelHint => 'Maison, Boutique';
+
+  @override
+  String get addrBookTitle => 'Mes adresses';
+
+  @override
+  String get addrBookEmpty => 'Aucune adresse enregistree';
+
+  @override
+  String get addrBookEmptyHelp =>
+      'Les adresses enregistrees ici se reutilisent en un geste.';
+
+  @override
+  String get addrPickFromBook => 'Choisir dans mes adresses';
+
+  @override
+  String get addrNew => 'Saisir une nouvelle adresse';
+
+  @override
+  String get addrDelete => 'Supprimer';
+
+  @override
+  String get pkgTitle => 'Le colis';
+
+  @override
+  String get pkgWeight => 'Poids';
+
+  @override
+  String get pkgWeightLt2 => 'Moins de 2 kg';
+
+  @override
+  String get pkgWeight2to5 => '2 a 5 kg';
+
+  @override
+  String get pkgWeight5to15 => '5 a 15 kg';
+
+  @override
+  String get pkgWeightGt15 => 'Plus de 15 kg';
+
+  @override
+  String get pkgValue => 'Valeur declaree';
+
+  @override
+  String get pkgDescription => 'Description';
+
+  @override
+  String get pkgPhotoLater =>
+      'La photo du colis sera demandee au module 5, avec la chaine photo.';
+
+  @override
+  String get kindTitle => 'Type de course';
+
+  @override
+  String get kindStandard => 'Colis standard';
+
+  @override
+  String get kindDocument => 'Document';
+
+  @override
+  String get kindFragile => 'Fragile';
+
+  @override
+  String get kindFood => 'Alimentaire';
+
+  @override
+  String get kindShopping => 'Achat pour compte';
+
+  @override
+  String get kindShoppingSoon => 'Disponible au module 9';
+
+  @override
+  String get slotTitle => 'Quand ?';
+
+  @override
+  String get slotImmediate => 'Immediat';
+
+  @override
+  String get slotScheduled => 'Programme';
+
+  @override
+  String get slotPickDate => 'Choisir la date';
+
+  @override
+  String slotRange(int start, int end) {
+    return '${start}h - ${end}h';
+  }
+
+  @override
+  String get paymentTitle => 'Paiement';
+
+  @override
+  String get paymentCash => 'Especes a la livraison';
+
+  @override
+  String get paymentMajipay => 'MajiPay';
+
+  @override
+  String get paymentMajipaySoon => 'Disponible au module 7';
+
+  @override
+  String get estimateTitle => 'Estimation du prix';
+
+  @override
+  String get estimateTotal => 'Total';
+
+  @override
+  String get estimateProvisional =>
+      'Tarif provisoire : la grille definitive n\'est pas encore arretee.';
+
+  @override
+  String get priceBase => 'Prise en charge';
+
+  @override
+  String get priceDistance => 'Distance';
+
+  @override
+  String get priceWeight => 'Poids';
+
+  @override
+  String get priceKind => 'Majoration type de course';
+
+  @override
+  String get priceSchedule => 'Creneau programme';
+
+  @override
+  String get priceInsurance => 'Assurance';
+
+  @override
+  String get confirmDelivery => 'Confirmer la course';
+
+  @override
+  String get deliveryCreated => 'Course creee';
+
+  @override
+  String get deliveryQueued =>
+      'Course enregistree. Elle partira des le retour du reseau.';
+
+  @override
+  String get deliveriesTitle => 'Mes courses';
+
+  @override
+  String get deliveryPendingSync => 'En attente d\'envoi';
+
+  @override
+  String get deliveryCancel => 'Annuler la course';
+
+  @override
+  String get deliveryCancelConfirm =>
+      'Annuler cette course ? Des frais peuvent s\'appliquer.';
+
+  @override
+  String deliveryDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get statusPending => 'En attente d\'un livreur';
+
+  @override
+  String get statusAccepted => 'Livreur en route';
+
+  @override
+  String get statusAtPickup => 'Livreur au depart';
+
+  @override
+  String get statusPickedUp => 'Colis pris en charge';
+
+  @override
+  String get statusInTransit => 'En transit';
+
+  @override
+  String get statusAtDestination => 'Livreur arrive';
+
+  @override
+  String get statusDelivered => 'Livree';
+
+  @override
+  String get statusDeliveredWithReserves => 'Livree avec reserves';
+
+  @override
+  String get statusRefused => 'Refusee';
+
+  @override
+  String get statusReturning => 'Retour expediteur';
+
+  @override
+  String get statusPaid => 'Payee';
+
+  @override
+  String get statusDisputed => 'Litige';
+
+  @override
+  String get statusCancelled => 'Annulee';
+
+  @override
+  String get statusClosed => 'Cloturee';
+
+  @override
+  String get statusDraft => 'Brouillon';
+
+  @override
   String get emptyTitle => 'Rien a afficher';
 
   @override

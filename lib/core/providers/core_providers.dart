@@ -14,6 +14,7 @@ import 'package:majichrono/core/storage/app_database.dart';
 import 'package:majichrono/core/storage/prefs_store.dart';
 import 'package:majichrono/core/storage/secure_store.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
+import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
 
 /// Injection de dependances : Riverpod est le seul mecanisme (§9.1).
 ///
@@ -50,7 +51,8 @@ final secureStoreProvider = Provider<SecureStore>((ref) => SecureStore());
 final mockBackendProvider = Provider<MockBackend>((ref) {
   return MockBackend()
     ..register(CoreMockModule())
-    ..register(AuthMockModule());
+    ..register(AuthMockModule())
+    ..register(DeliveryMockModule());
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;

@@ -566,6 +566,498 @@ abstract class AppLocalizations {
   /// **'Supervision'**
   String get adminHomeTitle;
 
+  /// No description provided for @newDeliveryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle course'**
+  String get newDeliveryTitle;
+
+  /// No description provided for @stepAddresses.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresses'**
+  String get stepAddresses;
+
+  /// No description provided for @stepPackage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis'**
+  String get stepPackage;
+
+  /// No description provided for @stepReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recapitulatif'**
+  String get stepReview;
+
+  /// No description provided for @addrPickupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse de depart'**
+  String get addrPickupTitle;
+
+  /// No description provided for @addrDropoffTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse d\'arrivee'**
+  String get addrDropoffTitle;
+
+  /// No description provided for @addrDistrict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quartier'**
+  String get addrDistrict;
+
+  /// No description provided for @addrDistrictHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ambohipo'**
+  String get addrDistrictHint;
+
+  /// No description provided for @addrLandmark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Point de repere'**
+  String get addrLandmark;
+
+  /// No description provided for @addrLandmarkHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apres l\'epicerie Tsiky, portail vert'**
+  String get addrLandmarkHint;
+
+  /// No description provided for @addrLandmarkHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'C\'est ce qui permet au livreur de vous trouver.'**
+  String get addrLandmarkHelp;
+
+  /// No description provided for @addrContactPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Telephone sur place'**
+  String get addrContactPhone;
+
+  /// No description provided for @addrContactName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du contact'**
+  String get addrContactName;
+
+  /// No description provided for @addrStreet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rue et numero'**
+  String get addrStreet;
+
+  /// No description provided for @addrOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'facultatif'**
+  String get addrOptional;
+
+  /// No description provided for @addrRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Champ obligatoire'**
+  String get addrRequired;
+
+  /// No description provided for @addrSaveToBook.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer dans mes adresses'**
+  String get addrSaveToBook;
+
+  /// No description provided for @addrLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom de l\'adresse'**
+  String get addrLabel;
+
+  /// No description provided for @addrLabelHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Maison, Boutique'**
+  String get addrLabelHint;
+
+  /// No description provided for @addrBookTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes adresses'**
+  String get addrBookTitle;
+
+  /// No description provided for @addrBookEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune adresse enregistree'**
+  String get addrBookEmpty;
+
+  /// No description provided for @addrBookEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les adresses enregistrees ici se reutilisent en un geste.'**
+  String get addrBookEmptyHelp;
+
+  /// No description provided for @addrPickFromBook.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans mes adresses'**
+  String get addrPickFromBook;
+
+  /// No description provided for @addrNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisir une nouvelle adresse'**
+  String get addrNew;
+
+  /// No description provided for @addrDelete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Supprimer'**
+  String get addrDelete;
+
+  /// No description provided for @pkgTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le colis'**
+  String get pkgTitle;
+
+  /// No description provided for @pkgWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poids'**
+  String get pkgWeight;
+
+  /// No description provided for @pkgWeightLt2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moins de 2 kg'**
+  String get pkgWeightLt2;
+
+  /// No description provided for @pkgWeight2to5.
+  ///
+  /// In fr, this message translates to:
+  /// **'2 a 5 kg'**
+  String get pkgWeight2to5;
+
+  /// No description provided for @pkgWeight5to15.
+  ///
+  /// In fr, this message translates to:
+  /// **'5 a 15 kg'**
+  String get pkgWeight5to15;
+
+  /// No description provided for @pkgWeightGt15.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plus de 15 kg'**
+  String get pkgWeightGt15;
+
+  /// No description provided for @pkgValue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valeur declaree'**
+  String get pkgValue;
+
+  /// No description provided for @pkgDescription.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description'**
+  String get pkgDescription;
+
+  /// No description provided for @pkgPhotoLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'La photo du colis sera demandee au module 5, avec la chaine photo.'**
+  String get pkgPhotoLater;
+
+  /// No description provided for @kindTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de course'**
+  String get kindTitle;
+
+  /// No description provided for @kindStandard.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis standard'**
+  String get kindStandard;
+
+  /// No description provided for @kindDocument.
+  ///
+  /// In fr, this message translates to:
+  /// **'Document'**
+  String get kindDocument;
+
+  /// No description provided for @kindFragile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fragile'**
+  String get kindFragile;
+
+  /// No description provided for @kindFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alimentaire'**
+  String get kindFood;
+
+  /// No description provided for @kindShopping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Achat pour compte'**
+  String get kindShopping;
+
+  /// No description provided for @kindShoppingSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible au module 9'**
+  String get kindShoppingSoon;
+
+  /// No description provided for @slotTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quand ?'**
+  String get slotTitle;
+
+  /// No description provided for @slotImmediate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Immediat'**
+  String get slotImmediate;
+
+  /// No description provided for @slotScheduled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Programme'**
+  String get slotScheduled;
+
+  /// No description provided for @slotPickDate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir la date'**
+  String get slotPickDate;
+
+  /// No description provided for @slotRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'{start}h - {end}h'**
+  String slotRange(int start, int end);
+
+  /// No description provided for @paymentTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get paymentTitle;
+
+  /// No description provided for @paymentCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Especes a la livraison'**
+  String get paymentCash;
+
+  /// No description provided for @paymentMajipay.
+  ///
+  /// In fr, this message translates to:
+  /// **'MajiPay'**
+  String get paymentMajipay;
+
+  /// No description provided for @paymentMajipaySoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible au module 7'**
+  String get paymentMajipaySoon;
+
+  /// No description provided for @estimateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimation du prix'**
+  String get estimateTitle;
+
+  /// No description provided for @estimateTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Total'**
+  String get estimateTotal;
+
+  /// No description provided for @estimateProvisional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tarif provisoire : la grille definitive n\'est pas encore arretee.'**
+  String get estimateProvisional;
+
+  /// No description provided for @priceBase.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prise en charge'**
+  String get priceBase;
+
+  /// No description provided for @priceDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Distance'**
+  String get priceDistance;
+
+  /// No description provided for @priceWeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poids'**
+  String get priceWeight;
+
+  /// No description provided for @priceKind.
+  ///
+  /// In fr, this message translates to:
+  /// **'Majoration type de course'**
+  String get priceKind;
+
+  /// No description provided for @priceSchedule.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creneau programme'**
+  String get priceSchedule;
+
+  /// No description provided for @priceInsurance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Assurance'**
+  String get priceInsurance;
+
+  /// No description provided for @confirmDelivery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer la course'**
+  String get confirmDelivery;
+
+  /// No description provided for @deliveryCreated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course creee'**
+  String get deliveryCreated;
+
+  /// No description provided for @deliveryQueued.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course enregistree. Elle partira des le retour du reseau.'**
+  String get deliveryQueued;
+
+  /// No description provided for @deliveriesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes courses'**
+  String get deliveriesTitle;
+
+  /// No description provided for @deliveryPendingSync.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente d\'envoi'**
+  String get deliveryPendingSync;
+
+  /// No description provided for @deliveryCancel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la course'**
+  String get deliveryCancel;
+
+  /// No description provided for @deliveryCancelConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler cette course ? Des frais peuvent s\'appliquer.'**
+  String get deliveryCancelConfirm;
+
+  /// No description provided for @deliveryDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'{km} km'**
+  String deliveryDistance(String km);
+
+  /// No description provided for @statusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente d\'un livreur'**
+  String get statusPending;
+
+  /// No description provided for @statusAccepted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur en route'**
+  String get statusAccepted;
+
+  /// No description provided for @statusAtPickup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur au depart'**
+  String get statusAtPickup;
+
+  /// No description provided for @statusPickedUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis pris en charge'**
+  String get statusPickedUp;
+
+  /// No description provided for @statusInTransit.
+  ///
+  /// In fr, this message translates to:
+  /// **'En transit'**
+  String get statusInTransit;
+
+  /// No description provided for @statusAtDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur arrive'**
+  String get statusAtDestination;
+
+  /// No description provided for @statusDelivered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livree'**
+  String get statusDelivered;
+
+  /// No description provided for @statusDeliveredWithReserves.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livree avec reserves'**
+  String get statusDeliveredWithReserves;
+
+  /// No description provided for @statusRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refusee'**
+  String get statusRefused;
+
+  /// No description provided for @statusReturning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retour expediteur'**
+  String get statusReturning;
+
+  /// No description provided for @statusPaid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payee'**
+  String get statusPaid;
+
+  /// No description provided for @statusDisputed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige'**
+  String get statusDisputed;
+
+  /// No description provided for @statusCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulee'**
+  String get statusCancelled;
+
+  /// No description provided for @statusClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cloturee'**
+  String get statusClosed;
+
+  /// No description provided for @statusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Brouillon'**
+  String get statusDraft;
+
   /// No description provided for @emptyTitle.
   ///
   /// In fr, this message translates to:

@@ -188,7 +188,7 @@ Chaque module est construit, testé sur émulateur, puis validé avant le suivan
 |---|---|---|---|
 | 0 | Socle technique et coquille navigable | Lot 0 | Livré |
 | 1 | Authentification et session | Lot 1 | Livré |
-| 2 | Expéditeur : création de course | Lot 1 | À faire |
+| 2 | Expéditeur : création de course | Lot 1 | Livré |
 | 3 | Suivi cartographique et notifications | Lot 1 | À faire |
 | 4 | Livreur : KYC, file, progression | Lot 2 | À faire |
 | 5 | Chaîne de responsabilité et preuve | Lot 2 | À faire |
@@ -282,22 +282,58 @@ serveur croirait le profil posé, le jeton dirait le contraire, et une seconde
 tentative de choix passerait au travers du contrôle. Toute donnée d'identité qui
 change entraîne donc une rotation des jetons.
 
-### Module 2 — Expéditeur : création de course
+### Module 2 — Expéditeur : création de course (livré)
 
-| Tâche | Profil | Exigences |
-|---|---|---|
-| Adresse composite : point GPS, quartier, point de repère, téléphone | Expéditeur | EXI-C02 |
-| Saisie par carte, position actuelle, favoris ou point relais | Expéditeur | EXI-C01 |
-| Photo de façade attachable et réutilisée au prochain envoi | Expéditeur | EXI-C03 |
-| Note vocale d'itinéraire de 30 secondes | Expéditeur | EXI-C04 |
-| Carnet d'adresses avec favoris nommés | Expéditeur | EXI-C05 |
-| Type de course, dont achat pour compte | Expéditeur | EXI-C06 |
-| Déclaration du colis : poids, dimensions, valeur | Expéditeur | EXI-C08 |
-| Photo du colis obligatoire à la création | Expéditeur | EXI-C09 |
-| Estimation de prix ventilée, affichée avant confirmation | Expéditeur | EXI-C10 |
-| Créneau immédiat ou programmé | Expéditeur | EXI-C11 |
-| Création de course entièrement hors ligne, mise en file | Expéditeur | EXI-C13 |
-| Historique consultable hors ligne, reçu partageable | Expéditeur | EXI-C33, EXI-C34 |
+| Tâche | Profil | Exigences | État |
+|---|---|---|---|
+| Adresse composite : point GPS, quartier, point de repère, téléphone | Expéditeur | EXI-C02 | Fait |
+| Repère et téléphone obligatoires, rue et numéro facultatifs | Expéditeur | EXI-C02, D3 | Fait |
+| Carnet d'adresses avec favoris nommés, tri par usage | Expéditeur | EXI-C05 | Fait |
+| Type de course : standard, document, fragile, alimentaire | Expéditeur | EXI-C06 | Fait |
+| Déclaration du colis : catégorie de poids, valeur, description | Expéditeur | EXI-C08 | Fait |
+| Estimation de prix ventilée, affichée avant confirmation | Expéditeur | EXI-C10 | Fait |
+| Créneau immédiat ou programmé par tranche de 2 heures | Expéditeur | EXI-C11 | Fait |
+| Création de course entièrement hors ligne | Expéditeur | EXI-C13 | Fait |
+| Course non transmise signalée explicitement dans la liste | Expéditeur | EXI-C13 | Fait |
+| Historique consultable hors ligne | Expéditeur | EXI-C33 | Fait |
+| Annulation avant prise en charge | Expéditeur | EXI-C26 | Fait |
+| Mode de paiement : espèces par défaut | Expéditeur | EXI-C40 | Fait |
+| Photo de façade et note vocale d'itinéraire | Expéditeur | EXI-C03, EXI-C04 | Module 5 |
+| Photo du colis à la création | Expéditeur | EXI-C09 | Module 5 |
+| Saisie d'adresse par carte et position actuelle | Expéditeur | EXI-C01 | Module 3 |
+| Achat pour compte | Expéditeur | EXI-C06, D5 | Module 9 |
+| Point relais | Expéditeur | D6 | Module 9 |
+| Reçu partageable en PDF | Expéditeur | EXI-C34 | Module 7 |
+
+**Ce qui a été volontairement reporté, et pourquoi.** Trois exigences de ce
+module demandent la caméra — photo de façade, photo du colis, et plus tard les
+photos guidées des constats. Toute la chaîne photo est un bloc cohérent :
+capture dans l'application uniquement, compression à 200 Ko, horodatage et
+position, stockage chiffré. La découper en deux reviendrait à construire ce
+pipeline deux fois. Elle est donc traitée d'un seul tenant au module 5. De même,
+la saisie d'adresse par carte attend `flutter_map` au module 3 ; le modèle porte
+déjà le point GPS, de sorte que l'arrivée de la carte ne touchera pas le
+formulaire.
+
+**L'adresse est le différenciant D3, et sa forme le montre.** L'ordre des champs
+n'est pas cosmétique : quartier, puis point de repère, puis téléphone — les
+trois obligatoires — et la rue tout en bas, explicitement marquée facultative.
+Un formulaire qui commencerait par « rue et numéro » inviterait l'utilisateur à
+remplir le champ le moins utile et à bâcler celui dont le livreur a réellement
+besoin. À Madagascar, l'adresse s'énonce « Ambohipo, après l'épicerie Tsiky,
+portail vert, appeler en arrivant » (§4.3).
+
+**Le prix est provisoire, et l'application le dit.** La décision DO-3 du §19.2 —
+modèle de commission et grille tarifaire — n'est pas arbitrée. L'estimation
+affiche donc une mention explicite : annoncer un prix ferme issu d'une hypothèse
+serait promettre à l'expéditeur un montant que l'exploitation ne tiendra pas. La
+grille est isolée dans une classe paramétrée, de sorte qu'une grille servie par
+le serveur la remplacera sans toucher au calcul ni aux écrans.
+
+**La distance est majorée d'un facteur de détour de 1,35.** Les rues
+d'Antananarivo ne vont pas en ligne droite ; retenir la distance à vol d'oiseau
+reviendrait à sous-payer le livreur. Ce facteur disparaîtra au module 3, quand
+un calcul d'itinéraire réel sera disponible.
 
 ### Module 3 — Suivi et notifications
 
@@ -434,6 +470,7 @@ géolocalisé, photographié et signé par les deux parties.
 | `no_literal_strings_test.dart` | Aucun libellé écrit en dur dans les widgets |
 | `malagasy_phone_test.dart` | Normalisation du numéro, rejets, opérateur, forme masquée |
 | `auth_flow_test.dart` | Parcours complet OTP, profil, rotation des jetons, code PIN, réseau dégradé |
+| `delivery_test.dart` | Adresse composite, grille tarifaire, création en ligne et hors ligne, carnet d'adresses |
 | `widget_test.dart` | Redirections par état de session, bascule de langue, permanence du bandeau réseau |
 
 Le parcours d'authentification est testé à travers la **pile réelle** — client

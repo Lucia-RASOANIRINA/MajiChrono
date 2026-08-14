@@ -25,10 +25,14 @@ class McEmptyState extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Center(
+    // Defile plutot que de deborder : le composant est utilise dans des cartes
+    // de hauteur fixe et sur des ecrans de 320 dp (EXI-P09), ou un message un
+    // peu long suffit a faire sortir le contenu de son cadre.
+    return SingleChildScrollView(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(

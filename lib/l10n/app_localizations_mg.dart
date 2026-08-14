@@ -262,6 +262,261 @@ class AppLocalizationsMg extends AppLocalizations {
   String get adminHomeTitle => 'Fanaraha-maso';
 
   @override
+  String get newDeliveryTitle => 'Dia vaovao';
+
+  @override
+  String get stepAddresses => 'Adiresy';
+
+  @override
+  String get stepPackage => 'Entana';
+
+  @override
+  String get stepReview => 'Famintinana';
+
+  @override
+  String get addrPickupTitle => 'Adiresy fiaingana';
+
+  @override
+  String get addrDropoffTitle => 'Adiresy hidirana';
+
+  @override
+  String get addrDistrict => 'Fokontany';
+
+  @override
+  String get addrDistrictHint => 'Ambohipo';
+
+  @override
+  String get addrLandmark => 'Famantarana';
+
+  @override
+  String get addrLandmarkHint =>
+      'Aorian\'ny episerian\'i Tsiky, vavahady maitso';
+
+  @override
+  String get addrLandmarkHelp => 'Io no ahafahan\'ny mpanatitra mahita anao.';
+
+  @override
+  String get addrContactPhone => 'Laharana eo an-toerana';
+
+  @override
+  String get addrContactName => 'Anaran\'ny olona';
+
+  @override
+  String get addrStreet => 'Lalana sy laharana';
+
+  @override
+  String get addrOptional => 'tsy voatery';
+
+  @override
+  String get addrRequired => 'Tsy maintsy fenoina';
+
+  @override
+  String get addrSaveToBook => 'Tehirizo ao amin\'ny adiresiko';
+
+  @override
+  String get addrLabel => 'Anaran\'ny adiresy';
+
+  @override
+  String get addrLabelHint => 'Trano, Fivarotana';
+
+  @override
+  String get addrBookTitle => 'Ny adiresiko';
+
+  @override
+  String get addrBookEmpty => 'Tsy misy adiresy voatahiry';
+
+  @override
+  String get addrBookEmptyHelp =>
+      'Ny adiresy voatahiry eto dia azo averina ampiasaina avy hatrany.';
+
+  @override
+  String get addrPickFromBook => 'Misafidiana amin\'ny adiresiko';
+
+  @override
+  String get addrNew => 'Hanoratra adiresy vaovao';
+
+  @override
+  String get addrDelete => 'Fafao';
+
+  @override
+  String get pkgTitle => 'Ny entana';
+
+  @override
+  String get pkgWeight => 'Lanja';
+
+  @override
+  String get pkgWeightLt2 => 'Latsaky ny 2 kg';
+
+  @override
+  String get pkgWeight2to5 => '2 ka hatramin\'ny 5 kg';
+
+  @override
+  String get pkgWeight5to15 => '5 ka hatramin\'ny 15 kg';
+
+  @override
+  String get pkgWeightGt15 => 'Mihoatra ny 15 kg';
+
+  @override
+  String get pkgValue => 'Sanda ambara';
+
+  @override
+  String get pkgDescription => 'Famaritana';
+
+  @override
+  String get pkgPhotoLater =>
+      'Hangatahina amin\'ny modely 5 ny sarin\'ny entana.';
+
+  @override
+  String get kindTitle => 'Karazan-dia';
+
+  @override
+  String get kindStandard => 'Entana tsotra';
+
+  @override
+  String get kindDocument => 'Taratasy';
+
+  @override
+  String get kindFragile => 'Mora vaky';
+
+  @override
+  String get kindFood => 'Sakafo';
+
+  @override
+  String get kindShopping => 'Fividianana solon-tena';
+
+  @override
+  String get kindShoppingSoon => 'Ho avy amin\'ny modely 9';
+
+  @override
+  String get slotTitle => 'Rahoviana ?';
+
+  @override
+  String get slotImmediate => 'Avy hatrany';
+
+  @override
+  String get slotScheduled => 'Voalahatra';
+
+  @override
+  String get slotPickDate => 'Safidio ny daty';
+
+  @override
+  String slotRange(int start, int end) {
+    return '${start}o - ${end}o';
+  }
+
+  @override
+  String get paymentTitle => 'Fandoavam-bola';
+
+  @override
+  String get paymentCash => 'Vola madio rehefa tonga';
+
+  @override
+  String get paymentMajipay => 'MajiPay';
+
+  @override
+  String get paymentMajipaySoon => 'Ho avy amin\'ny modely 7';
+
+  @override
+  String get estimateTitle => 'Tombana vidiny';
+
+  @override
+  String get estimateTotal => 'Totaliny';
+
+  @override
+  String get estimateProvisional =>
+      'Vidiny vonjimaika : mbola tsy raikitra ny tabilaon-tarifa.';
+
+  @override
+  String get priceBase => 'Fandraisana';
+
+  @override
+  String get priceDistance => 'Halavirana';
+
+  @override
+  String get priceWeight => 'Lanja';
+
+  @override
+  String get priceKind => 'Fampiakarana karazan-dia';
+
+  @override
+  String get priceSchedule => 'Fotoana voalahatra';
+
+  @override
+  String get priceInsurance => 'Fiantohana';
+
+  @override
+  String get confirmDelivery => 'Hamafiso ny dia';
+
+  @override
+  String get deliveryCreated => 'Voaforona ny dia';
+
+  @override
+  String get deliveryQueued =>
+      'Voatahiry ny dia. Halefa rehefa miverina ny aterineto.';
+
+  @override
+  String get deliveriesTitle => 'Ny diako';
+
+  @override
+  String get deliveryPendingSync => 'Miandry halefa';
+
+  @override
+  String get deliveryCancel => 'Foanana ny dia';
+
+  @override
+  String get deliveryCancelConfirm => 'Foanana ity dia ity ? Mety hisy sarany.';
+
+  @override
+  String deliveryDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get statusPending => 'Miandry mpanatitra';
+
+  @override
+  String get statusAccepted => 'Mpanatitra an-dalana';
+
+  @override
+  String get statusAtPickup => 'Mpanatitra tonga teo am-piaingana';
+
+  @override
+  String get statusPickedUp => 'Voaray ny entana';
+
+  @override
+  String get statusInTransit => 'An-dalana';
+
+  @override
+  String get statusAtDestination => 'Tonga ny mpanatitra';
+
+  @override
+  String get statusDelivered => 'Voatolotra';
+
+  @override
+  String get statusDeliveredWithReserves => 'Voatolotra misy fanamarihana';
+
+  @override
+  String get statusRefused => 'Nolavina';
+
+  @override
+  String get statusReturning => 'Miverina any amin\'ny mpandefa';
+
+  @override
+  String get statusPaid => 'Voaloa';
+
+  @override
+  String get statusDisputed => 'Fifandirana';
+
+  @override
+  String get statusCancelled => 'Nofoanana';
+
+  @override
+  String get statusClosed => 'Vita';
+
+  @override
+  String get statusDraft => 'Volavola';
+
+  @override
   String get emptyTitle => 'Tsy misy asehoana';
 
   @override

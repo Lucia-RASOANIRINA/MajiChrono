@@ -14,6 +14,8 @@ import 'package:majichrono/features/auth/presentation/screens/otp_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/phone_input_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/pin_setup_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/profile_choice_screen.dart';
+import 'package:majichrono/features/delivery/presentation/screens/create_delivery_screen.dart';
+import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
@@ -151,12 +153,7 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
           routes: [
             GoRoute(
               path: 'new',
-              builder: (context, _) => ModulePlaceholderScreen(
-                title: AppLocalizations.of(context).clientNewDelivery,
-                module: '2',
-                icon: Icons.add_box_outlined,
-                requirements: const ['EXI-C01', 'EXI-C02', 'EXI-C08', 'EXI-C13'],
-              ),
+              builder: (_, _) => const CreateDeliveryScreen(),
             ),
           ],
         ),
@@ -166,12 +163,7 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.clientDeliveries,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navDeliveries,
-            module: '2',
-            icon: Icons.inventory_2_outlined,
-            requirements: const ['EXI-C21', 'EXI-C33'],
-          ),
+          builder: (_, _) => const DeliveriesScreen(),
         ),
       ],
     ),

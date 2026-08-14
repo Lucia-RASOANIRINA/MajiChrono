@@ -8,8 +8,11 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/session/user_role.dart';
+import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
+import 'package:majichrono/shared/widgets/mc_skeleton.dart';
 
 /// Accueil du module 0.
 ///
@@ -122,23 +125,70 @@ class SocleHomeScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.xl),
           _SectionTitle(title: l10n.navDeliveries),
           const SizedBox(height: AppSpacing.sm),
-          SizedBox(
-            height: 260,
-            child: Card(
-              child: McEmptyState(
-                icon: Icons.inventory_2_outlined,
-                title: l10n.emptyDeliveries,
-                message: l10n.shellModuleWipDesc(role == UserRole.driver ? '4' : '2'),
-                actionLabel: role == UserRole.client ? l10n.emptyDeliveriesAction : null,
-                onAction: role == UserRole.client
-                    ? () => context.push(AppRoutes.clientNewDelivery)
-                    : null,
+          if (role == UserRole.client)
+            const _ClientDeliveries()
+          else
+            SizedBox(
+              height: 240,
+              child: Card(
+                child: McEmptyState(
+                  icon: Icons.inventory_2_outlined,
+                  title: l10n.emptyDeliveries,
+                  message: l10n.shellModuleWipDesc('4'),
+                ),
               ),
             ),
-          ),
           const SizedBox(height: AppSpacing.xl),
         ],
       ),
+    );
+  }
+}
+
+/// Apercu des courses de l'expediteur, servi par la base locale.
+///
+/// Les courses en cours d'abord, puis les plus recentes : l'accueil repond a
+/// « ou en est mon colis ? », pas a « qu'ai-je envoye l'an dernier ? ».
+class _ClientDeliveries extends ConsumerWidget {
+  const _ClientDeliveries();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final deliveries = ref.watch(deliveriesProvider).valueOrNull;
+
+    if (deliveries == null) {
+      return const SizedBox(height: 200, child: McSkeletonList(itemCount: 2));
+    }
+
+    if (deliveries.isEmpty) {
+      return SizedBox(
+        height: 260,
+        child: Card(
+          child: McEmptyState(
+            icon: Icons.inventory_2_outlined,
+            title: l10n.emptyDeliveries,
+            message: l10n.addrBookEmptyHelp,
+            actionLabel: l10n.emptyDeliveriesAction,
+            onAction: () => context.push(AppRoutes.clientNewDelivery),
+          ),
+        ),
+      );
+    }
+
+    final visible = deliveries.take(3).toList();
+    return Column(
+      children: [
+        for (final delivery in visible) ...[
+          DeliveryCard(delivery: delivery),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        FilledButton.tonalIcon(
+          onPressed: () => context.push(AppRoutes.clientNewDelivery),
+          icon: const Icon(Icons.add),
+          label: Text(l10n.clientNewDelivery),
+        ),
+      ],
     );
   }
 }

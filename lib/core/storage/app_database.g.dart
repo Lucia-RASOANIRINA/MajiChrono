@@ -47,7 +47,9 @@ class $SyncQueueItemsTable extends SyncQueueItems
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _payloadMeta = const VerificationMeta('payload');
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
   @override
   late final GeneratedColumn<String> payload = GeneratedColumn<String>(
     'payload',
@@ -56,7 +58,9 @@ class $SyncQueueItemsTable extends SyncQueueItems
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _priorityMeta = const VerificationMeta('priority');
+  static const VerificationMeta _priorityMeta = const VerificationMeta(
+    'priority',
+  );
   @override
   late final GeneratedColumn<int> priority = GeneratedColumn<int>(
     'priority',
@@ -76,7 +80,9 @@ class $SyncQueueItemsTable extends SyncQueueItems
     requiredDuringInsert: false,
     defaultValue: const Constant('pending'),
   );
-  static const VerificationMeta _attemptsMeta = const VerificationMeta('attempts');
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
   @override
   late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
     'attempts',
@@ -86,7 +92,9 @@ class $SyncQueueItemsTable extends SyncQueueItems
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
-  static const VerificationMeta _lastErrorMeta = const VerificationMeta('lastError');
+  static const VerificationMeta _lastErrorMeta = const VerificationMeta(
+    'lastError',
+  );
   @override
   late final GeneratedColumn<String> lastError = GeneratedColumn<String>(
     'last_error',
@@ -95,7 +103,9 @@ class $SyncQueueItemsTable extends SyncQueueItems
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _createdAtMeta = const VerificationMeta('createdAt');
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
   @override
   late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
     'created_at',
@@ -108,13 +118,14 @@ class $SyncQueueItemsTable extends SyncQueueItems
     'nextAttemptAt',
   );
   @override
-  late final GeneratedColumn<DateTime> nextAttemptAt = GeneratedColumn<DateTime>(
-    'next_attempt_at',
-    aliasedName,
-    true,
-    type: DriftSqlType.dateTime,
-    requiredDuringInsert: false,
-  );
+  late final GeneratedColumn<DateTime> nextAttemptAt =
+      GeneratedColumn<DateTime>(
+        'next_attempt_at',
+        aliasedName,
+        true,
+        type: DriftSqlType.dateTime,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _neverAbandonMeta = const VerificationMeta(
     'neverAbandon',
   );
@@ -182,7 +193,10 @@ class $SyncQueueItemsTable extends SyncQueueItems
       context.missing(_methodMeta);
     }
     if (data.containsKey('path')) {
-      context.handle(_pathMeta, path.isAcceptableOrUnknown(data['path']!, _pathMeta));
+      context.handle(
+        _pathMeta,
+        path.isAcceptableOrUnknown(data['path']!, _pathMeta),
+      );
     } else if (isInserting) {
       context.missing(_pathMeta);
     }
@@ -229,13 +243,19 @@ class $SyncQueueItemsTable extends SyncQueueItems
     if (data.containsKey('next_attempt_at')) {
       context.handle(
         _nextAttemptAtMeta,
-        nextAttemptAt.isAcceptableOrUnknown(data['next_attempt_at']!, _nextAttemptAtMeta),
+        nextAttemptAt.isAcceptableOrUnknown(
+          data['next_attempt_at']!,
+          _nextAttemptAtMeta,
+        ),
       );
     }
     if (data.containsKey('never_abandon')) {
       context.handle(
         _neverAbandonMeta,
-        neverAbandon.isAcceptableOrUnknown(data['never_abandon']!, _neverAbandonMeta),
+        neverAbandon.isAcceptableOrUnknown(
+          data['never_abandon']!,
+          _neverAbandonMeta,
+        ),
       );
     }
     return context;
@@ -445,7 +465,9 @@ class SyncQueueItem extends DataClass implements Insertable<SyncQueueItem> {
     attempts: attempts ?? this.attempts,
     lastError: lastError.present ? lastError.value : this.lastError,
     createdAt: createdAt ?? this.createdAt,
-    nextAttemptAt: nextAttemptAt.present ? nextAttemptAt.value : this.nextAttemptAt,
+    nextAttemptAt: nextAttemptAt.present
+        ? nextAttemptAt.value
+        : this.nextAttemptAt,
     neverAbandon: neverAbandon ?? this.neverAbandon,
   );
   SyncQueueItem copyWithCompanion(SyncQueueItemsCompanion data) {
@@ -702,7 +724,8 @@ class SyncQueueItemsCompanion extends UpdateCompanion<SyncQueueItem> {
   }
 }
 
-class $AppEventsTable extends AppEvents with TableInfo<$AppEventsTable, AppEvent> {
+class $AppEventsTable extends AppEvents
+    with TableInfo<$AppEventsTable, AppEvent> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
@@ -716,7 +739,9 @@ class $AppEventsTable extends AppEvents with TableInfo<$AppEventsTable, AppEvent
     hasAutoIncrement: true,
     type: DriftSqlType.int,
     requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways('PRIMARY KEY AUTOINCREMENT'),
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
   );
   static const VerificationMeta _kindMeta = const VerificationMeta('kind');
   @override
@@ -727,7 +752,9 @@ class $AppEventsTable extends AppEvents with TableInfo<$AppEventsTable, AppEvent
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _payloadMeta = const VerificationMeta('payload');
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
   @override
   late final GeneratedColumn<String> payload = GeneratedColumn<String>(
     'payload',
@@ -736,7 +763,9 @@ class $AppEventsTable extends AppEvents with TableInfo<$AppEventsTable, AppEvent
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
-  static const VerificationMeta _occurredAtMeta = const VerificationMeta('occurredAt');
+  static const VerificationMeta _occurredAtMeta = const VerificationMeta(
+    'occurredAt',
+  );
   @override
   late final GeneratedColumn<DateTime> occurredAt = GeneratedColumn<DateTime>(
     'occurred_at',
@@ -763,7 +792,10 @@ class $AppEventsTable extends AppEvents with TableInfo<$AppEventsTable, AppEvent
       context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
     }
     if (data.containsKey('kind')) {
-      context.handle(_kindMeta, kind.isAcceptableOrUnknown(data['kind']!, _kindMeta));
+      context.handle(
+        _kindMeta,
+        kind.isAcceptableOrUnknown(data['kind']!, _kindMeta),
+      );
     } else if (isInserting) {
       context.missing(_kindMeta);
     }
@@ -842,12 +874,17 @@ class AppEvent extends DataClass implements Insertable<AppEvent> {
     return AppEventsCompanion(
       id: Value(id),
       kind: Value(kind),
-      payload: payload == null && nullToAbsent ? const Value.absent() : Value(payload),
+      payload: payload == null && nullToAbsent
+          ? const Value.absent()
+          : Value(payload),
       occurredAt: Value(occurredAt),
     );
   }
 
-  factory AppEvent.fromJson(Map<String, dynamic> json, {ValueSerializer? serializer}) {
+  factory AppEvent.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return AppEvent(
       id: serializer.fromJson<int>(json['id']),
@@ -883,7 +920,9 @@ class AppEvent extends DataClass implements Insertable<AppEvent> {
       id: data.id.present ? data.id.value : this.id,
       kind: data.kind.present ? data.kind.value : this.kind,
       payload: data.payload.present ? data.payload.value : this.payload,
-      occurredAt: data.occurredAt.present ? data.occurredAt.value : this.occurredAt,
+      occurredAt: data.occurredAt.present
+          ? data.occurredAt.value
+          : this.occurredAt,
     );
   }
 
@@ -1010,7 +1049,9 @@ class $CachedDocumentsTable extends CachedDocuments
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _fetchedAtMeta = const VerificationMeta('fetchedAt');
+  static const VerificationMeta _fetchedAtMeta = const VerificationMeta(
+    'fetchedAt',
+  );
   @override
   late final GeneratedColumn<DateTime> fetchedAt = GeneratedColumn<DateTime>(
     'fetched_at',
@@ -1019,7 +1060,9 @@ class $CachedDocumentsTable extends CachedDocuments
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _expiresAtMeta = const VerificationMeta('expiresAt');
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
   @override
   late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
     'expires_at',
@@ -1043,12 +1086,18 @@ class $CachedDocumentsTable extends CachedDocuments
     final context = VerificationContext();
     final data = instance.toColumns(true);
     if (data.containsKey('key')) {
-      context.handle(_keyMeta, key.isAcceptableOrUnknown(data['key']!, _keyMeta));
+      context.handle(
+        _keyMeta,
+        key.isAcceptableOrUnknown(data['key']!, _keyMeta),
+      );
     } else if (isInserting) {
       context.missing(_keyMeta);
     }
     if (data.containsKey('body')) {
-      context.handle(_bodyMeta, body.isAcceptableOrUnknown(data['body']!, _bodyMeta));
+      context.handle(
+        _bodyMeta,
+        body.isAcceptableOrUnknown(data['body']!, _bodyMeta),
+      );
     } else if (isInserting) {
       context.missing(_bodyMeta);
     }
@@ -1288,12 +1337,851 @@ class CachedDocumentsCompanion extends UpdateCompanion<CachedDocument> {
   }
 }
 
+class $SavedAddressesTable extends SavedAddresses
+    with TableInfo<$SavedAddressesTable, SavedAddressesData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SavedAddressesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _labelMeta = const VerificationMeta('label');
+  @override
+  late final GeneratedColumn<String> label = GeneratedColumn<String>(
+    'label',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _useCountMeta = const VerificationMeta(
+    'useCount',
+  );
+  @override
+  late final GeneratedColumn<int> useCount = GeneratedColumn<int>(
+    'use_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> lastUsedAt = GeneratedColumn<DateTime>(
+    'last_used_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    label,
+    payload,
+    useCount,
+    lastUsedAt,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'saved_addresses';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SavedAddressesData> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('label')) {
+      context.handle(
+        _labelMeta,
+        label.isAcceptableOrUnknown(data['label']!, _labelMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_labelMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('use_count')) {
+      context.handle(
+        _useCountMeta,
+        useCount.isAcceptableOrUnknown(data['use_count']!, _useCountMeta),
+      );
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SavedAddressesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SavedAddressesData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      label: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}label'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      useCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}use_count'],
+      )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}last_used_at'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SavedAddressesTable createAlias(String alias) {
+    return $SavedAddressesTable(attachedDatabase, alias);
+  }
+}
+
+class SavedAddressesData extends DataClass
+    implements Insertable<SavedAddressesData> {
+  final String id;
+  final String label;
+
+  /// Adresse serialisee. Un blob JSON plutot qu'une colonne par champ : la
+  /// forme de l'adresse composite (§4.3) evoluera — photo de facade, note
+  /// vocale, point relais — et chaque ajout imposerait sinon une migration.
+  final String payload;
+  final int useCount;
+  final DateTime? lastUsedAt;
+  final DateTime createdAt;
+  const SavedAddressesData({
+    required this.id,
+    required this.label,
+    required this.payload,
+    required this.useCount,
+    this.lastUsedAt,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['label'] = Variable<String>(label);
+    map['payload'] = Variable<String>(payload);
+    map['use_count'] = Variable<int>(useCount);
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt);
+    }
+    map['created_at'] = Variable<DateTime>(createdAt);
+    return map;
+  }
+
+  SavedAddressesCompanion toCompanion(bool nullToAbsent) {
+    return SavedAddressesCompanion(
+      id: Value(id),
+      label: Value(label),
+      payload: Value(payload),
+      useCount: Value(useCount),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SavedAddressesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SavedAddressesData(
+      id: serializer.fromJson<String>(json['id']),
+      label: serializer.fromJson<String>(json['label']),
+      payload: serializer.fromJson<String>(json['payload']),
+      useCount: serializer.fromJson<int>(json['useCount']),
+      lastUsedAt: serializer.fromJson<DateTime?>(json['lastUsedAt']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'label': serializer.toJson<String>(label),
+      'payload': serializer.toJson<String>(payload),
+      'useCount': serializer.toJson<int>(useCount),
+      'lastUsedAt': serializer.toJson<DateTime?>(lastUsedAt),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+    };
+  }
+
+  SavedAddressesData copyWith({
+    String? id,
+    String? label,
+    String? payload,
+    int? useCount,
+    Value<DateTime?> lastUsedAt = const Value.absent(),
+    DateTime? createdAt,
+  }) => SavedAddressesData(
+    id: id ?? this.id,
+    label: label ?? this.label,
+    payload: payload ?? this.payload,
+    useCount: useCount ?? this.useCount,
+    lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SavedAddressesData copyWithCompanion(SavedAddressesCompanion data) {
+    return SavedAddressesData(
+      id: data.id.present ? data.id.value : this.id,
+      label: data.label.present ? data.label.value : this.label,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      useCount: data.useCount.present ? data.useCount.value : this.useCount,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedAddressesData(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('payload: $payload, ')
+          ..write('useCount: $useCount, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, label, payload, useCount, lastUsedAt, createdAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SavedAddressesData &&
+          other.id == this.id &&
+          other.label == this.label &&
+          other.payload == this.payload &&
+          other.useCount == this.useCount &&
+          other.lastUsedAt == this.lastUsedAt &&
+          other.createdAt == this.createdAt);
+}
+
+class SavedAddressesCompanion extends UpdateCompanion<SavedAddressesData> {
+  final Value<String> id;
+  final Value<String> label;
+  final Value<String> payload;
+  final Value<int> useCount;
+  final Value<DateTime?> lastUsedAt;
+  final Value<DateTime> createdAt;
+  final Value<int> rowid;
+  const SavedAddressesCompanion({
+    this.id = const Value.absent(),
+    this.label = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.useCount = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SavedAddressesCompanion.insert({
+    required String id,
+    required String label,
+    required String payload,
+    this.useCount = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+    required DateTime createdAt,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       label = Value(label),
+       payload = Value(payload),
+       createdAt = Value(createdAt);
+  static Insertable<SavedAddressesData> custom({
+    Expression<String>? id,
+    Expression<String>? label,
+    Expression<String>? payload,
+    Expression<int>? useCount,
+    Expression<DateTime>? lastUsedAt,
+    Expression<DateTime>? createdAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (label != null) 'label': label,
+      if (payload != null) 'payload': payload,
+      if (useCount != null) 'use_count': useCount,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+      if (createdAt != null) 'created_at': createdAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SavedAddressesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? label,
+    Value<String>? payload,
+    Value<int>? useCount,
+    Value<DateTime?>? lastUsedAt,
+    Value<DateTime>? createdAt,
+    Value<int>? rowid,
+  }) {
+    return SavedAddressesCompanion(
+      id: id ?? this.id,
+      label: label ?? this.label,
+      payload: payload ?? this.payload,
+      useCount: useCount ?? this.useCount,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      createdAt: createdAt ?? this.createdAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (label.present) {
+      map['label'] = Variable<String>(label.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (useCount.present) {
+      map['use_count'] = Variable<int>(useCount.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<DateTime>(lastUsedAt.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SavedAddressesCompanion(')
+          ..write('id: $id, ')
+          ..write('label: $label, ')
+          ..write('payload: $payload, ')
+          ..write('useCount: $useCount, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $CachedDeliveriesTable extends CachedDeliveries
+    with TableInfo<$CachedDeliveriesTable, CachedDelivery> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $CachedDeliveriesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> createdAt = GeneratedColumn<DateTime>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> updatedAt = GeneratedColumn<DateTime>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _pendingSyncMeta = const VerificationMeta(
+    'pendingSync',
+  );
+  @override
+  late final GeneratedColumn<bool> pendingSync = GeneratedColumn<bool>(
+    'pending_sync',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("pending_sync" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    status,
+    payload,
+    createdAt,
+    updatedAt,
+    pendingSync,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'cached_deliveries';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<CachedDelivery> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('pending_sync')) {
+      context.handle(
+        _pendingSyncMeta,
+        pendingSync.isAcceptableOrUnknown(
+          data['pending_sync']!,
+          _pendingSyncMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  CachedDelivery map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return CachedDelivery(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      pendingSync: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}pending_sync'],
+      )!,
+    );
+  }
+
+  @override
+  $CachedDeliveriesTable createAlias(String alias) {
+    return $CachedDeliveriesTable(attachedDatabase, alias);
+  }
+}
+
+class CachedDelivery extends DataClass implements Insertable<CachedDelivery> {
+  final String id;
+  final String status;
+  final String payload;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  /// Vrai tant que le serveur n'a pas confirme la course.
+  final bool pendingSync;
+  const CachedDelivery({
+    required this.id,
+    required this.status,
+    required this.payload,
+    required this.createdAt,
+    required this.updatedAt,
+    required this.pendingSync,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['status'] = Variable<String>(status);
+    map['payload'] = Variable<String>(payload);
+    map['created_at'] = Variable<DateTime>(createdAt);
+    map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['pending_sync'] = Variable<bool>(pendingSync);
+    return map;
+  }
+
+  CachedDeliveriesCompanion toCompanion(bool nullToAbsent) {
+    return CachedDeliveriesCompanion(
+      id: Value(id),
+      status: Value(status),
+      payload: Value(payload),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      pendingSync: Value(pendingSync),
+    );
+  }
+
+  factory CachedDelivery.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return CachedDelivery(
+      id: serializer.fromJson<String>(json['id']),
+      status: serializer.fromJson<String>(json['status']),
+      payload: serializer.fromJson<String>(json['payload']),
+      createdAt: serializer.fromJson<DateTime>(json['createdAt']),
+      updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      pendingSync: serializer.fromJson<bool>(json['pendingSync']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'status': serializer.toJson<String>(status),
+      'payload': serializer.toJson<String>(payload),
+      'createdAt': serializer.toJson<DateTime>(createdAt),
+      'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'pendingSync': serializer.toJson<bool>(pendingSync),
+    };
+  }
+
+  CachedDelivery copyWith({
+    String? id,
+    String? status,
+    String? payload,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+    bool? pendingSync,
+  }) => CachedDelivery(
+    id: id ?? this.id,
+    status: status ?? this.status,
+    payload: payload ?? this.payload,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    pendingSync: pendingSync ?? this.pendingSync,
+  );
+  CachedDelivery copyWithCompanion(CachedDeliveriesCompanion data) {
+    return CachedDelivery(
+      id: data.id.present ? data.id.value : this.id,
+      status: data.status.present ? data.status.value : this.status,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      pendingSync: data.pendingSync.present
+          ? data.pendingSync.value
+          : this.pendingSync,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedDelivery(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('pendingSync: $pendingSync')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(id, status, payload, createdAt, updatedAt, pendingSync);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is CachedDelivery &&
+          other.id == this.id &&
+          other.status == this.status &&
+          other.payload == this.payload &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.pendingSync == this.pendingSync);
+}
+
+class CachedDeliveriesCompanion extends UpdateCompanion<CachedDelivery> {
+  final Value<String> id;
+  final Value<String> status;
+  final Value<String> payload;
+  final Value<DateTime> createdAt;
+  final Value<DateTime> updatedAt;
+  final Value<bool> pendingSync;
+  final Value<int> rowid;
+  const CachedDeliveriesCompanion({
+    this.id = const Value.absent(),
+    this.status = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.pendingSync = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  CachedDeliveriesCompanion.insert({
+    required String id,
+    required String status,
+    required String payload,
+    required DateTime createdAt,
+    required DateTime updatedAt,
+    this.pendingSync = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       status = Value(status),
+       payload = Value(payload),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<CachedDelivery> custom({
+    Expression<String>? id,
+    Expression<String>? status,
+    Expression<String>? payload,
+    Expression<DateTime>? createdAt,
+    Expression<DateTime>? updatedAt,
+    Expression<bool>? pendingSync,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (status != null) 'status': status,
+      if (payload != null) 'payload': payload,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (pendingSync != null) 'pending_sync': pendingSync,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  CachedDeliveriesCompanion copyWith({
+    Value<String>? id,
+    Value<String>? status,
+    Value<String>? payload,
+    Value<DateTime>? createdAt,
+    Value<DateTime>? updatedAt,
+    Value<bool>? pendingSync,
+    Value<int>? rowid,
+  }) {
+    return CachedDeliveriesCompanion(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      payload: payload ?? this.payload,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      pendingSync: pendingSync ?? this.pendingSync,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<DateTime>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<DateTime>(updatedAt.value);
+    }
+    if (pendingSync.present) {
+      map['pending_sync'] = Variable<bool>(pendingSync.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('CachedDeliveriesCompanion(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('payload: $payload, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('pendingSync: $pendingSync, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $SyncQueueItemsTable syncQueueItems = $SyncQueueItemsTable(this);
   late final $AppEventsTable appEvents = $AppEventsTable(this);
-  late final $CachedDocumentsTable cachedDocuments = $CachedDocumentsTable(this);
+  late final $CachedDocumentsTable cachedDocuments = $CachedDocumentsTable(
+    this,
+  );
+  late final $SavedAddressesTable savedAddresses = $SavedAddressesTable(this);
+  late final $CachedDeliveriesTable cachedDeliveries = $CachedDeliveriesTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1302,6 +2190,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     syncQueueItems,
     appEvents,
     cachedDocuments,
+    savedAddresses,
+    cachedDeliveries,
   ];
 }
 
@@ -1347,8 +2237,10 @@ class $$SyncQueueItemsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get idempotencyKey => $composableBuilder(
     column: $table.idempotencyKey,
@@ -1360,8 +2252,10 @@ class $$SyncQueueItemsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<String> get path =>
-      $composableBuilder(column: $table.path, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get path => $composableBuilder(
+    column: $table.path,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get payload => $composableBuilder(
     column: $table.payload,
@@ -1413,8 +2307,10 @@ class $$SyncQueueItemsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<String> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get idempotencyKey => $composableBuilder(
     column: $table.idempotencyKey,
@@ -1484,8 +2380,10 @@ class $$SyncQueueItemsTableAnnotationComposer
   GeneratedColumn<String> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
-  GeneratedColumn<String> get idempotencyKey =>
-      $composableBuilder(column: $table.idempotencyKey, builder: (column) => column);
+  GeneratedColumn<String> get idempotencyKey => $composableBuilder(
+    column: $table.idempotencyKey,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<String> get method =>
       $composableBuilder(column: $table.method, builder: (column) => column);
@@ -1511,11 +2409,15 @@ class $$SyncQueueItemsTableAnnotationComposer
   GeneratedColumn<DateTime> get createdAt =>
       $composableBuilder(column: $table.createdAt, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get nextAttemptAt =>
-      $composableBuilder(column: $table.nextAttemptAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get nextAttemptAt => $composableBuilder(
+    column: $table.nextAttemptAt,
+    builder: (column) => column,
+  );
 
-  GeneratedColumn<bool> get neverAbandon =>
-      $composableBuilder(column: $table.neverAbandon, builder: (column) => column);
+  GeneratedColumn<bool> get neverAbandon => $composableBuilder(
+    column: $table.neverAbandon,
+    builder: (column) => column,
+  );
 }
 
 class $$SyncQueueItemsTableTableManager
@@ -1536,8 +2438,10 @@ class $$SyncQueueItemsTableTableManager
           SyncQueueItem,
           PrefetchHooks Function()
         > {
-  $$SyncQueueItemsTableTableManager(_$AppDatabase db, $SyncQueueItemsTable table)
-    : super(
+  $$SyncQueueItemsTableTableManager(
+    _$AppDatabase db,
+    $SyncQueueItemsTable table,
+  ) : super(
         TableManagerState(
           db: db,
           table: table,
@@ -1607,8 +2511,9 @@ class $$SyncQueueItemsTableTableManager
                 neverAbandon: neverAbandon,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) =>
-              p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1624,7 +2529,10 @@ typedef $$SyncQueueItemsTableProcessedTableManager =
       $$SyncQueueItemsTableAnnotationComposer,
       $$SyncQueueItemsTableCreateCompanionBuilder,
       $$SyncQueueItemsTableUpdateCompanionBuilder,
-      (SyncQueueItem, BaseReferences<_$AppDatabase, $SyncQueueItemsTable, SyncQueueItem>),
+      (
+        SyncQueueItem,
+        BaseReferences<_$AppDatabase, $SyncQueueItemsTable, SyncQueueItem>,
+      ),
       SyncQueueItem,
       PrefetchHooks Function()
     >;
@@ -1643,7 +2551,8 @@ typedef $$AppEventsTableUpdateCompanionBuilder =
       Value<DateTime> occurredAt,
     });
 
-class $$AppEventsTableFilterComposer extends Composer<_$AppDatabase, $AppEventsTable> {
+class $$AppEventsTableFilterComposer
+    extends Composer<_$AppDatabase, $AppEventsTable> {
   $$AppEventsTableFilterComposer({
     required super.$db,
     required super.$table,
@@ -1651,11 +2560,15 @@ class $$AppEventsTableFilterComposer extends Composer<_$AppDatabase, $AppEventsT
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnFilters(column));
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get kind =>
-      $composableBuilder(column: $table.kind, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get kind => $composableBuilder(
+    column: $table.kind,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<String> get payload => $composableBuilder(
     column: $table.payload,
@@ -1668,7 +2581,8 @@ class $$AppEventsTableFilterComposer extends Composer<_$AppDatabase, $AppEventsT
   );
 }
 
-class $$AppEventsTableOrderingComposer extends Composer<_$AppDatabase, $AppEventsTable> {
+class $$AppEventsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AppEventsTable> {
   $$AppEventsTableOrderingComposer({
     required super.$db,
     required super.$table,
@@ -1676,8 +2590,10 @@ class $$AppEventsTableOrderingComposer extends Composer<_$AppDatabase, $AppEvent
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnOrderings<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => ColumnOrderings(column));
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
 
   ColumnOrderings<String> get kind => $composableBuilder(
     column: $table.kind,
@@ -1713,8 +2629,10 @@ class $$AppEventsTableAnnotationComposer
   GeneratedColumn<String> get payload =>
       $composableBuilder(column: $table.payload, builder: (column) => column);
 
-  GeneratedColumn<DateTime> get occurredAt =>
-      $composableBuilder(column: $table.occurredAt, builder: (column) => column);
+  GeneratedColumn<DateTime> get occurredAt => $composableBuilder(
+    column: $table.occurredAt,
+    builder: (column) => column,
+  );
 }
 
 class $$AppEventsTableTableManager
@@ -1767,8 +2685,9 @@ class $$AppEventsTableTableManager
                 payload: payload,
                 occurredAt: occurredAt,
               ),
-          withReferenceMapper: (p0) =>
-              p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1814,11 +2733,15 @@ class $$CachedDocumentsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
-  ColumnFilters<String> get key =>
-      $composableBuilder(column: $table.key, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get key => $composableBuilder(
+    column: $table.key,
+    builder: (column) => ColumnFilters(column),
+  );
 
-  ColumnFilters<String> get body =>
-      $composableBuilder(column: $table.body, builder: (column) => ColumnFilters(column));
+  ColumnFilters<String> get body => $composableBuilder(
+    column: $table.body,
+    builder: (column) => ColumnFilters(column),
+  );
 
   ColumnFilters<DateTime> get fetchedAt => $composableBuilder(
     column: $table.fetchedAt,
@@ -1896,13 +2819,19 @@ class $$CachedDocumentsTableTableManager
           $$CachedDocumentsTableUpdateCompanionBuilder,
           (
             CachedDocument,
-            BaseReferences<_$AppDatabase, $CachedDocumentsTable, CachedDocument>,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedDocumentsTable,
+              CachedDocument
+            >,
           ),
           CachedDocument,
           PrefetchHooks Function()
         > {
-  $$CachedDocumentsTableTableManager(_$AppDatabase db, $CachedDocumentsTable table)
-    : super(
+  $$CachedDocumentsTableTableManager(
+    _$AppDatabase db,
+    $CachedDocumentsTable table,
+  ) : super(
         TableManagerState(
           db: db,
           table: table,
@@ -1940,8 +2869,9 @@ class $$CachedDocumentsTableTableManager
                 expiresAt: expiresAt,
                 rowid: rowid,
               ),
-          withReferenceMapper: (p0) =>
-              p0.map((e) => (e.readTable(table), BaseReferences(db, table, e))).toList(),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
           prefetchHooksCallback: null,
         ),
       );
@@ -1964,6 +2894,460 @@ typedef $$CachedDocumentsTableProcessedTableManager =
       CachedDocument,
       PrefetchHooks Function()
     >;
+typedef $$SavedAddressesTableCreateCompanionBuilder =
+    SavedAddressesCompanion Function({
+      required String id,
+      required String label,
+      required String payload,
+      Value<int> useCount,
+      Value<DateTime?> lastUsedAt,
+      required DateTime createdAt,
+      Value<int> rowid,
+    });
+typedef $$SavedAddressesTableUpdateCompanionBuilder =
+    SavedAddressesCompanion Function({
+      Value<String> id,
+      Value<String> label,
+      Value<String> payload,
+      Value<int> useCount,
+      Value<DateTime?> lastUsedAt,
+      Value<DateTime> createdAt,
+      Value<int> rowid,
+    });
+
+class $$SavedAddressesTableFilterComposer
+    extends Composer<_$AppDatabase, $SavedAddressesTable> {
+  $$SavedAddressesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$SavedAddressesTableOrderingComposer
+    extends Composer<_$AppDatabase, $SavedAddressesTable> {
+  $$SavedAddressesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get label => $composableBuilder(
+    column: $table.label,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get useCount => $composableBuilder(
+    column: $table.useCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$SavedAddressesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SavedAddressesTable> {
+  $$SavedAddressesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get label =>
+      $composableBuilder(column: $table.label, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get useCount =>
+      $composableBuilder(column: $table.useCount, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+}
+
+class $$SavedAddressesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SavedAddressesTable,
+          SavedAddressesData,
+          $$SavedAddressesTableFilterComposer,
+          $$SavedAddressesTableOrderingComposer,
+          $$SavedAddressesTableAnnotationComposer,
+          $$SavedAddressesTableCreateCompanionBuilder,
+          $$SavedAddressesTableUpdateCompanionBuilder,
+          (
+            SavedAddressesData,
+            BaseReferences<
+              _$AppDatabase,
+              $SavedAddressesTable,
+              SavedAddressesData
+            >,
+          ),
+          SavedAddressesData,
+          PrefetchHooks Function()
+        > {
+  $$SavedAddressesTableTableManager(
+    _$AppDatabase db,
+    $SavedAddressesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SavedAddressesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SavedAddressesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SavedAddressesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> label = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> useCount = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => SavedAddressesCompanion(
+                id: id,
+                label: label,
+                payload: payload,
+                useCount: useCount,
+                lastUsedAt: lastUsedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String label,
+                required String payload,
+                Value<int> useCount = const Value.absent(),
+                Value<DateTime?> lastUsedAt = const Value.absent(),
+                required DateTime createdAt,
+                Value<int> rowid = const Value.absent(),
+              }) => SavedAddressesCompanion.insert(
+                id: id,
+                label: label,
+                payload: payload,
+                useCount: useCount,
+                lastUsedAt: lastUsedAt,
+                createdAt: createdAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$SavedAddressesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SavedAddressesTable,
+      SavedAddressesData,
+      $$SavedAddressesTableFilterComposer,
+      $$SavedAddressesTableOrderingComposer,
+      $$SavedAddressesTableAnnotationComposer,
+      $$SavedAddressesTableCreateCompanionBuilder,
+      $$SavedAddressesTableUpdateCompanionBuilder,
+      (
+        SavedAddressesData,
+        BaseReferences<_$AppDatabase, $SavedAddressesTable, SavedAddressesData>,
+      ),
+      SavedAddressesData,
+      PrefetchHooks Function()
+    >;
+typedef $$CachedDeliveriesTableCreateCompanionBuilder =
+    CachedDeliveriesCompanion Function({
+      required String id,
+      required String status,
+      required String payload,
+      required DateTime createdAt,
+      required DateTime updatedAt,
+      Value<bool> pendingSync,
+      Value<int> rowid,
+    });
+typedef $$CachedDeliveriesTableUpdateCompanionBuilder =
+    CachedDeliveriesCompanion Function({
+      Value<String> id,
+      Value<String> status,
+      Value<String> payload,
+      Value<DateTime> createdAt,
+      Value<DateTime> updatedAt,
+      Value<bool> pendingSync,
+      Value<int> rowid,
+    });
+
+class $$CachedDeliveriesTableFilterComposer
+    extends Composer<_$AppDatabase, $CachedDeliveriesTable> {
+  $$CachedDeliveriesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$CachedDeliveriesTableOrderingComposer
+    extends Composer<_$AppDatabase, $CachedDeliveriesTable> {
+  $$CachedDeliveriesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$CachedDeliveriesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $CachedDeliveriesTable> {
+  $$CachedDeliveriesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get pendingSync => $composableBuilder(
+    column: $table.pendingSync,
+    builder: (column) => column,
+  );
+}
+
+class $$CachedDeliveriesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $CachedDeliveriesTable,
+          CachedDelivery,
+          $$CachedDeliveriesTableFilterComposer,
+          $$CachedDeliveriesTableOrderingComposer,
+          $$CachedDeliveriesTableAnnotationComposer,
+          $$CachedDeliveriesTableCreateCompanionBuilder,
+          $$CachedDeliveriesTableUpdateCompanionBuilder,
+          (
+            CachedDelivery,
+            BaseReferences<
+              _$AppDatabase,
+              $CachedDeliveriesTable,
+              CachedDelivery
+            >,
+          ),
+          CachedDelivery,
+          PrefetchHooks Function()
+        > {
+  $$CachedDeliveriesTableTableManager(
+    _$AppDatabase db,
+    $CachedDeliveriesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$CachedDeliveriesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$CachedDeliveriesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$CachedDeliveriesTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<DateTime> createdAt = const Value.absent(),
+                Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> pendingSync = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedDeliveriesCompanion(
+                id: id,
+                status: status,
+                payload: payload,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                pendingSync: pendingSync,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String status,
+                required String payload,
+                required DateTime createdAt,
+                required DateTime updatedAt,
+                Value<bool> pendingSync = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CachedDeliveriesCompanion.insert(
+                id: id,
+                status: status,
+                payload: payload,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                pendingSync: pendingSync,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$CachedDeliveriesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $CachedDeliveriesTable,
+      CachedDelivery,
+      $$CachedDeliveriesTableFilterComposer,
+      $$CachedDeliveriesTableOrderingComposer,
+      $$CachedDeliveriesTableAnnotationComposer,
+      $$CachedDeliveriesTableCreateCompanionBuilder,
+      $$CachedDeliveriesTableUpdateCompanionBuilder,
+      (
+        CachedDelivery,
+        BaseReferences<_$AppDatabase, $CachedDeliveriesTable, CachedDelivery>,
+      ),
+      CachedDelivery,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -1974,4 +3358,8 @@ class $AppDatabaseManager {
       $$AppEventsTableTableManager(_db, _db.appEvents);
   $$CachedDocumentsTableTableManager get cachedDocuments =>
       $$CachedDocumentsTableTableManager(_db, _db.cachedDocuments);
+  $$SavedAddressesTableTableManager get savedAddresses =>
+      $$SavedAddressesTableTableManager(_db, _db.savedAddresses);
+  $$CachedDeliveriesTableTableManager get cachedDeliveries =>
+      $$CachedDeliveriesTableTableManager(_db, _db.cachedDeliveries);
 }
