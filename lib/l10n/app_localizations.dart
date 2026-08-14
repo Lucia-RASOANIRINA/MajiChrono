@@ -968,6 +968,324 @@ abstract class AppLocalizations {
   /// **'{km} km'**
   String deliveryDistance(String km);
 
+  /// No description provided for @driverOnline.
+  ///
+  /// In fr, this message translates to:
+  /// **'En ligne'**
+  String get driverOnline;
+
+  /// No description provided for @driverOffline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors service'**
+  String get driverOffline;
+
+  /// No description provided for @driverOnlineHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous recevez des courses tant que vous etes en ligne.'**
+  String get driverOnlineHelp;
+
+  /// No description provided for @driverOfflineHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course ne vous sera proposee.'**
+  String get driverOfflineHelp;
+
+  /// No description provided for @driverAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses disponibles'**
+  String get driverAvailable;
+
+  /// No description provided for @driverNoOffers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course pour l\'instant'**
+  String get driverNoOffers;
+
+  /// No description provided for @driverNoOffersHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Restez en ligne : les courses arrivent au fil de la journee.'**
+  String get driverNoOffersHelp;
+
+  /// No description provided for @driverOfflineEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Passez en ligne pour recevoir des courses'**
+  String get driverOfflineEmpty;
+
+  /// No description provided for @driverPickupDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'{km} km a vide'**
+  String driverPickupDistance(String km);
+
+  /// No description provided for @driverEarning.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gain estime'**
+  String get driverEarning;
+
+  /// No description provided for @driverAccept.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter'**
+  String get driverAccept;
+
+  /// No description provided for @driverAcceptIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accepter ({seconds} s)'**
+  String driverAcceptIn(int seconds);
+
+  /// No description provided for @driverAlreadyTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course deja prise par un autre livreur'**
+  String get driverAlreadyTaken;
+
+  /// No description provided for @driverActiveDelivery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course en cours'**
+  String get driverActiveDelivery;
+
+  /// No description provided for @driverNavigate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir l\'itineraire'**
+  String get driverNavigate;
+
+  /// No description provided for @driverCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler le contact'**
+  String get driverCall;
+
+  /// No description provided for @driverStepArrivedPickup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je suis au depart'**
+  String get driverStepArrivedPickup;
+
+  /// No description provided for @driverStepPickedUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis pris en charge'**
+  String get driverStepPickedUp;
+
+  /// No description provided for @driverStepArrivedDestination.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je suis a destination'**
+  String get driverStepArrivedDestination;
+
+  /// No description provided for @driverStepDelivered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis remis'**
+  String get driverStepDelivered;
+
+  /// No description provided for @driverCustodyRequired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un constat sera demande a cette etape (module 5).'**
+  String get driverCustodyRequired;
+
+  /// No description provided for @driverIncident.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler un incident'**
+  String get driverIncident;
+
+  /// No description provided for @incidentRecipientAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire absent'**
+  String get incidentRecipientAbsent;
+
+  /// No description provided for @incidentAddressNotFound.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse introuvable'**
+  String get incidentAddressNotFound;
+
+  /// No description provided for @incidentRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refus de reception'**
+  String get incidentRefused;
+
+  /// No description provided for @incidentBreakdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vehicule en panne'**
+  String get incidentBreakdown;
+
+  /// No description provided for @outcomeWaitThenReturn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attendre 10 minutes, puis retour expediteur'**
+  String get outcomeWaitThenReturn;
+
+  /// No description provided for @outcomeContactSupport.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'exploitation vous rappelle'**
+  String get outcomeContactSupport;
+
+  /// No description provided for @outcomeReturnToSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis renvoye a l\'expediteur'**
+  String get outcomeReturnToSender;
+
+  /// No description provided for @outcomeReassign.
+  ///
+  /// In fr, this message translates to:
+  /// **'La course sera reaffectee'**
+  String get outcomeReassign;
+
+  /// No description provided for @earningsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes gains'**
+  String get earningsTitle;
+
+  /// No description provided for @earningsToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get earningsToday;
+
+  /// No description provided for @earningsWeek.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette semaine'**
+  String get earningsWeek;
+
+  /// No description provided for @earningsMonth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce mois-ci'**
+  String get earningsMonth;
+
+  /// No description provided for @earningsCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} course(s)'**
+  String earningsCount(int count);
+
+  /// No description provided for @earningsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun gain enregistre'**
+  String get earningsEmpty;
+
+  /// No description provided for @earningsCommission.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montants nets, commission deduite.'**
+  String get earningsCommission;
+
+  /// No description provided for @kycTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon dossier'**
+  String get kycTitle;
+
+  /// No description provided for @kycStatusDraft.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier a completer'**
+  String get kycStatusDraft;
+
+  /// No description provided for @kycStatusSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier transmis'**
+  String get kycStatusSubmitted;
+
+  /// No description provided for @kycStatusUnderReview.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours de verification'**
+  String get kycStatusUnderReview;
+
+  /// No description provided for @kycStatusApproved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier valide'**
+  String get kycStatusApproved;
+
+  /// No description provided for @kycStatusRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier refuse'**
+  String get kycStatusRejected;
+
+  /// No description provided for @kycBlocking.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous ne pouvez pas prendre de course tant que le dossier n\'est pas valide.'**
+  String get kycBlocking;
+
+  /// No description provided for @kycDocCinFront.
+  ///
+  /// In fr, this message translates to:
+  /// **'CIN recto'**
+  String get kycDocCinFront;
+
+  /// No description provided for @kycDocCinBack.
+  ///
+  /// In fr, this message translates to:
+  /// **'CIN verso'**
+  String get kycDocCinBack;
+
+  /// No description provided for @kycDocLicence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Permis de conduire'**
+  String get kycDocLicence;
+
+  /// No description provided for @kycDocSelfie.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo du visage'**
+  String get kycDocSelfie;
+
+  /// No description provided for @kycDocRegistration.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte grise'**
+  String get kycDocRegistration;
+
+  /// No description provided for @kycDocVehicle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo du vehicule'**
+  String get kycDocVehicle;
+
+  /// No description provided for @kycDocPlate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de la plaque'**
+  String get kycDocPlate;
+
+  /// No description provided for @kycCaptureLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'La prise de vue des pieces arrive au module 5.'**
+  String get kycCaptureLater;
+
+  /// No description provided for @kycSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Transmettre le dossier'**
+  String get kycSubmit;
+
   /// No description provided for @pickLocationTitle.
   ///
   /// In fr, this message translates to:

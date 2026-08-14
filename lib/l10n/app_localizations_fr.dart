@@ -473,6 +473,177 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get driverOnline => 'En ligne';
+
+  @override
+  String get driverOffline => 'Hors service';
+
+  @override
+  String get driverOnlineHelp =>
+      'Vous recevez des courses tant que vous etes en ligne.';
+
+  @override
+  String get driverOfflineHelp => 'Aucune course ne vous sera proposee.';
+
+  @override
+  String get driverAvailable => 'Courses disponibles';
+
+  @override
+  String get driverNoOffers => 'Aucune course pour l\'instant';
+
+  @override
+  String get driverNoOffersHelp =>
+      'Restez en ligne : les courses arrivent au fil de la journee.';
+
+  @override
+  String get driverOfflineEmpty => 'Passez en ligne pour recevoir des courses';
+
+  @override
+  String driverPickupDistance(String km) {
+    return '$km km a vide';
+  }
+
+  @override
+  String get driverEarning => 'Gain estime';
+
+  @override
+  String get driverAccept => 'Accepter';
+
+  @override
+  String driverAcceptIn(int seconds) {
+    return 'Accepter ($seconds s)';
+  }
+
+  @override
+  String get driverAlreadyTaken => 'Course deja prise par un autre livreur';
+
+  @override
+  String get driverActiveDelivery => 'Course en cours';
+
+  @override
+  String get driverNavigate => 'Ouvrir l\'itineraire';
+
+  @override
+  String get driverCall => 'Appeler le contact';
+
+  @override
+  String get driverStepArrivedPickup => 'Je suis au depart';
+
+  @override
+  String get driverStepPickedUp => 'Colis pris en charge';
+
+  @override
+  String get driverStepArrivedDestination => 'Je suis a destination';
+
+  @override
+  String get driverStepDelivered => 'Colis remis';
+
+  @override
+  String get driverCustodyRequired =>
+      'Un constat sera demande a cette etape (module 5).';
+
+  @override
+  String get driverIncident => 'Signaler un incident';
+
+  @override
+  String get incidentRecipientAbsent => 'Destinataire absent';
+
+  @override
+  String get incidentAddressNotFound => 'Adresse introuvable';
+
+  @override
+  String get incidentRefused => 'Refus de reception';
+
+  @override
+  String get incidentBreakdown => 'Vehicule en panne';
+
+  @override
+  String get outcomeWaitThenReturn =>
+      'Attendre 10 minutes, puis retour expediteur';
+
+  @override
+  String get outcomeContactSupport => 'L\'exploitation vous rappelle';
+
+  @override
+  String get outcomeReturnToSender => 'Colis renvoye a l\'expediteur';
+
+  @override
+  String get outcomeReassign => 'La course sera reaffectee';
+
+  @override
+  String get earningsTitle => 'Mes gains';
+
+  @override
+  String get earningsToday => 'Aujourd\'hui';
+
+  @override
+  String get earningsWeek => 'Cette semaine';
+
+  @override
+  String get earningsMonth => 'Ce mois-ci';
+
+  @override
+  String earningsCount(int count) {
+    return '$count course(s)';
+  }
+
+  @override
+  String get earningsEmpty => 'Aucun gain enregistre';
+
+  @override
+  String get earningsCommission => 'Montants nets, commission deduite.';
+
+  @override
+  String get kycTitle => 'Mon dossier';
+
+  @override
+  String get kycStatusDraft => 'Dossier a completer';
+
+  @override
+  String get kycStatusSubmitted => 'Dossier transmis';
+
+  @override
+  String get kycStatusUnderReview => 'En cours de verification';
+
+  @override
+  String get kycStatusApproved => 'Dossier valide';
+
+  @override
+  String get kycStatusRejected => 'Dossier refuse';
+
+  @override
+  String get kycBlocking =>
+      'Vous ne pouvez pas prendre de course tant que le dossier n\'est pas valide.';
+
+  @override
+  String get kycDocCinFront => 'CIN recto';
+
+  @override
+  String get kycDocCinBack => 'CIN verso';
+
+  @override
+  String get kycDocLicence => 'Permis de conduire';
+
+  @override
+  String get kycDocSelfie => 'Photo du visage';
+
+  @override
+  String get kycDocRegistration => 'Carte grise';
+
+  @override
+  String get kycDocVehicle => 'Photo du vehicule';
+
+  @override
+  String get kycDocPlate => 'Photo de la plaque';
+
+  @override
+  String get kycCaptureLater =>
+      'La prise de vue des pieces arrive au module 5.';
+
+  @override
+  String get kycSubmit => 'Transmettre le dossier';
+
+  @override
   String get pickLocationTitle => 'Placer le point';
 
   @override

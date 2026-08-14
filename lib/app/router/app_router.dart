@@ -16,6 +16,10 @@ import 'package:majichrono/features/auth/presentation/screens/pin_setup_screen.d
 import 'package:majichrono/features/auth/presentation/screens/profile_choice_screen.dart';
 import 'package:majichrono/features/delivery/presentation/screens/create_delivery_screen.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/active_delivery_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/driver_home_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/earnings_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/kyc_screen.dart';
 import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/public_tracking_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/tracking_screen.dart';
@@ -220,7 +224,14 @@ StatefulShellRoute _driverShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.driverHome,
-          builder: (_, _) => const SocleHomeScreen(role: UserRole.driver),
+          builder: (_, _) => const DriverHomeScreen(),
+          routes: [
+            GoRoute(
+              path: 'active/:id',
+              builder: (context, state) =>
+                  ActiveDeliveryScreen(deliveryId: state.pathParameters['id']!),
+            ),
+          ],
         ),
       ],
     ),
@@ -241,12 +252,7 @@ StatefulShellRoute _driverShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.driverEarnings,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navEarnings,
-            module: '4',
-            icon: Icons.payments_outlined,
-            requirements: const ['EXI-L12'],
-          ),
+          builder: (_, _) => const EarningsScreen(),
         ),
       ],
     ),
@@ -254,12 +260,7 @@ StatefulShellRoute _driverShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.driverProfile,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navProfile,
-            module: '4',
-            icon: Icons.badge_outlined,
-            requirements: const ['EXI-L01', 'EXI-L02'],
-          ),
+          builder: (_, _) => const KycScreen(),
         ),
       ],
     ),

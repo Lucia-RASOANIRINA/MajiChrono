@@ -190,7 +190,7 @@ Chaque module est construit, testé sur émulateur, puis validé avant le suivan
 | 1 | Authentification et session | Lot 1 | Livré |
 | 2 | Expéditeur : création de course | Lot 1 | Livré |
 | 3 | Suivi cartographique et notifications | Lot 1 | Livré, sauf notifications |
-| 4 | Livreur : KYC, file, progression | Lot 2 | À faire |
+| 4 | Livreur : KYC, file, progression | Lot 2 | Livré, sauf captures et arrière-plan |
 | 5 | Chaîne de responsabilité et preuve | Lot 2 | À faire |
 | 6 | Mode hors ligne intégral | Lot 2 | À faire |
 | 7 | Paiement délégué à MajiPay | Lot 3 | À faire |
@@ -378,22 +378,65 @@ La couche de présentation des notifications — canaux, liens profonds, traduct
 `flutter_local_notifications`, déjà déclaré. Le branchement FCM reste suspendu à
 la création du projet Firebase.
 
-### Module 4 — Livreur : KYC, file et progression
+### Module 4 — Livreur : KYC, file et progression (livré, sauf captures et arrière-plan)
 
-| Tâche | Profil | Exigences |
-|---|---|---|
-| Dossier KYC : CIN, permis, visage, carte grise, véhicule, plaque | Livreur | EXI-L01 |
-| Suivi de l'état du dossier, refus motivé | Livreur | EXI-L02 |
-| Interrupteur en ligne et hors ligne, persistant après redémarrage | Livreur | EXI-L03 |
-| File des courses disponibles, triée par distance, gain estimé | Livreur | EXI-L04 |
-| Acceptation en un geste, compte à rebours de 30 secondes | Livreur | EXI-L05 |
-| Navigation déléguée à l'application cartographique installée | Livreur | EXI-L07 |
-| Progression par bouton unique plein écran | Livreur | EXI-L08, §15.3 |
-| Émission de position en arrière-plan, écran verrouillé | Livreur | EXI-L09 |
-| Cadence adaptative : 15 s en mouvement, 60 s à l'arrêt | Livreur | EXI-L11 |
-| Tableau de bord des gains par jour, semaine et mois | Livreur | EXI-L12 |
-| Signalement d'incident avec photo et conséquence définie | Livreur | EXI-L14 |
-| Notation reçue et historique | Livreur | EXI-L16 |
+| Tâche | Profil | Exigences | État |
+|---|---|---|---|
+| Interrupteur en ligne / hors service, persistant après redémarrage | Livreur | EXI-L03 | Fait |
+| File des courses disponibles, triée par distance à vide | Livreur | EXI-L04 | Fait |
+| Gain net estimé, commission déduite, et rendement par kilomètre | Livreur | EXI-L04 | Fait |
+| Acceptation en un geste, compte à rebours de 30 secondes | Livreur | EXI-L05 | Fait |
+| Course déjà prise traitée comme un conflit normal, pas une panne | Livreur | EXI-L05 | Fait |
+| Navigation déléguée à l'application cartographique installée | Livreur | EXI-L07 | Fait |
+| Progression par bouton unique plein écran, 64 dp | Livreur | EXI-L08, §15.3 | Fait |
+| Transitions validées côté serveur, refus avec état courant | Livreur | EXI-B02 | Fait |
+| Étapes exigeant un constat déjà identifiées | Livreur | EXI-CC03 | Fait |
+| Tableau de bord des gains : jour, semaine, mois, détail par course | Livreur | EXI-L12 | Fait |
+| Signalement d'incident, chaque motif portant sa conséquence | Livreur | EXI-L14 | Fait |
+| Suivi de l'état du dossier KYC | Livreur | EXI-L02 | Fait |
+| Cadence d'émission : 15 s en mouvement, 60 s à l'arrêt | Livreur | EXI-L11 | Règle posée |
+| Capture des pièces du dossier KYC | Livreur | EXI-L01 | Module 5 |
+| Émission de position en arrière-plan, écran verrouillé | Livreur | EXI-L09 | Module 6 |
+| Positions en tampon local, envoi par lots de 50 | Livreur | EXI-L10 | Module 6 |
+| Notation reçue et historique | Livreur | EXI-L16 | Module 8 |
+
+**Deux défauts trouvés à l'écran, invisibles aux tests.** Les deux portaient sur
+la même fonction — la fenêtre d'acceptation de 30 secondes — et aucun n'aurait
+été vu autrement qu'en regardant l'application vivre.
+
+Le premier : à l'expiration du compte à rebours, les propositions restaient
+affichées avec un bouton mort. Le livreur se retrouvait devant un mur d'offres
+périmées, sans autre issue qu'un tirer-pour-rafraîchir qu'il ne devine pas. La
+file se renouvelle désormais à l'expiration de la fenêtre, à une cadence dérivée
+du profil réseau mesuré — en 2G, rafraîchir toutes les 30 secondes coûterait du
+forfait pour une file qui n'a pas eu le temps de changer (§4.4).
+
+Le second, révélé par la correction du premier : la file se renouvelait bien,
+mais **tous les boutons restaient désactivés**. Sans clé distincte, Flutter
+recycle l'objet `State` de la carte occupant la même position dans la liste ; le
+compte à rebours, porté par cet état, ne repartait jamais de 30 secondes. La clé
+de chaque carte intègre maintenant le numéro du cycle de rafraîchissement.
+
+**Un défaut de routage trouvé par les tests.** Le §12.2 déclare à la fois
+`/deliveries/available` et `/deliveries/{id}`. Le routeur du backend simulé
+prenait la première route qui correspondait, dans l'ordre d'enregistrement : la
+file du livreur était donc capturée par la route de détail et renvoyait « course
+inconnue ». Le routage suit désormais la **spécificité** — une route littérale
+l'emporte sur une route paramétrée — comme le fait tout routeur réel. Sans cela,
+le comportement dépendait de l'ordre dans lequel les modules s'enregistrent.
+
+**Le simulateur valide les transitions, et c'est délibéré.** S'il acceptait
+toutes les transitions, l'application donnerait l'illusion de fonctionner et le
+défaut n'apparaîtrait qu'au branchement du vrai serveur. Un test vérifie qu'une
+étape sautée est refusée avec l'état courant (EXI-B02).
+
+**Ce qui est reporté, et pourquoi.** La capture des pièces KYC rejoint le bloc
+photo du module 5 — même pipeline que les constats. L'émission de position en
+arrière-plan (EXI-L09, EXI-L10) demande un service de premier plan Android avec
+notification permanente et une file de positions par lots : elle appartient au
+module 6, avec la file de synchronisation dont elle est le principal client. La
+règle de cadence d'EXI-L11 est déjà posée et testée ; il ne lui manque que la
+source de position.
 
 ### Module 5 — Chaîne de responsabilité et preuve
 

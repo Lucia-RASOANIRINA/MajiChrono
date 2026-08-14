@@ -112,9 +112,24 @@ class MockBackend {
       _routes.add(MockRoute('DELETE', template, handler));
 
   Future<MockResponse> handle(MockRequest request) async {
+    // Le routage suit la **specificite**, pas l'ordre d'enregistrement : une
+    // route entierement litterale l'emporte sur une route parametree.
+    //
+    // Sans cette regle, `/deliveries/available` (EXI-L04) est capture par
+    // `/deliveries/{id}` — les deux figurent au §12.2 — et le livreur recoit un
+    // 404 « course inconnue » au lieu de sa file d'attente. Le defaut ne depend
+    // alors que de l'ordre dans lequel les modules se sont enregistres, ce qui
+    // est exactement le genre de fragilite qu'un routeur doit supprimer.
+    final matches = <(MockRoute, Map<String, String>)>[];
     for (final route in _routes) {
       final params = route.match(request.method, request.path);
-      if (params != null) return route.handler(request, params);
+      if (params != null) matches.add((route, params));
+    }
+
+    if (matches.isNotEmpty) {
+      matches.sort((a, b) => a.$2.length.compareTo(b.$2.length));
+      final (route, params) = matches.first;
+      return route.handler(request, params);
     }
     return MockResponse.error(
       404,

@@ -472,6 +472,175 @@ class AppLocalizationsMg extends AppLocalizations {
   }
 
   @override
+  String get driverOnline => 'Miasa';
+
+  @override
+  String get driverOffline => 'Tsy miasa';
+
+  @override
+  String get driverOnlineHelp => 'Mahazo dia ianao raha mbola miasa.';
+
+  @override
+  String get driverOfflineHelp => 'Tsy hisy dia hatolotra anao.';
+
+  @override
+  String get driverAvailable => 'Dia misy';
+
+  @override
+  String get driverNoOffers => 'Tsy misy dia hatreto';
+
+  @override
+  String get driverNoOffersHelp =>
+      'Mijanona miasa : misy dia tonga mandritra ny andro.';
+
+  @override
+  String get driverOfflineEmpty => 'Miasà mba hahazo dia';
+
+  @override
+  String driverPickupDistance(String km) {
+    return '$km km foana';
+  }
+
+  @override
+  String get driverEarning => 'Tombony tombanana';
+
+  @override
+  String get driverAccept => 'Ekena';
+
+  @override
+  String driverAcceptIn(int seconds) {
+    return 'Ekena ($seconds s)';
+  }
+
+  @override
+  String get driverAlreadyTaken => 'Efa nalain\'ny mpanatitra hafa ilay dia';
+
+  @override
+  String get driverActiveDelivery => 'Dia an-dalana';
+
+  @override
+  String get driverNavigate => 'Sokafy ny lalana';
+
+  @override
+  String get driverCall => 'Antsoy ny olona';
+
+  @override
+  String get driverStepArrivedPickup => 'Tonga eo am-piaingana aho';
+
+  @override
+  String get driverStepPickedUp => 'Voaray ny entana';
+
+  @override
+  String get driverStepArrivedDestination => 'Tonga eo amin\'ny toerana aho';
+
+  @override
+  String get driverStepDelivered => 'Voatolotra ny entana';
+
+  @override
+  String get driverCustodyRequired =>
+      'Hangatahina fanamarinana amin\'ity dingana ity (modely 5).';
+
+  @override
+  String get driverIncident => 'Hitatitra olana';
+
+  @override
+  String get incidentRecipientAbsent => 'Tsy eo ny mpandray';
+
+  @override
+  String get incidentAddressNotFound => 'Tsy hita ny adiresy';
+
+  @override
+  String get incidentRefused => 'Nolavina ny fandraisana';
+
+  @override
+  String get incidentBreakdown => 'Simba ny fiara';
+
+  @override
+  String get outcomeWaitThenReturn =>
+      'Miandry 10 minitra, avy eo miverina any amin\'ny mpandefa';
+
+  @override
+  String get outcomeContactSupport => 'Hiantso anao ny mpandrindra';
+
+  @override
+  String get outcomeReturnToSender => 'Averina any amin\'ny mpandefa ny entana';
+
+  @override
+  String get outcomeReassign => 'Homena mpanatitra hafa ny dia';
+
+  @override
+  String get earningsTitle => 'Ny tomboko';
+
+  @override
+  String get earningsToday => 'Androany';
+
+  @override
+  String get earningsWeek => 'Ity herinandro ity';
+
+  @override
+  String get earningsMonth => 'Ity volana ity';
+
+  @override
+  String earningsCount(int count) {
+    return 'dia $count';
+  }
+
+  @override
+  String get earningsEmpty => 'Tsy misy tombony voarakitra';
+
+  @override
+  String get earningsCommission => 'Vola madio, efa nesorina ny sara.';
+
+  @override
+  String get kycTitle => 'Ny antontan-taratasiko';
+
+  @override
+  String get kycStatusDraft => 'Tokony fenoina ny antontan-taratasy';
+
+  @override
+  String get kycStatusSubmitted => 'Nalefa ny antontan-taratasy';
+
+  @override
+  String get kycStatusUnderReview => 'Eo am-panamarinana';
+
+  @override
+  String get kycStatusApproved => 'Nekena ny antontan-taratasy';
+
+  @override
+  String get kycStatusRejected => 'Nolavina ny antontan-taratasy';
+
+  @override
+  String get kycBlocking =>
+      'Tsy afaka maka dia ianao raha tsy nekena ny antontan-taratasy.';
+
+  @override
+  String get kycDocCinFront => 'Kara-panondro ambony';
+
+  @override
+  String get kycDocCinBack => 'Kara-panondro ambadika';
+
+  @override
+  String get kycDocLicence => 'Fahazoan-dalana mitondra';
+
+  @override
+  String get kycDocSelfie => 'Sarin\'ny tarehy';
+
+  @override
+  String get kycDocRegistration => 'Karatra volamena';
+
+  @override
+  String get kycDocVehicle => 'Sarin\'ny fiara';
+
+  @override
+  String get kycDocPlate => 'Sarin\'ny laharana';
+
+  @override
+  String get kycCaptureLater => 'Ho avy amin\'ny modely 5 ny fakana sary.';
+
+  @override
+  String get kycSubmit => 'Alefaso ny antontan-taratasy';
+
+  @override
   String get pickLocationTitle => 'Apetraho ny teboka';
 
   @override

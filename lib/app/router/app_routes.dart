@@ -35,6 +35,7 @@ class AppRoutes {
   static const String driverDeliveries = '/driver/deliveries';
   static const String driverEarnings = '/driver/earnings';
   static const String driverProfile = '/driver/profile';
+  static String driverActive(String id) => '/driver/active/$id';
 
   // --- Administration --------------------------------------------------
   static const String adminHome = '/admin';
