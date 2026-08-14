@@ -10,12 +10,10 @@ import 'package:uuid/uuid.dart';
 
 class DeliveryRepositoryImpl implements DeliveryRepository {
   DeliveryRepositoryImpl({
-    required ApiClient client,
-    required DeliveryLocalDataSource local,
+    required this._client,
+    required this._local,
     Uuid? uuid,
-  })  : _client = client,
-        _local = local,
-        _uuid = uuid ?? const Uuid();
+  })  : _uuid = uuid ?? const Uuid();
 
   final ApiClient _client;
   final DeliveryLocalDataSource _local;

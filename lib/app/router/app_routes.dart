@@ -28,6 +28,7 @@ class AppRoutes {
   static const String clientDeliveries = '/client/deliveries';
   static const String clientProfile = '/client/profile';
   static const String clientNewDelivery = '/client/new';
+  static String clientTracking(String id) => '/client/track/$id';
 
   // --- Livreur ---------------------------------------------------------
   static const String driverHome = '/driver';

@@ -75,7 +75,7 @@ class _InactivityLockState extends ConsumerState<InactivityLock>
     // Redemarre le compte a rebours quand l'etat d'authentification change :
     // une connexion qui vient d'aboutir doit armer le verrou, une deconnexion
     // doit le desarmer.
-    ref.listen(authControllerProvider, (_, __) => _restart());
+    ref.listen(authControllerProvider, (_, _) => _restart());
 
     return Listener(
       behavior: HitTestBehavior.translucent,

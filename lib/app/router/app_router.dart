@@ -17,6 +17,8 @@ import 'package:majichrono/features/auth/presentation/screens/profile_choice_scr
 import 'package:majichrono/features/delivery/presentation/screens/create_delivery_screen.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
+import 'package:majichrono/features/tracking/presentation/screens/public_tracking_screen.dart';
+import 'package:majichrono/features/tracking/presentation/screens/tracking_screen.dart';
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
@@ -106,12 +108,8 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(path: AppRoutes.devPanel, builder: (_, _) => const DevPanelScreen()),
       GoRoute(
         path: AppRoutes.publicTrack,
-        builder: (context, state) => ModulePlaceholderScreen(
-          title: AppLocalizations.of(context).navTracking,
-          module: '3',
-          icon: Icons.share_location_outlined,
-          requirements: const ['EXI-C24', 'D9'],
-        ),
+        builder: (context, state) =>
+            PublicTrackingScreen(token: state.pathParameters['token'] ?? ''),
       ),
       _clientShell(),
       _driverShell(),
@@ -154,6 +152,11 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
             GoRoute(
               path: 'new',
               builder: (_, _) => const CreateDeliveryScreen(),
+            ),
+            GoRoute(
+              path: 'track/:id',
+              builder: (context, state) =>
+                  TrackingScreen(deliveryId: state.pathParameters['id']!),
             ),
           ],
         ),

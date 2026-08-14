@@ -473,6 +473,69 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get pickLocationTitle => 'Placer le point';
+
+  @override
+  String get pickLocationAction => 'Placer sur la carte';
+
+  @override
+  String get pickLocationSet => 'Point place';
+
+  @override
+  String get pickLocationHelp =>
+      'Le point GPS approche le livreur ; le point de repere fait le reste.';
+
+  @override
+  String get trackingTitle => 'Suivi de la course';
+
+  @override
+  String get trackingTimeline => 'Etapes';
+
+  @override
+  String get trackingDriver => 'Votre livreur';
+
+  @override
+  String trackingEta(int minutes) {
+    return 'Arrivee estimee dans $minutes min';
+  }
+
+  @override
+  String get trackingShare => 'Partager le suivi';
+
+  @override
+  String trackingShareMessage(String url) {
+    return 'Suivez votre colis MajiChrono : $url';
+  }
+
+  @override
+  String get trackingCall => 'Appeler';
+
+  @override
+  String get trackingCallMasked => 'Numero masque des deux cotes';
+
+  @override
+  String trackingRating(String rating) {
+    return '$rating / 5';
+  }
+
+  @override
+  String get trackingPublicTitle => 'Suivi du colis';
+
+  @override
+  String get trackingPublicExpired => 'Ce lien de suivi n\'est plus valable.';
+
+  @override
+  String get trackingNoDriverYet =>
+      'Aucun livreur n\'a encore accepte la course.';
+
+  @override
+  String get mapUnavailable =>
+      'Carte indisponible hors ligne. Les points restent affiches.';
+
+  @override
+  String get linkCopied => 'Lien copie';
+
+  @override
   String get statusPending => 'En attente d\'un livreur';
 
   @override

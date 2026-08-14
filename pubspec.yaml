@@ -40,6 +40,16 @@ dependencies:
   # salee l'est (EXI-T04, EXI-SEC03).
   crypto: ^3.0.6
 
+  # --- Suivi (module 3) ---
+  # Cartographie : OpenStreetMap, sans cle API facturee et surtout avec des
+  # tuiles pre-telechargeables hors ligne (§9.2, decisif au regard du §4.1).
+  flutter_map: ^7.0.2
+  latlong2: ^0.9.1
+  # Notifications locales : canaux Android, liens profonds (EXI-N02, EXI-N04).
+  flutter_local_notifications: ^18.0.1
+  # Appel telephonique et delegation a l'application cartographique (EXI-L07).
+  url_launcher: ^6.3.1
+
   # --- Socle ---
   connectivity_plus: ^6.1.0
   logger: ^2.5.0

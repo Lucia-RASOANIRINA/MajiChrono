@@ -20,7 +20,13 @@ void main() {
   /// `Text('...')` avec au moins quatre lettres consecutives : assez pour
   /// attraper un libelle, assez peu pour laisser passer un separateur ou une
   /// unite (« · », « % »).
-  final literalText = RegExp(r'''Text\(\s*(['"])[^'"]*[A-Za-zÀ-ÿ]{4}''');
+  ///
+  /// Le `$` est exclu du motif : une chaine interpolee est presque toujours
+  /// **assemblee a partir de traductions** — `Text('${l10n.a} ${l10n.b}')` —
+  /// et la signaler produirait un bruit qui ferait desactiver le test. La
+  /// contrepartie assumee est qu'un libelle en dur contenant une interpolation
+  /// echappe au controle ; c'est un cas rare, et la relecture le voit.
+  final literalText = RegExp(r'''Text\(\s*(['"])[^'"$]*[A-Za-zÀ-ÿ]{4}''');
 
   test('aucune chaine litterale dans les widgets de l interface', () {
     final offenders = <String>[];

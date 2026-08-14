@@ -472,6 +472,69 @@ class AppLocalizationsMg extends AppLocalizations {
   }
 
   @override
+  String get pickLocationTitle => 'Apetraho ny teboka';
+
+  @override
+  String get pickLocationAction => 'Apetraho eo amin\'ny sarintany';
+
+  @override
+  String get pickLocationSet => 'Voapetraka ny teboka';
+
+  @override
+  String get pickLocationHelp =>
+      'Manakaiky ny mpanatitra ny teboka GPS ; ny famantarana no manatanteraka ny sisa.';
+
+  @override
+  String get trackingTitle => 'Fanarahana ny dia';
+
+  @override
+  String get trackingTimeline => 'Dingana';
+
+  @override
+  String get trackingDriver => 'Ny mpanatitra anao';
+
+  @override
+  String trackingEta(int minutes) {
+    return 'Tombanana ho tonga afaka $minutes min';
+  }
+
+  @override
+  String get trackingShare => 'Zaraina ny fanarahana';
+
+  @override
+  String trackingShareMessage(String url) {
+    return 'Araho ny entanao MajiChrono : $url';
+  }
+
+  @override
+  String get trackingCall => 'Antsoy';
+
+  @override
+  String get trackingCallMasked => 'Miafina ny laharana amin\'ny roa tonta';
+
+  @override
+  String trackingRating(String rating) {
+    return '$rating / 5';
+  }
+
+  @override
+  String get trackingPublicTitle => 'Fanarahana ny entana';
+
+  @override
+  String get trackingPublicExpired =>
+      'Tsy mety intsony ity rohy fanarahana ity.';
+
+  @override
+  String get trackingNoDriverYet => 'Mbola tsy nisy mpanatitra nanaiky ny dia.';
+
+  @override
+  String get mapUnavailable =>
+      'Tsy misy sarintany tsy misy aterineto. Mbola hita ny teboka.';
+
+  @override
+  String get linkCopied => 'Voadika ny rohy';
+
+  @override
   String get statusPending => 'Miandry mpanatitra';
 
   @override

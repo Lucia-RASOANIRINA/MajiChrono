@@ -11,6 +11,14 @@
         </trust-anchors>
     </base-config>
 
+    <!--
+      Tuiles OpenStreetMap (§9.2). En HTTPS comme tout le reste : le fond de
+      carte revele les trajets de l'utilisateur, il n'a pas a circuler en clair.
+    -->
+    <domain-config cleartextTrafficPermitted="false">
+        <domain includeSubdomains="true">tile.openstreetmap.org</domain>
+    </domain-config>
+
     <!-- Emulateur et machine de developpement uniquement : jamais compile en
          production, la variante debug etant seule concernee. -->
     <domain-config cleartextTrafficPermitted="true">

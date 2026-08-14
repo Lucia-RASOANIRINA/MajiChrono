@@ -64,15 +64,27 @@ class _McSkeletonState extends State<McSkeleton> with SingleTickerProviderStateM
 }
 
 /// Squelette de liste, utilise partout ou une liste se charge.
+///
+/// [nested] est indispensable des que le squelette est place **a l'interieur**
+/// d'une autre liste verticale. Sans lui, la liste interne recoit une hauteur
+/// non bornee, sa mise en page echoue, et l'echec ne se manifeste pas par un
+/// message : c'est **toute la liste parente qui cesse de peindre**. Le defaut
+/// s'est produit sur l'ecran de suivi, ou il donnait un corps entierement vide,
+/// sans exception journalisee et sans rien a l'ecran pour l'expliquer.
 class McSkeletonList extends StatelessWidget {
-  const McSkeletonList({this.itemCount = 5, super.key});
+  const McSkeletonList({this.itemCount = 5, this.nested = false, super.key});
 
   final int itemCount;
+
+  /// Vrai lorsque ce squelette est imbrique dans une autre liste verticale.
+  final bool nested;
 
   @override
   Widget build(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.all(AppSpacing.lg),
+      shrinkWrap: nested,
+      physics: nested ? const NeverScrollableScrollPhysics() : null,
       itemCount: itemCount,
       separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
       itemBuilder: (_, _) => const Card(

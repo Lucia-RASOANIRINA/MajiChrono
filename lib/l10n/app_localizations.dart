@@ -968,6 +968,114 @@ abstract class AppLocalizations {
   /// **'{km} km'**
   String deliveryDistance(String km);
 
+  /// No description provided for @pickLocationTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Placer le point'**
+  String get pickLocationTitle;
+
+  /// No description provided for @pickLocationAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Placer sur la carte'**
+  String get pickLocationAction;
+
+  /// No description provided for @pickLocationSet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Point place'**
+  String get pickLocationSet;
+
+  /// No description provided for @pickLocationHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le point GPS approche le livreur ; le point de repere fait le reste.'**
+  String get pickLocationHelp;
+
+  /// No description provided for @trackingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi de la course'**
+  String get trackingTitle;
+
+  /// No description provided for @trackingTimeline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Etapes'**
+  String get trackingTimeline;
+
+  /// No description provided for @trackingDriver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre livreur'**
+  String get trackingDriver;
+
+  /// No description provided for @trackingEta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Arrivee estimee dans {minutes} min'**
+  String trackingEta(int minutes);
+
+  /// No description provided for @trackingShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager le suivi'**
+  String get trackingShare;
+
+  /// No description provided for @trackingShareMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivez votre colis MajiChrono : {url}'**
+  String trackingShareMessage(String url);
+
+  /// No description provided for @trackingCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler'**
+  String get trackingCall;
+
+  /// No description provided for @trackingCallMasked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero masque des deux cotes'**
+  String get trackingCallMasked;
+
+  /// No description provided for @trackingRating.
+  ///
+  /// In fr, this message translates to:
+  /// **'{rating} / 5'**
+  String trackingRating(String rating);
+
+  /// No description provided for @trackingPublicTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi du colis'**
+  String get trackingPublicTitle;
+
+  /// No description provided for @trackingPublicExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce lien de suivi n\'est plus valable.'**
+  String get trackingPublicExpired;
+
+  /// No description provided for @trackingNoDriverYet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun livreur n\'a encore accepte la course.'**
+  String get trackingNoDriverYet;
+
+  /// No description provided for @mapUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte indisponible hors ligne. Les points restent affiches.'**
+  String get mapUnavailable;
+
+  /// No description provided for @linkCopied.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien copie'**
+  String get linkCopied;
+
   /// No description provided for @statusPending.
   ///
   /// In fr, this message translates to:

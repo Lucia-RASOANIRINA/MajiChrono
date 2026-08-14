@@ -3,6 +3,7 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
+import 'package:majichrono/features/tracking/presentation/screens/pick_location_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
 /// Saisie d'une adresse composite (EXI-C02, differenciant D3).
@@ -42,6 +43,25 @@ class _AddressFormState extends State<AddressForm> {
 
   bool _showErrors = false;
 
+  /// Point GPS de l'adresse. Il commence au centre d'Antananarivo (§2.1) et
+  /// n'est reellement pose que lorsque l'utilisateur le place sur la carte.
+  late GeoPoint _point = widget.initial?.point ?? GeoPoint.antananarivo;
+  late bool _pointPicked = widget.initial != null;
+
+  Future<void> _pickPoint() async {
+    final picked = await Navigator.of(context).push<GeoPoint>(
+      MaterialPageRoute(
+        builder: (_) => PickLocationScreen(initial: _point),
+      ),
+    );
+    if (picked == null) return;
+    setState(() {
+      _point = picked;
+      _pointPicked = true;
+    });
+    _notify();
+  }
+
   @override
   void dispose() {
     _district.dispose();
@@ -61,11 +81,7 @@ class _AddressFormState extends State<AddressForm> {
     }
 
     return Address(
-      // Sans carte (module 3) ni position (module 4), le point GPS reste celui
-      // du centre d'Antananarivo. Il est deja porte par le modele pour que le
-      // calcul de distance et la diffusion aux livreurs fonctionnent des que la
-      // carte arrivera, sans toucher a ce formulaire.
-      point: widget.initial?.point ?? GeoPoint.antananarivo,
+      point: _point,
       district: _district.text.trim(),
       landmark: _landmark.text.trim(),
       contactPhone: phone,
@@ -91,6 +107,21 @@ class _AddressFormState extends State<AddressForm> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        OutlinedButton.icon(
+          onPressed: _pickPoint,
+          icon: Icon(_pointPicked ? Icons.check_circle_outline : Icons.map_outlined),
+          label: Text(
+            _pointPicked ? l10n.pickLocationSet : l10n.pickLocationAction,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          l10n.pickLocationHelp,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.lg),
         TextField(
           controller: _district,
           textCapitalization: TextCapitalization.words,

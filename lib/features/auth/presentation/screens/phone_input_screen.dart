@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -53,7 +55,10 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       final challenge =
           await ref.read(authRepositoryProvider).requestOtp(phone);
       if (!mounted) return;
-      context.push(AppRoutes.authOtp, extra: challenge);
+      // `unawaited` : le futur de `push` ne se complete qu'au retour de l'ecran
+      // OTP. L'attendre bloquerait ce bloc `try` jusque-la, et le `finally`
+      // remettrait `_busy` a faux beaucoup trop tard.
+      unawaited(context.push(AppRoutes.authOtp, extra: challenge));
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.localizedMessage(AppLocalizations.of(context)));

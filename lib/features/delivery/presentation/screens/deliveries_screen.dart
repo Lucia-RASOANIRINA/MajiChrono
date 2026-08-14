@@ -28,7 +28,7 @@ class DeliveriesScreen extends ConsumerWidget {
       appBar: AppBar(title: Text(l10n.deliveriesTitle)),
       body: deliveries.when(
         loading: () => const McSkeletonList(),
-        error: (_, __) => McEmptyState(
+        error: (_, _) => McEmptyState(
           icon: Icons.inventory_2_outlined,
           title: l10n.emptyDeliveries,
           message: l10n.errorUnknown,
@@ -69,7 +69,13 @@ class DeliveryCard extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Card(
-      child: Padding(
+      child: InkWell(
+        // Une course non transmise n'a pas d'existence serveur : ouvrir son
+        // suivi ne donnerait rien a suivre.
+        onTap: delivery.pendingSync
+            ? null
+            : () => context.push(AppRoutes.clientTracking(delivery.id)),
+        child: Padding(
         padding: AppSpacing.card,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,6 +137,7 @@ class DeliveryCard extends StatelessWidget {
               ],
             ),
           ],
+        ),
         ),
       ),
     );

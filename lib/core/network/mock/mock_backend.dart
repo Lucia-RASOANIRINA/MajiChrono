@@ -46,7 +46,7 @@ class MockResponse {
     String message, {
     Map<String, dynamic>? details,
   }) => MockResponse(status, {
-    'error': {'code': code, 'message': message, if (details != null) 'details': details},
+    'error': {'code': code, 'message': message, 'details': ?details},
   });
 
   final int statusCode;

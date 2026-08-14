@@ -25,6 +25,10 @@ class DeliveryMockModule extends MockModule {
   /// identique — le defaut que le scenario §16.2-3 cherche precisement.
   final Map<String, String> _idempotency = {};
 
+  /// Registre des courses, partage avec le module de suivi : le suivi porte sur
+  /// les memes courses, il n'en tient pas une seconde copie qui divergerait.
+  Map<String, Map<String, dynamic>> get store => _deliveries;
+
   @override
   void register(MockBackend backend) {
     backend.post(ApiEndpoints.deliveries, _create);

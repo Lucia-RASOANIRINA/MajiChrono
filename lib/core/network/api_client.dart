@@ -127,7 +127,7 @@ class ApiClient {
       options: Options(
         extra: {
           DataMeterInterceptor.extraKey: category,
-          if (idempotencyKey != null) IdempotencyInterceptor.extraKey: idempotencyKey,
+          IdempotencyInterceptor.extraKey: ?idempotencyKey,
         },
       ),
     ),
@@ -145,7 +145,7 @@ class ApiClient {
       options: Options(
         extra: {
           DataMeterInterceptor.extraKey: category,
-          if (idempotencyKey != null) IdempotencyInterceptor.extraKey: idempotencyKey,
+          IdempotencyInterceptor.extraKey: ?idempotencyKey,
         },
       ),
     ),

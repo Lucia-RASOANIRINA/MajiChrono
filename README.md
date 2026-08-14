@@ -189,7 +189,7 @@ Chaque module est construit, testé sur émulateur, puis validé avant le suivan
 | 0 | Socle technique et coquille navigable | Lot 0 | Livré |
 | 1 | Authentification et session | Lot 1 | Livré |
 | 2 | Expéditeur : création de course | Lot 1 | Livré |
-| 3 | Suivi cartographique et notifications | Lot 1 | À faire |
+| 3 | Suivi cartographique et notifications | Lot 1 | Livré, sauf notifications |
 | 4 | Livreur : KYC, file, progression | Lot 2 | À faire |
 | 5 | Chaîne de responsabilité et preuve | Lot 2 | À faire |
 | 6 | Mode hors ligne intégral | Lot 2 | À faire |
@@ -335,21 +335,48 @@ d'Antananarivo ne vont pas en ligne droite ; retenir la distance à vol d'oiseau
 reviendrait à sous-payer le livreur. Ce facteur disparaîtra au module 3, quand
 un calcul d'itinéraire réel sera disponible.
 
-### Module 3 — Suivi et notifications
+### Module 3 — Suivi et notifications (livré, sauf notifications)
 
-| Tâche | Profil | Exigences |
-|---|---|---|
-| Carte temps réel, tuiles pré-téléchargeables hors ligne | Expéditeur | EXI-C20, §9.2 |
-| Rafraîchissement adaptatif : 10 s en 4G, 45 s en 2G | Expéditeur | EXI-C20 |
-| Frise chronologique horodatée des statuts | Expéditeur | EXI-C21 |
-| Fiche livreur : photo, note, plaque, véhicule | Expéditeur | EXI-C22 |
-| Appel et messagerie interne, numéros masqués des deux côtés | Expéditeur, Livreur | EXI-C23, EXI-B07 |
-| Lien de suivi public partageable par SMS, sans installation | Destinataire | EXI-C24, D9 |
-| Notifications distantes, canaux Android paramétrables | Transverse | EXI-N01, EXI-N02 |
-| Ouverture de l'écran concerné par lien profond | Transverse | EXI-N04 |
-| Notification traduite selon la langue du compte | Transverse | EXI-N05 |
-| Repli SMS sous 60 s pour les événements critiques | Transverse | EXI-N06 |
-| Annulation avant prise en charge, grille de frais affichée | Expéditeur | EXI-C26 |
+| Tâche | Profil | Exigences | État |
+|---|---|---|---|
+| Cache de tuiles sur disque, 150 Mo sur 30 jours glissants | Expéditeur | §9.2, §10.1 | Fait |
+| Tuiles imputées au poste « cartes » du compteur de données | Transverse | EXI-T07 | Fait |
+| Dégradation annoncée quand une tuile manque, au lieu d'un carré gris | Expéditeur | §15.3 | Fait |
+| Placement du point GPS sur la carte, viseur fixe | Expéditeur | EXI-C01 | Fait |
+| Rafraîchissement adaptatif dérivé du profil réseau mesuré | Expéditeur | EXI-C20 | Fait |
+| Lien de suivi public, sans session ni installation | Destinataire | EXI-C24, D9 | Fait |
+| Backend simulé : livreur en mouvement, statuts, trace | Transverse | §16.2 | Fait |
+| Frise chronologique horodatée des statuts | Expéditeur | EXI-C21 | Fait |
+| Fiche livreur : note, plaque, véhicule, numéro masqué | Expéditeur | EXI-C22, EXI-C23 | Fait |
+| Messagerie interne avec le livreur | Expéditeur, Livreur | EXI-C23 | À faire |
+| Notifications distantes et canaux Android | Transverse | EXI-N01, EXI-N02 | À faire |
+| Lien profond depuis une notification | Transverse | EXI-N04 | À faire |
+| Repli SMS sous 60 s | Transverse | EXI-N06 | À faire |
+
+**Un défaut de composant partagé, trouvé et corrigé.** L'écran de suivi
+s'affichait entièrement vide : barre de titre présente, corps blanc, aucune
+exception journalisée. La cause était `McSkeletonList`, une `ListView` imbriquée
+dans la `ListView` de l'écran. Sans contrainte de hauteur, la liste interne
+reçoit une hauteur non bornée, sa mise en page échoue — et l'échec ne se
+manifeste pas par un message : **c'est toute la liste parente qui cesse de
+peindre**. Un écran vide, sans rien pour l'expliquer.
+
+Le composant accepte désormais un paramètre `nested`, et la frise chronologique
+a été réécrite sans `IntrinsicHeight` autour d'un enfant flexible — même famille
+de piège. La leçon retenue : un composant de liste partagé doit savoir qu'il
+peut être imbriqué, sinon chaque écran qui l'imbrique tombe silencieusement.
+
+Le sélecteur de point sur carte ferme EXI-C01 et corrige au passage un défaut du
+module 2 — sans coordonnées réelles, les deux adresses partageaient le point par
+défaut, la distance valait zéro et la tarification était dégénérée.
+
+**Les notifications distantes attendent une décision d'exploitation.**
+`firebase_messaging` exige un projet Firebase et un fichier
+`google-services.json` ; les déclarer sans eux casserait la compilation Android.
+La couche de présentation des notifications — canaux, liens profonds, traduction
+— peut être construite indépendamment du transport, et le sera au module 4 avec
+`flutter_local_notifications`, déjà déclaré. Le branchement FCM reste suspendu à
+la création du projet Firebase.
 
 ### Module 4 — Livreur : KYC, file et progression
 

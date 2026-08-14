@@ -55,12 +55,10 @@ enum NetworkTransport { none, mobile, wifi, ethernet, other }
 /// le temps d'aller-retour mesure qui qualifie le profil (§9.2).
 class NetworkStatusService {
   NetworkStatusService({
-    required ApiClient apiClient,
+    required this._apiClient,
     Connectivity? connectivity,
-    Duration probeInterval = const Duration(seconds: 30),
-  }) : _apiClient = apiClient,
-       _connectivity = connectivity ?? Connectivity(),
-       _probeInterval = probeInterval;
+    this._probeInterval = const Duration(seconds: 30),
+  }) : _connectivity = connectivity ?? Connectivity();
 
   final ApiClient _apiClient;
   final Connectivity _connectivity;

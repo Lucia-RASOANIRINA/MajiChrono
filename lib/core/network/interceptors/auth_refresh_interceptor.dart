@@ -18,10 +18,9 @@ import 'package:majichrono/core/network/api_endpoints.dart';
 ///    double debit qu'interdit EXI-MP06.
 class AuthRefreshInterceptor extends QueuedInterceptor {
   AuthRefreshInterceptor({
-    required Future<String?> Function() onRefresh,
-    required Dio dio,
-  })  : _onRefresh = onRefresh,
-        _dio = dio;
+    required this._onRefresh,
+    required this._dio,
+  });
 
   static const String _retriedFlag = '_authRetried';
 

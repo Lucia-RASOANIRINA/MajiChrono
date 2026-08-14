@@ -15,6 +15,7 @@ import 'package:majichrono/core/storage/prefs_store.dart';
 import 'package:majichrono/core/storage/secure_store.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
+import 'package:majichrono/features/tracking/data/mock/tracking_mock_module.dart';
 
 /// Injection de dependances : Riverpod est le seul mecanisme (§9.1).
 ///
@@ -49,10 +50,15 @@ final secureStoreProvider = Provider<SecureStore>((ref) => SecureStore());
 
 /// Registre des routes simulees. Chaque module y ajoute les siennes.
 final mockBackendProvider = Provider<MockBackend>((ref) {
+  final deliveries = DeliveryMockModule();
   return MockBackend()
     ..register(CoreMockModule())
     ..register(AuthMockModule())
-    ..register(DeliveryMockModule());
+    ..register(deliveries)
+    // Le suivi lit le registre du module de livraison plutot que d'en tenir
+    // une copie : deux registres finiraient par diverger, et le suivi
+    // afficherait un statut que la liste ne connait pas.
+    ..register(TrackingMockModule(deliveries: () => deliveries.store));
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;

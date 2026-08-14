@@ -41,7 +41,7 @@ UserAccount _account(UserRole role) => UserAccount(
     );
 
 void main() {
-  Override _network({required bool online}) => networkStatusProvider.overrideWith(
+  Override network({required bool online}) => networkStatusProvider.overrideWith(
         (ref) => Stream.value(
           NetworkStatus(
             reachable: online,
@@ -69,7 +69,7 @@ void main() {
         sharedPreferencesProvider.overrideWithValue(prefs),
         dataMeterProvider.overrideWithValue(DataMeter(prefs)),
         appDatabaseProvider.overrideWithValue(db),
-        _network(online: online),
+        network(online: online),
         // La base locale n'est pas ouverte dans un test de widget : `flutter
         // test` s'execute sur le poste, ou la bibliotheque native SQLite livree
         // pour Android n'est pas chargee.

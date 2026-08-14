@@ -41,8 +41,8 @@ class AuthRemoteDataSource {
       _client.patch<Map<String, dynamic>>(
         ApiEndpoints.me,
         body: {
-          if (role != null) 'role': role,
-          if (displayName != null) 'displayName': displayName,
+          'role': ?role,
+          'displayName': ?displayName,
         },
       );
 }

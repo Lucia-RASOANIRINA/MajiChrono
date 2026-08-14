@@ -10,12 +10,10 @@ import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dar
 
 class AuthRepositoryImpl implements AuthRepository {
   AuthRepositoryImpl({
-    required AuthRemoteDataSource remote,
-    required AuthLocalDataSource local,
-    required void Function(String? token) onAccessTokenChanged,
-  })  : _remote = remote,
-        _local = local,
-        _onAccessTokenChanged = onAccessTokenChanged;
+    required this._remote,
+    required this._local,
+    required this._onAccessTokenChanged,
+  });
 
   final AuthRemoteDataSource _remote;
   final AuthLocalDataSource _local;
