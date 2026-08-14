@@ -473,6 +473,168 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get custodyPickupTitle => 'Constat de prise en charge';
+
+  @override
+  String get custodyHandoverTitle => 'Constat de remise';
+
+  @override
+  String get custodyStepPhotos => 'Photos';
+
+  @override
+  String get custodyStepCondition => 'Etat';
+
+  @override
+  String get custodyStepSeal => 'Scelle';
+
+  @override
+  String get custodyStepSignatures => 'Signatures';
+
+  @override
+  String get custodyEngagement =>
+      'Je certifie remettre ou prendre en charge ce colis dans l\'etat constate ci-dessus.';
+
+  @override
+  String get custodySignHere => 'Signez ici';
+
+  @override
+  String get custodyClearSignature => 'Effacer';
+
+  @override
+  String get custodySignerSender => 'Expediteur';
+
+  @override
+  String get custodySignerDriver => 'Livreur';
+
+  @override
+  String get custodySignerRecipient => 'Destinataire';
+
+  @override
+  String get custodyPhotoTop => 'Dessus';
+
+  @override
+  String get custodyPhotoBottom => 'Dessous';
+
+  @override
+  String get custodyPhotoSide1 => 'Cote 1';
+
+  @override
+  String get custodyPhotoSide2 => 'Cote 2';
+
+  @override
+  String get custodyPhotoGuide =>
+      'Cadrez le colis dans le gabarit, puis declenchez.';
+
+  @override
+  String get custodyPhotoInAppOnly =>
+      'Photo prise dans l\'application uniquement.';
+
+  @override
+  String get custodyPhotoRetake => 'Reprendre';
+
+  @override
+  String get custodyConditionTitle => 'Etat du colis';
+
+  @override
+  String get custodyConditionHelp =>
+      'Cochez ce que vous constatez. Toute anomalie exige une photo et un commentaire.';
+
+  @override
+  String get conditionPackagingIntact => 'Emballage intact';
+
+  @override
+  String get conditionImpactMark => 'Trace de choc';
+
+  @override
+  String get conditionMoistureMark => 'Trace d\'humidite';
+
+  @override
+  String get conditionAlreadyOpened => 'Emballage deja ouvert';
+
+  @override
+  String get conditionOriginalTape => 'Scotch d\'origine present';
+
+  @override
+  String get conditionCrushedCorners => 'Angles ecrases';
+
+  @override
+  String get custodyAnomalyNote => 'Precisez l\'anomalie';
+
+  @override
+  String get custodySealNumber => 'Numero de scelle';
+
+  @override
+  String get custodySealHint => 'SC-4821';
+
+  @override
+  String get custodySealScanLater => 'Le scan de code arrive au module 10.';
+
+  @override
+  String get custodySealCheck => 'Etat du scelle';
+
+  @override
+  String get sealIntact => 'Intact';
+
+  @override
+  String get sealBroken => 'Rompu';
+
+  @override
+  String get sealAbsent => 'Absent';
+
+  @override
+  String get custodySealIncident => 'Un incident sera ouvert automatiquement.';
+
+  @override
+  String get custodyWeightConfirm => 'Poids confirme';
+
+  @override
+  String get custodyOtpTitle => 'Code du destinataire';
+
+  @override
+  String get custodyOtpHelp => 'Un code a ete envoye au destinataire par SMS.';
+
+  @override
+  String get custodyIncomplete => 'Constat incomplet';
+
+  @override
+  String get custodyValidate => 'Valider le constat';
+
+  @override
+  String get custodySealed => 'Constat scelle';
+
+  @override
+  String get custodySealedHelp =>
+      'Il ne peut plus etre modifie. Toute precision sera un ajout distinct.';
+
+  @override
+  String get custodyComparatorTitle => 'Comparateur';
+
+  @override
+  String get custodyBefore => 'Prise en charge';
+
+  @override
+  String get custodyAfter => 'Remise';
+
+  @override
+  String get custodyNoDiff => 'Aucun ecart constate';
+
+  @override
+  String get custodyAppeared => 'Apparu a la remise';
+
+  @override
+  String get custodyDisappeared => 'Disparu en cours de route';
+
+  @override
+  String get custodyChainIntact => 'Chaine de preuve intacte';
+
+  @override
+  String get custodyChainBroken => 'Chaine de preuve rompue';
+
+  @override
+  String get custodyChainHelp =>
+      'L\'empreinte de la remise integre celle de la prise en charge.';
+
+  @override
   String get driverOnline => 'En ligne';
 
   @override

@@ -968,6 +968,318 @@ abstract class AppLocalizations {
   /// **'{km} km'**
   String deliveryDistance(String km);
 
+  /// No description provided for @custodyPickupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat de prise en charge'**
+  String get custodyPickupTitle;
+
+  /// No description provided for @custodyHandoverTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat de remise'**
+  String get custodyHandoverTitle;
+
+  /// No description provided for @custodyStepPhotos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photos'**
+  String get custodyStepPhotos;
+
+  /// No description provided for @custodyStepCondition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Etat'**
+  String get custodyStepCondition;
+
+  /// No description provided for @custodyStepSeal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scelle'**
+  String get custodyStepSeal;
+
+  /// No description provided for @custodyStepSignatures.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signatures'**
+  String get custodyStepSignatures;
+
+  /// No description provided for @custodyEngagement.
+  ///
+  /// In fr, this message translates to:
+  /// **'Je certifie remettre ou prendre en charge ce colis dans l\'etat constate ci-dessus.'**
+  String get custodyEngagement;
+
+  /// No description provided for @custodySignHere.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signez ici'**
+  String get custodySignHere;
+
+  /// No description provided for @custodyClearSignature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer'**
+  String get custodyClearSignature;
+
+  /// No description provided for @custodySignerSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expediteur'**
+  String get custodySignerSender;
+
+  /// No description provided for @custodySignerDriver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur'**
+  String get custodySignerDriver;
+
+  /// No description provided for @custodySignerRecipient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Destinataire'**
+  String get custodySignerRecipient;
+
+  /// No description provided for @custodyPhotoTop.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dessus'**
+  String get custodyPhotoTop;
+
+  /// No description provided for @custodyPhotoBottom.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dessous'**
+  String get custodyPhotoBottom;
+
+  /// No description provided for @custodyPhotoSide1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cote 1'**
+  String get custodyPhotoSide1;
+
+  /// No description provided for @custodyPhotoSide2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cote 2'**
+  String get custodyPhotoSide2;
+
+  /// No description provided for @custodyPhotoGuide.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cadrez le colis dans le gabarit, puis declenchez.'**
+  String get custodyPhotoGuide;
+
+  /// No description provided for @custodyPhotoInAppOnly.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo prise dans l\'application uniquement.'**
+  String get custodyPhotoInAppOnly;
+
+  /// No description provided for @custodyPhotoRetake.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reprendre'**
+  String get custodyPhotoRetake;
+
+  /// No description provided for @custodyConditionTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Etat du colis'**
+  String get custodyConditionTitle;
+
+  /// No description provided for @custodyConditionHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cochez ce que vous constatez. Toute anomalie exige une photo et un commentaire.'**
+  String get custodyConditionHelp;
+
+  /// No description provided for @conditionPackagingIntact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Emballage intact'**
+  String get conditionPackagingIntact;
+
+  /// No description provided for @conditionImpactMark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trace de choc'**
+  String get conditionImpactMark;
+
+  /// No description provided for @conditionMoistureMark.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trace d\'humidite'**
+  String get conditionMoistureMark;
+
+  /// No description provided for @conditionAlreadyOpened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Emballage deja ouvert'**
+  String get conditionAlreadyOpened;
+
+  /// No description provided for @conditionOriginalTape.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scotch d\'origine present'**
+  String get conditionOriginalTape;
+
+  /// No description provided for @conditionCrushedCorners.
+  ///
+  /// In fr, this message translates to:
+  /// **'Angles ecrases'**
+  String get conditionCrushedCorners;
+
+  /// No description provided for @custodyAnomalyNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Precisez l\'anomalie'**
+  String get custodyAnomalyNote;
+
+  /// No description provided for @custodySealNumber.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero de scelle'**
+  String get custodySealNumber;
+
+  /// No description provided for @custodySealHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'SC-4821'**
+  String get custodySealHint;
+
+  /// No description provided for @custodySealScanLater.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le scan de code arrive au module 10.'**
+  String get custodySealScanLater;
+
+  /// No description provided for @custodySealCheck.
+  ///
+  /// In fr, this message translates to:
+  /// **'Etat du scelle'**
+  String get custodySealCheck;
+
+  /// No description provided for @sealIntact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Intact'**
+  String get sealIntact;
+
+  /// No description provided for @sealBroken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rompu'**
+  String get sealBroken;
+
+  /// No description provided for @sealAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Absent'**
+  String get sealAbsent;
+
+  /// No description provided for @custodySealIncident.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un incident sera ouvert automatiquement.'**
+  String get custodySealIncident;
+
+  /// No description provided for @custodyWeightConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Poids confirme'**
+  String get custodyWeightConfirm;
+
+  /// No description provided for @custodyOtpTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code du destinataire'**
+  String get custodyOtpTitle;
+
+  /// No description provided for @custodyOtpHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un code a ete envoye au destinataire par SMS.'**
+  String get custodyOtpHelp;
+
+  /// No description provided for @custodyIncomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat incomplet'**
+  String get custodyIncomplete;
+
+  /// No description provided for @custodyValidate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider le constat'**
+  String get custodyValidate;
+
+  /// No description provided for @custodySealed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat scelle'**
+  String get custodySealed;
+
+  /// No description provided for @custodySealedHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Il ne peut plus etre modifie. Toute precision sera un ajout distinct.'**
+  String get custodySealedHelp;
+
+  /// No description provided for @custodyComparatorTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comparateur'**
+  String get custodyComparatorTitle;
+
+  /// No description provided for @custodyBefore.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prise en charge'**
+  String get custodyBefore;
+
+  /// No description provided for @custodyAfter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remise'**
+  String get custodyAfter;
+
+  /// No description provided for @custodyNoDiff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun ecart constate'**
+  String get custodyNoDiff;
+
+  /// No description provided for @custodyAppeared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Apparu a la remise'**
+  String get custodyAppeared;
+
+  /// No description provided for @custodyDisappeared.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disparu en cours de route'**
+  String get custodyDisappeared;
+
+  /// No description provided for @custodyChainIntact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaine de preuve intacte'**
+  String get custodyChainIntact;
+
+  /// No description provided for @custodyChainBroken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaine de preuve rompue'**
+  String get custodyChainBroken;
+
+  /// No description provided for @custodyChainHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'empreinte de la remise integre celle de la prise en charge.'**
+  String get custodyChainHelp;
+
   /// No description provided for @driverOnline.
   ///
   /// In fr, this message translates to:

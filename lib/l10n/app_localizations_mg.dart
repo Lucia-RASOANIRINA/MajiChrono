@@ -472,6 +472,170 @@ class AppLocalizationsMg extends AppLocalizations {
   }
 
   @override
+  String get custodyPickupTitle => 'Fanamarinana fandraisana';
+
+  @override
+  String get custodyHandoverTitle => 'Fanamarinana fanolorana';
+
+  @override
+  String get custodyStepPhotos => 'Sary';
+
+  @override
+  String get custodyStepCondition => 'Toetra';
+
+  @override
+  String get custodyStepSeal => 'Tombo-kase';
+
+  @override
+  String get custodyStepSignatures => 'Sonia';
+
+  @override
+  String get custodyEngagement =>
+      'Manamarina aho fa manolotra na mandray ity entana ity amin\'ny toetra voamarika etsy ambony.';
+
+  @override
+  String get custodySignHere => 'Manaova sonia eto';
+
+  @override
+  String get custodyClearSignature => 'Fafao';
+
+  @override
+  String get custodySignerSender => 'Mpandefa';
+
+  @override
+  String get custodySignerDriver => 'Mpanatitra';
+
+  @override
+  String get custodySignerRecipient => 'Mpandray';
+
+  @override
+  String get custodyPhotoTop => 'Ambony';
+
+  @override
+  String get custodyPhotoBottom => 'Ambany';
+
+  @override
+  String get custodyPhotoSide1 => 'Sisiny 1';
+
+  @override
+  String get custodyPhotoSide2 => 'Sisiny 2';
+
+  @override
+  String get custodyPhotoGuide =>
+      'Ampidiro ao anaty tarehimarika ny entana, avy eo alaivo.';
+
+  @override
+  String get custodyPhotoInAppOnly =>
+      'Sary alaina ao anatin\'ny fampiharana ihany.';
+
+  @override
+  String get custodyPhotoRetake => 'Averina alaina';
+
+  @override
+  String get custodyConditionTitle => 'Toetran\'ny entana';
+
+  @override
+  String get custodyConditionHelp =>
+      'Mariho izay hitanao. Ny tsy fahatomombanana rehetra dia mila sary sy fanamarihana.';
+
+  @override
+  String get conditionPackagingIntact => 'Fonosana tsy simba';
+
+  @override
+  String get conditionImpactMark => 'Misy dian-kadonana';
+
+  @override
+  String get conditionMoistureMark => 'Misy dian-drano';
+
+  @override
+  String get conditionAlreadyOpened => 'Efa nosokafana ny fonosana';
+
+  @override
+  String get conditionOriginalTape => 'Misy ny sokitra tany am-boalohany';
+
+  @override
+  String get conditionCrushedCorners => 'Zorony potika';
+
+  @override
+  String get custodyAnomalyNote => 'Lazao ny olana';
+
+  @override
+  String get custodySealNumber => 'Laharan\'ny tombo-kase';
+
+  @override
+  String get custodySealHint => 'SC-4821';
+
+  @override
+  String get custodySealScanLater =>
+      'Ho avy amin\'ny modely 10 ny fanaraha-maso kaody.';
+
+  @override
+  String get custodySealCheck => 'Toetran\'ny tombo-kase';
+
+  @override
+  String get sealIntact => 'Tsy simba';
+
+  @override
+  String get sealBroken => 'Tapaka';
+
+  @override
+  String get sealAbsent => 'Tsy misy';
+
+  @override
+  String get custodySealIncident => 'Hisokatra ho azy ny fitarainana.';
+
+  @override
+  String get custodyWeightConfirm => 'Lanja voamarina';
+
+  @override
+  String get custodyOtpTitle => 'Kaodin\'ny mpandray';
+
+  @override
+  String get custodyOtpHelp =>
+      'Nisy kaody nalefa tamin\'ny mpandray tamin\'ny SMS.';
+
+  @override
+  String get custodyIncomplete => 'Tsy feno ny fanamarinana';
+
+  @override
+  String get custodyValidate => 'Hamafiso ny fanamarinana';
+
+  @override
+  String get custodySealed => 'Voaisy tombo-kase ny fanamarinana';
+
+  @override
+  String get custodySealedHelp =>
+      'Tsy azo ovaina intsony. Ny fanazavana rehetra dia ho fanampiny miavaka.';
+
+  @override
+  String get custodyComparatorTitle => 'Mpampitaha';
+
+  @override
+  String get custodyBefore => 'Fandraisana';
+
+  @override
+  String get custodyAfter => 'Fanolorana';
+
+  @override
+  String get custodyNoDiff => 'Tsy misy fiovana hita';
+
+  @override
+  String get custodyAppeared => 'Niseho tamin\'ny fanolorana';
+
+  @override
+  String get custodyDisappeared => 'Nanjavona teny an-dalana';
+
+  @override
+  String get custodyChainIntact => 'Tsy tapaka ny rojo porofo';
+
+  @override
+  String get custodyChainBroken => 'Tapaka ny rojo porofo';
+
+  @override
+  String get custodyChainHelp =>
+      'Ny dian-tanan\'ny fanolorana dia mirakitra izay an\'ny fandraisana.';
+
+  @override
   String get driverOnline => 'Miasa';
 
   @override

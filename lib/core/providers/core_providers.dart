@@ -14,6 +14,7 @@ import 'package:majichrono/core/storage/app_database.dart';
 import 'package:majichrono/core/storage/prefs_store.dart';
 import 'package:majichrono/core/storage/secure_store.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
+import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
 import 'package:majichrono/features/driver/data/mock/driver_mock_module.dart';
 import 'package:majichrono/features/tracking/data/mock/tracking_mock_module.dart';
@@ -60,7 +61,8 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     // une copie : deux registres finiraient par diverger, et le suivi
     // afficherait un statut que la liste ne connait pas.
     ..register(TrackingMockModule(deliveries: () => deliveries.store))
-    ..register(DriverMockModule(deliveries: () => deliveries.store));
+    ..register(DriverMockModule(deliveries: () => deliveries.store))
+    ..register(CustodyMockModule());
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;

@@ -191,7 +191,7 @@ Chaque module est construit, testé sur émulateur, puis validé avant le suivan
 | 2 | Expéditeur : création de course | Lot 1 | Livré |
 | 3 | Suivi cartographique et notifications | Lot 1 | Livré, sauf notifications |
 | 4 | Livreur : KYC, file, progression | Lot 2 | Livré, sauf captures et arrière-plan |
-| 5 | Chaîne de responsabilité et preuve | Lot 2 | À faire |
+| 5 | Chaîne de responsabilité et preuve | Lot 2 | Noyau de preuve livré, capture à faire |
 | 6 | Mode hors ligne intégral | Lot 2 | À faire |
 | 7 | Paiement délégué à MajiPay | Lot 3 | À faire |
 | 8 | Supervision depuis mobile | Lot 4 | À faire |
@@ -446,6 +446,61 @@ géolocalisé, photographié et signé par les deux parties.
 
 | Tâche | Profil | Exigences |
 |---|---|---|
+**État : le noyau de preuve est livré et testé, la capture reste à construire.**
+
+| Élément | Exigences | État |
+|---|---|---|
+| Entité constat : photos, grille, scellé, poids, signatures, position | EXI-CC02 | Fait |
+| Règle de complétude bloquant la progression du statut | EXI-CC03 | Fait |
+| Scellement rendant le constat immuable | EXI-CC04 | Fait |
+| Empreinte SHA-256 sur corps canonique déterministe | EXI-CC43 | Fait |
+| Chaînage : la remise intègre l'empreinte de la prise en charge | EXI-CC44 | Fait |
+| Grille d'état fermée à six critères, anomalie exigeant photo et commentaire | EXI-CC12, EXI-CC13 | Fait |
+| Vérification du scellé, incident automatique si rompu ou absent | EXI-CC22 | Fait |
+| Double preuve à la remise : signature et code OTP | EXI-CC24 | Fait |
+| Signature vectorielle : points, pression, horodatage relatif | EXI-CC40 | Fait |
+| Pipeline photo : 1280 px, 200 Ko, compression itérative, empreinte | EXI-CC41 | Fait |
+| Budget de 1,2 Mo par constat | EXI-CC42 | Fait |
+| Comparateur avant/après, angle par angle, écarts surlignés | EXI-CC30, EXI-CC31 | Fait |
+| Transmission, écriture locale avant envoi | EXI-CC05 | Fait |
+| Serveur recalculant l'empreinte et refusant toute incohérence | EXI-B05 | Fait |
+| Serveur refusant une remise qui ne chaîne pas | EXI-CC44 | Fait |
+| Serveur refusant de rejouer un constat déjà scellé | EXI-CC04 | Fait |
+| Horodatage serveur faisant foi, écart d'horloge journalisé | EXI-CC45 | Fait |
+| Constat conservé et relisible hors ligne, jamais abandonné | EXI-CC05, EXI-S05 | Fait |
+| Prise de vue guidée par gabarit, dans l'application uniquement | EXI-CC10, EXI-CC11 | À faire |
+| Écrans de saisie des deux constats | EXI-CC02 | À faire |
+| Chiffrement au repos des constats non transmis | EXI-CC46 | À faire |
+| Export PDF signé | EXI-CC32 | À faire |
+| Réserves, refus, remise à un tiers, remise sans signature | EXI-CC26 à CC29 | À faire |
+| Scan du code de scellé | EXI-CC14 | Module 10 |
+
+**Le corps canonique mérite une explication.** L'empreinte porte sur une
+sérialisation déterministe : photos triées par angle, grille triée, signatures
+dans l'ordre d'apposition. Sans cette normalisation, deux sérialisations du même
+constat donneraient deux empreintes différentes, et le serveur rejetterait un
+constat pourtant intact — le §12.3 lui impose de recalculer et de vérifier
+(EXI-B05).
+
+**Les chemins de fichiers sont rangés hors du corps canonique.** Ils sont propres
+à l'appareil ; les inclure ferait varier l'empreinte d'un téléphone à l'autre,
+et le serveur — qui la recalcule — rejetterait un constat pourtant intact. Un
+test le verrouille.
+
+**Le contrôle décisif est côté serveur.** Le simulateur recalcule l'empreinte et
+refuse toute incohérence, refuse une remise qui ne chaîne pas sur une prise en
+charge enregistrée, et refuse de rejouer une étape déjà scellée avec un contenu
+différent. Sans ces trois refus, la chaîne de preuve serait déclarative : un
+client qui casserait la sérialisation canonique ne s'en apercevrait que le jour
+d'un litige.
+
+**Trente-trois tests portent sur ce noyau**, dont ceux qui comptent vraiment :
+qu'une altération après scellement soit détectable, qu'altérer la prise en
+charge rompe la chaîne, qu'une remise référençant une autre prise en charge soit
+rejetée, et qu'une anomalie apparue en transport soit isolée par le comparateur.
+
+Reste de la spécification d'origine, pour mémoire :
+
 | Constat de prise en charge : 4 photos guidées par gabarit | Livreur, Expéditeur | EXI-CC10 |
 | Prise de vue dans l'application uniquement, import galerie interdit | Livreur | EXI-CC11 |
 | Grille d'état à cocher, photo et commentaire imposés par anomalie | Livreur | EXI-CC12, EXI-CC13 |

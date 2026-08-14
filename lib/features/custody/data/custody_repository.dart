@@ -1,0 +1,203 @@
+import 'dart:convert';
+
+import 'package:drift/drift.dart' hide Column;
+import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/core/logging/app_logger.dart';
+import 'package:majichrono/core/network/api_client.dart';
+import 'package:majichrono/core/network/api_endpoints.dart';
+import 'package:majichrono/core/network/data_meter.dart';
+import 'package:majichrono/core/storage/app_database.dart';
+import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
+import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
+import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
+
+/// Persistance et transmission des constats.
+///
+/// Deux exigences dictent l'ordre des operations :
+///
+///  - **EXI-CC05** : les deux constats sont integralement realisables hors
+///    ligne. L'ecriture locale precede donc toujours l'envoi.
+///  - **EXI-CC46** : un constat hors ligne n'est effacable qu'apres accuse de
+///    reception du serveur. Le repository ne supprime jamais un constat non
+///    accuse, meme si l'envoi echoue de facon repetee — c'est la contrepartie
+///    d'EXI-S05, qui interdit l'abandon automatique.
+class CustodyRepository {
+  CustodyRepository({required this._client, required this._db});
+
+  final ApiClient _client;
+  final AppDatabase _db;
+
+  static const String _prefix = 'custody/';
+
+  String _key(String reportId) => '$_prefix$reportId';
+
+  /// Enregistre un constat scelle, puis tente de le transmettre.
+  ///
+  /// Retourne le constat tel qu'il doit etre affiche : confirme par le serveur
+  /// si l'envoi a abouti, local et en attente sinon.
+  Future<CustodyReport> submit(CustodyReport sealed) async {
+    if (!sealed.isSealed) {
+      throw StateError('Un constat doit etre scelle avant transmission');
+    }
+
+    await _persist(sealed, acknowledged: false);
+
+    try {
+      final path = sealed.stage == CustodyStage.pickup
+          ? ApiEndpoints.custodyPickup(sealed.deliveryId)
+          : ApiEndpoints.custodyHandover(sealed.deliveryId);
+
+      final json = await _client.post<Map<String, dynamic>>(
+        path,
+        body: sealed.toJson(),
+        // La cle d'idempotence est l'empreinte elle-meme : rejouer le meme
+        // constat ne peut produire qu'un seul enregistrement, et deux constats
+        // differents ne peuvent pas se confondre (EXI-S01).
+        idempotencyKey: sealed.hash,
+        category: DataCategory.photos,
+      );
+
+      // EXI-CC45 : l'horodatage retenu est celui du serveur a la reception.
+      // L'horodatage local reste conserve a titre indicatif, et l'ecart est
+      // journalise — deux telephones mal regles ne doivent pas raconter deux
+      // histoires de la meme course.
+      final serverTime = DateTime.tryParse('${json['serverTimestamp']}');
+      if (serverTime != null) {
+        final drift = serverTime.difference(sealed.capturedAt).inSeconds;
+        if (drift.abs() > 120) {
+          AppLogger.instance.warn('custody_clock_drift', data: {'seconds': drift});
+        }
+      }
+
+      final acknowledged = _withServerTime(sealed, serverTime);
+      await _persist(acknowledged, acknowledged: true);
+      return acknowledged;
+    } on Failure catch (failure) {
+      AppLogger.instance.info(
+        'custody_queued',
+        data: {'reason': failure.runtimeType.toString()},
+      );
+      // TODO(module 6) : deposer dans la file de synchronisation avec la
+      // priorite la plus haute (EXI-S02) et le drapeau « jamais abandonner »
+      // (EXI-S05). En attendant, le constat reste local et non accuse.
+      return sealed;
+    }
+  }
+
+  Future<void> _persist(CustodyReport report, {required bool acknowledged}) =>
+      _db.into(_db.cachedDocuments).insertOnConflictUpdate(
+        CachedDocumentsCompanion.insert(
+          key: _key(report.id),
+          body: jsonEncode({
+            'report': report.toJson(),
+            // Les chemins de fichiers sont ranges **a cote** du constat, jamais
+            // dedans : ils sont propres a l'appareil, et les inclure dans le
+            // corps canonique changerait l'empreinte d'un telephone a l'autre.
+            // Le serveur recalcule cette empreinte (EXI-B05) ; elle doit donc
+            // ne dependre que du contenu, pas de l'endroit ou il est range.
+            'paths': {
+              for (final photo in report.photos)
+                photo.angle.wireName: photo.localPath,
+            },
+            'acknowledged': acknowledged,
+          }),
+          fetchedAt: DateTime.now(),
+        ),
+      );
+
+  CustodyReport _withServerTime(CustodyReport report, DateTime? serverTime) =>
+      CustodyReport(
+        id: report.id,
+        deliveryId: report.deliveryId,
+        stage: report.stage,
+        photos: report.photos,
+        grid: report.grid,
+        sealNumber: report.sealNumber,
+        weight: report.weight,
+        signatures: report.signatures,
+        capturedAt: report.capturedAt,
+        point: report.point,
+        sealCheck: report.sealCheck,
+        reserveReason: report.reserveReason,
+        otpVerified: report.otpVerified,
+        previousHash: report.previousHash,
+        hash: report.hash,
+        serverTimestamp: serverTime?.toLocal(),
+        sealedAt: report.sealedAt,
+      );
+
+  /// Constats connus d'une course, lus localement (EXI-CC05).
+  Future<CustodyChain> chainFor(String deliveryId) async {
+    final rows = await (_db.select(
+      _db.cachedDocuments,
+    )..where((t) => t.key.like('$_prefix%'))).get();
+
+    CustodyReport? pickup;
+    CustodyReport? handover;
+
+    for (final row in rows) {
+      final decoded = jsonDecode(row.body) as Map<String, dynamic>;
+      final json = decoded['report'] as Map<String, dynamic>;
+      if (json['deliveryId'] != deliveryId) continue;
+
+      final paths = (decoded['paths'] as Map<String, dynamic>? ?? {}).map(
+        (key, value) => MapEntry(key, '$value'),
+      );
+      final report = _fromJson(json, paths);
+
+      if (report.stage == CustodyStage.pickup) {
+        pickup = report;
+      } else {
+        handover = report;
+      }
+    }
+
+    return CustodyChain(pickup: pickup, handover: handover);
+  }
+
+  CustodyReport _fromJson(Map<String, dynamic> json, Map<String, String> paths) {
+    final photos = (json['photos'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map((p) {
+          final angle = PhotoAngle.fromWire(p['angle'] as String?);
+          if (angle == null) return null;
+          return CustodyPhoto(
+            angle: angle,
+            localPath: paths[angle.wireName] ?? '',
+            takenAt:
+                DateTime.tryParse('${p['takenAt']}')?.toLocal() ?? DateTime.now(),
+            sizeBytes: (p['sizeBytes'] as num?)?.toInt() ?? 0,
+            sha256: '${p['sha256'] ?? ''}',
+            point: GeoPoint.fromJson(p['point'] as Map<String, dynamic>?),
+            anomalyNote: p['anomalyNote'] as String?,
+          );
+        })
+        .whereType<CustodyPhoto>()
+        .toList();
+
+    return CustodyReport(
+      id: '${json['id']}',
+      deliveryId: '${json['deliveryId']}',
+      stage: CustodyStage.fromWire(json['stage'] as String?),
+      photos: photos,
+      grid: ConditionGrid.fromJson(json['grid'] as List<dynamic>?),
+      sealNumber: '${json['sealNumber'] ?? ''}',
+      weight: WeightCategory.fromWire(json['weight'] as String?),
+      // Les signatures ne sont pas rechargees pour l'affichage : le comparateur
+      // montre les photos et les ecarts d'etat, pas les traces. Elles restent
+      // dans le corps transmis et dans l'empreinte, ou elles ont leur role.
+      signatures: const [],
+      capturedAt:
+          DateTime.tryParse('${json['capturedAt']}')?.toLocal() ?? DateTime.now(),
+      point:
+          GeoPoint.fromJson(json['point'] as Map<String, dynamic>?) ??
+          GeoPoint.antananarivo,
+      sealCheck: SealCheck.fromWire(json['sealCheck'] as String?),
+      reserveReason: json['reserveReason'] as String?,
+      otpVerified: json['otpVerified'] == true,
+      previousHash: json['previousHash'] as String?,
+      hash: json['hash'] as String?,
+      sealedAt: DateTime.tryParse('${json['sealedAt']}')?.toLocal(),
+    );
+  }
+}

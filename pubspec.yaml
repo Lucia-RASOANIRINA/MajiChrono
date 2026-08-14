@@ -54,6 +54,14 @@ dependencies:
   # Position du livreur et flux de mise a jour (EXI-L09, EXI-L11).
   geolocator: ^13.0.2
 
+  # --- Chaine de responsabilite (module 5) ---
+  # Prise de vue guidee dans l'application, import galerie interdit (EXI-CC11).
+  camera: ^0.11.0+2
+  # Compression maitrisee : 1280 px, 200 Ko par photo (EXI-CC41).
+  image: ^4.3.0
+  # Capture vectorielle de la signature (EXI-CC40).
+  signature: ^5.5.0
+
   # --- Socle ---
   connectivity_plus: ^6.1.0
   logger: ^2.5.0
