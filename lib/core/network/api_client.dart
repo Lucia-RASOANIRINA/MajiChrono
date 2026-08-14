@@ -1,0 +1,165 @@
+import 'package:dio/dio.dart';
+import 'package:majichrono/core/config/app_config.dart';
+import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/core/logging/app_logger.dart';
+import 'package:majichrono/core/network/data_meter.dart';
+import 'package:majichrono/core/network/error_mapper.dart';
+import 'package:majichrono/core/network/interceptors/data_meter_interceptor.dart';
+import 'package:majichrono/core/network/interceptors/idempotency_interceptor.dart';
+import 'package:majichrono/core/network/interceptors/logging_interceptor.dart';
+import 'package:majichrono/core/network/mock/mock_backend.dart';
+import 'package:majichrono/core/network/mock/mock_http_adapter.dart';
+import 'package:majichrono/core/network/network_profile.dart';
+
+/// Client HTTP unique de l'application.
+///
+/// Aucune couche superieure n'instancie de Dio : elles recoivent [ApiClient] et
+/// n'obtiennent en retour que des donnees ou des [Failure].
+class ApiClient {
+  ApiClient({
+    required AppConfig config,
+    required DataMeter dataMeter,
+    required MockBackend mockBackend,
+    AppLogger? logger,
+    String Function()? languageProvider,
+    String? Function()? accessTokenProvider,
+    // Injection d'un transport simule preconfigure (profil, aleatoire fige),
+    // reservee aux tests : elle permet de rejouer un reseau donne a l'identique.
+    MockHttpAdapter? mockAdapter,
+  }) : _config = config,
+       _mockBackend = mockBackend,
+       _languageProvider = languageProvider ?? (() => 'fr'),
+       _accessTokenProvider = accessTokenProvider ?? (() => null) {
+    _dio = Dio(
+      BaseOptions(
+        baseUrl: config.apiBaseUrl,
+        connectTimeout: const Duration(seconds: 20),
+        // Genereux : en 2G un corps de constat met plusieurs dizaines de secondes.
+        receiveTimeout: const Duration(seconds: 60),
+        sendTimeout: const Duration(seconds: 60),
+        headers: {Headers.contentTypeHeader: Headers.jsonContentType},
+        // Tous les statuts remontent : c'est `mapDioException` qui tranche.
+        validateStatus: (status) => status != null && status < 400,
+      ),
+    );
+
+    if (config.isMock || mockAdapter != null) {
+      _mockAdapter = mockAdapter ?? MockHttpAdapter(backend: mockBackend);
+      _dio.httpClientAdapter = _mockAdapter!;
+    }
+
+    _dio.interceptors.addAll([
+      InterceptorsWrapper(onRequest: _decorateRequest),
+      IdempotencyInterceptor(),
+      DataMeterInterceptor(dataMeter),
+      LoggingInterceptor(logger ?? AppLogger.instance),
+    ]);
+  }
+
+  final AppConfig _config;
+  final MockBackend _mockBackend;
+  final String Function() _languageProvider;
+  final String? Function() _accessTokenProvider;
+
+  late final Dio _dio;
+  MockHttpAdapter? _mockAdapter;
+
+  Dio get dio => _dio;
+  MockBackend get mockBackend => _mockBackend;
+
+  /// Profil reseau simule, pilotable depuis le panneau developpeur (§16.2).
+  NetworkProfile get simulatedProfile => _mockAdapter?.profile ?? NetworkProfile.fourG;
+
+  set simulatedProfile(NetworkProfile value) => _mockAdapter?.profile = value;
+
+  double get simulatedFailureRate => _mockAdapter?.failureRate ?? 0;
+  set simulatedFailureRate(double value) => _mockAdapter?.failureRate = value;
+
+  void _decorateRequest(RequestOptions options, RequestInterceptorHandler handler) {
+    options.headers['Accept-Language'] = _languageProvider();
+    final token = _accessTokenProvider();
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer $token';
+    }
+    handler.next(options);
+  }
+
+  Future<T> get<T>(
+    String path, {
+    Map<String, dynamic>? query,
+    DataCategory category = DataCategory.api,
+    CancelToken? cancelToken,
+  }) => _run<T>(
+    () => _dio.get<T>(
+      path,
+      queryParameters: query,
+      cancelToken: cancelToken,
+      options: Options(extra: {DataMeterInterceptor.extraKey: category}),
+    ),
+  );
+
+  Future<T> post<T>(
+    String path, {
+    Object? body,
+    Map<String, dynamic>? query,
+    String? idempotencyKey,
+    DataCategory category = DataCategory.api,
+    CancelToken? cancelToken,
+  }) => _run<T>(
+    () => _dio.post<T>(
+      path,
+      data: body,
+      queryParameters: query,
+      cancelToken: cancelToken,
+      options: Options(
+        extra: {
+          DataMeterInterceptor.extraKey: category,
+          if (idempotencyKey != null) IdempotencyInterceptor.extraKey: idempotencyKey,
+        },
+      ),
+    ),
+  );
+
+  Future<T> patch<T>(
+    String path, {
+    Object? body,
+    String? idempotencyKey,
+    DataCategory category = DataCategory.api,
+  }) => _run<T>(
+    () => _dio.patch<T>(
+      path,
+      data: body,
+      options: Options(
+        extra: {
+          DataMeterInterceptor.extraKey: category,
+          if (idempotencyKey != null) IdempotencyInterceptor.extraKey: idempotencyKey,
+        },
+      ),
+    ),
+  );
+
+  Future<T> _run<T>(Future<Response<T>> Function() call) async {
+    try {
+      final response = await call();
+      return response.data as T;
+    } catch (error, stackTrace) {
+      throw mapDioException(error, stackTrace);
+    }
+  }
+
+  /// Sonde applicative : le seul etat systeme ment (§9.2, `connectivity_plus`).
+  ///
+  /// Retourne le temps d'aller-retour mesure, ou `null` si le serveur est
+  /// injoignable. C'est ce chiffre qui qualifie le profil reseau reel.
+  Future<int?> probe() async {
+    final started = DateTime.now();
+    try {
+      await get<Map<String, dynamic>>('/health');
+      return DateTime.now().difference(started).inMilliseconds;
+    } on Failure {
+      return null;
+    }
+  }
+
+  AppConfig get config => _config;
+}
