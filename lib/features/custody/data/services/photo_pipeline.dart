@@ -38,6 +38,10 @@ class PhotoPipeline {
     required DateTime takenAt,
     GeoPoint? point,
     String? anomalyNote,
+    // Les photos supplementaires d'une remise (scelle rompu, piece d'identite
+    // d'un tiers) reprennent un angle deja pris ; sans nom distinct, la seconde
+    // ecraserait la premiere sur le disque.
+    String? fileName,
   }) async {
     final decoded = img.decodeImage(raw);
     if (decoded == null) {
@@ -55,7 +59,9 @@ class PhotoPipeline {
     }
 
     await directory.create(recursive: true);
-    final file = File(p.join(directory.path, '${angle.wireName}.jpg'));
+    final file = File(
+      p.join(directory.path, '${fileName ?? angle.wireName}.jpg'),
+    );
     await file.writeAsBytes(encoded, flush: true);
 
     return CustodyPhoto(

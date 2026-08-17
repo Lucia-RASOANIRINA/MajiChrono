@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/tracking/domain/entities/tracking.dart';
@@ -51,7 +52,13 @@ class TrackingScreen extends ConsumerWidget {
     final snapshot = tracking.valueOrNull;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.trackingTitle)),
+      appBar: AppBar(
+        title: Text(l10n.trackingTitle),
+        // EXI-CC31 : l'expediteur voit exactement le meme comparateur que le
+        // livreur. Une preuve contradictoire qui ne serait visible que d'un cote
+        // ne serait plus contradictoire.
+        actions: [CustodyProofAction(delivery: delivery)],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [

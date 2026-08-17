@@ -588,6 +588,99 @@ class AppLocalizationsMg extends AppLocalizations {
   String get custodyWeightConfirm => 'Lanja voamarina';
 
   @override
+  String get custodyOutcomeTitle => 'Vokatry ny fanolorana';
+
+  @override
+  String get custodyOutcomeHelp =>
+      'Lazao izay tena nitranga. Manana adidy manokana ny safidy tsirairay.';
+
+  @override
+  String get outcomeDelivered => 'Natolotra ny mpandray';
+
+  @override
+  String get outcomeWithReserves => 'Natolotra misy fanamarihana';
+
+  @override
+  String get outcomeRefused => 'Nolavin\'ny mpandray';
+
+  @override
+  String get outcomeThirdParty => 'Natolotra olon-kafa';
+
+  @override
+  String get outcomeNoSignature => 'Natolotra tsy nisy sonia';
+
+  @override
+  String get custodyOutcomeReason => 'Antony an-tsoratra';
+
+  @override
+  String get custodyOutcomeReasonHelp =>
+      'Hovakiana araka izao ity antony ity raha misy fifandirana.';
+
+  @override
+  String get custodyReservesNotice => 'Hisokatra ho azy ny fitarainana.';
+
+  @override
+  String get custodyRefusedNotice =>
+      'Miverina any amin\'ny mpandefa ny entana.';
+
+  @override
+  String get custodyNoSignatureNotice =>
+      'Hampahafantarina ny mpandrindra. Tsy maintsy misy sarin\'ny entana natolotra.';
+
+  @override
+  String get custodyThirdPartyName => 'Anaran\'ny olon-kafa';
+
+  @override
+  String get custodyThirdPartyRelation => 'Fifandraisana amin\'ny mpandray';
+
+  @override
+  String get custodyThirdPartyRelationHint =>
+      'Mpiandry trano, mpiara-monina, mpiara-miasa...';
+
+  @override
+  String get custodyExtraPhotoSeal => 'Sarin\'ny tombo-kase';
+
+  @override
+  String get custodyExtraPhotoId => 'Sarin\'ny kara-panondro';
+
+  @override
+  String get custodyExtraPhotoHandover => 'Sarin\'ny entana natolotra';
+
+  @override
+  String get custodyExtraPhotoMissing => 'Mila sary fanampiny';
+
+  @override
+  String get custodyExportPdf => 'Havoaka PDF';
+
+  @override
+  String get custodyExportPdfDone => 'Voavoaka ny fanamarinana';
+
+  @override
+  String get custodyExportPdfFailed => 'Tsy vita ny famoahana';
+
+  @override
+  String get custodyPdfTitle => 'Fanamarinana ifanatrehana';
+
+  @override
+  String get custodyPdfHash => 'Dian-tanana SHA-256';
+
+  @override
+  String get custodyPdfPreviousHash => 'Dian-tanana teo aloha';
+
+  @override
+  String get custodyPdfSealedAt => 'Voaisy tombo-kase ny';
+
+  @override
+  String get custodyPdfServerTime => 'Voaray tao amin\'ny serivera ny';
+
+  @override
+  String get custodyPdfPending => 'Tsy mbola nalefa';
+
+  @override
+  String get custodyPdfNotice =>
+      'Antontan-taratasy noforonin\'i MajiChrono. Manapaka ny dian-tanana ny fanovana rehetra.';
+
+  @override
   String get custodyOtpTitle => 'Kaodin\'ny mpandray';
 
   @override

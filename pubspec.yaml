@@ -61,6 +61,11 @@ dependencies:
   image: ^4.3.0
   # Capture vectorielle de la signature (EXI-CC40).
   signature: ^5.5.0
+  # Chiffrement au repos des constats non transmis (EXI-CC46, EXI-SEC04).
+  encrypt: ^5.0.3
+  # Export PDF du constat, avec photos, horodatages et signatures (EXI-CC32).
+  pdf: ^3.11.1
+  printing: ^5.13.4
 
   # --- Socle ---
   connectivity_plus: ^6.1.0

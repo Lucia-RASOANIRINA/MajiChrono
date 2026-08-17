@@ -588,6 +588,97 @@ class AppLocalizationsFr extends AppLocalizations {
   String get custodyWeightConfirm => 'Poids confirme';
 
   @override
+  String get custodyOutcomeTitle => 'Issue de la remise';
+
+  @override
+  String get custodyOutcomeHelp =>
+      'Dites ce qui s\'est reellement passe. Chaque issue a ses obligations.';
+
+  @override
+  String get outcomeDelivered => 'Remis au destinataire';
+
+  @override
+  String get outcomeWithReserves => 'Remis sous reserves';
+
+  @override
+  String get outcomeRefused => 'Refuse par le destinataire';
+
+  @override
+  String get outcomeThirdParty => 'Remis a un tiers';
+
+  @override
+  String get outcomeNoSignature => 'Remis sans signature';
+
+  @override
+  String get custodyOutcomeReason => 'Motif ecrit';
+
+  @override
+  String get custodyOutcomeReasonHelp =>
+      'Ce motif sera lu tel quel en cas de litige.';
+
+  @override
+  String get custodyReservesNotice => 'Un litige sera ouvert automatiquement.';
+
+  @override
+  String get custodyRefusedNotice => 'Le colis repart en retour expediteur.';
+
+  @override
+  String get custodyNoSignatureNotice =>
+      'L\'exploitation sera alertee. La photo du colis remis est obligatoire.';
+
+  @override
+  String get custodyThirdPartyName => 'Nom du tiers';
+
+  @override
+  String get custodyThirdPartyRelation => 'Lien avec le destinataire';
+
+  @override
+  String get custodyThirdPartyRelationHint => 'Gardien, voisin, collegue...';
+
+  @override
+  String get custodyExtraPhotoSeal => 'Photo du scelle';
+
+  @override
+  String get custodyExtraPhotoId => 'Photo de la piece d\'identite';
+
+  @override
+  String get custodyExtraPhotoHandover => 'Photo du colis remis';
+
+  @override
+  String get custodyExtraPhotoMissing => 'Photo supplementaire requise';
+
+  @override
+  String get custodyExportPdf => 'Exporter en PDF';
+
+  @override
+  String get custodyExportPdfDone => 'Constat exporte';
+
+  @override
+  String get custodyExportPdfFailed => 'Export impossible';
+
+  @override
+  String get custodyPdfTitle => 'Constat contradictoire';
+
+  @override
+  String get custodyPdfHash => 'Empreinte SHA-256';
+
+  @override
+  String get custodyPdfPreviousHash => 'Empreinte precedente';
+
+  @override
+  String get custodyPdfSealedAt => 'Scelle le';
+
+  @override
+  String get custodyPdfServerTime => 'Recu par le serveur le';
+
+  @override
+  String get custodyPdfPending => 'Non transmis';
+
+  @override
+  String get custodyPdfNotice =>
+      'Document genere par MajiChrono. Toute alteration rompt l\'empreinte.';
+
+  @override
   String get custodyOtpTitle => 'Code du destinataire';
 
   @override

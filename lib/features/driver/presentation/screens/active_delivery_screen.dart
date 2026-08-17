@@ -5,6 +5,9 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
+import 'package:majichrono/features/custody/presentation/screens/custody_capture_screen.dart';
+import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
@@ -36,6 +39,25 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
 
   Future<void> _advance(Delivery delivery, DriverAction action) async {
     if (_busy) return;
+
+    // EXI-CC03 : le statut ne progresse pas tant que le constat de l'etape
+    // n'est pas complet. La verification passe par l'ecran de constat, qui ne
+    // rend la main qu'une fois le document scelle — un retour vide signifie que
+    // le livreur a renonce, et la course reste ou elle est.
+    if (action.requiresCustodyReport) {
+      final sealed = await Navigator.of(context).push<CustodyReport>(
+        MaterialPageRoute(
+          builder: (_) => CustodyCaptureScreen(
+            delivery: delivery,
+            stage: action == DriverAction.pickedUp
+                ? CustodyStage.pickup
+                : CustodyStage.handover,
+          ),
+        ),
+      );
+      if (sealed == null || !mounted) return;
+    }
+
     setState(() => _busy = true);
 
     final l10n = AppLocalizations.of(context);
@@ -111,7 +133,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
         : delivery.dropoff;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.driverActiveDelivery)),
+      appBar: AppBar(
+        title: Text(l10n.driverActiveDelivery),
+        // Le livreur relit ses propres constats : c'est ce qui lui permet de
+        // contester une reclamation avec la preuve qu'il a lui-meme etablie.
+        actions: [CustodyProofAction(delivery: delivery)],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [

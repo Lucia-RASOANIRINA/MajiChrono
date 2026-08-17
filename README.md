@@ -444,9 +444,8 @@ Coeur différenciant du produit (D2, D11). Le principe : à chaque transfert de
 responsabilité, l'application produit un constat contradictoire, horodaté,
 géolocalisé, photographié et signé par les deux parties.
 
-| Tâche | Profil | Exigences |
-|---|---|---|
-**État : le noyau de preuve est livré et testé, la capture reste à construire.**
+**État : module livré.** Noyau de preuve, écrans de capture, issues de remise,
+chiffrement au repos et export PDF. 61 tests portent sur ce seul module.
 
 | Élément | Exigences | État |
 |---|---|---|
@@ -468,11 +467,16 @@ géolocalisé, photographié et signé par les deux parties.
 | Serveur refusant de rejouer un constat déjà scellé | EXI-CC04 | Fait |
 | Horodatage serveur faisant foi, écart d'horloge journalisé | EXI-CC45 | Fait |
 | Constat conservé et relisible hors ligne, jamais abandonné | EXI-CC05, EXI-S05 | Fait |
-| Prise de vue guidée par gabarit, dans l'application uniquement | EXI-CC10, EXI-CC11 | À faire |
-| Écrans de saisie des deux constats | EXI-CC02 | À faire |
-| Chiffrement au repos des constats non transmis | EXI-CC46 | À faire |
-| Export PDF signé | EXI-CC32 | À faire |
-| Réserves, refus, remise à un tiers, remise sans signature | EXI-CC26 à CC29 | À faire |
+| Prise de vue guidée par gabarit, dans l'application uniquement | EXI-CC10, EXI-CC11 | Fait |
+| Écrans de saisie des deux constats | EXI-CC02 | Fait |
+| Constat exigé avant la progression du statut du livreur | EXI-CC03 | Fait |
+| Réception avec réserves, litige ouvert automatiquement | EXI-CC26 | Fait |
+| Refus de réception, retour expéditeur | EXI-CC27 | Fait |
+| Remise à un tiers : identité, lien, pièce photographiée | EXI-CC28 | Fait |
+| Remise sans signature : motif et photo du colis remis | EXI-CC29 | Fait |
+| Chiffrement AES-256 au repos des constats non transmis | EXI-CC46, EXI-SEC04 | Fait |
+| Export PDF du constat, avec photos, signatures et empreinte | EXI-CC32 | Fait |
+| Accès au comparateur depuis l'expéditeur et depuis le livreur | EXI-CC31 | Fait |
 | Scan du code de scellé | EXI-CC14 | Module 10 |
 
 **Le corps canonique mérite une explication.** L'empreinte porte sur une
@@ -494,28 +498,73 @@ différent. Sans ces trois refus, la chaîne de preuve serait déclarative : un
 client qui casserait la sérialisation canonique ne s'en apercevrait que le jour
 d'un litige.
 
-**Trente-trois tests portent sur ce noyau**, dont ceux qui comptent vraiment :
+**Toutes les remises ne se ressemblent pas, et la spécification refuse de les
+ramener à « livré / pas livré ».** Cinq issues sont proposées, chacune avec ses
+propres pièces justificatives et sa propre conséquence sur la course :
+
+| Issue | Motif écrit | Photo en plus | Code OTP | Signature du destinataire | Conséquence |
+|---|---|---|---|---|---|
+| Remis au destinataire | — | — | oui | oui | livrée |
+| Remis sous réserves | oui | — | oui | oui | livrée **et** litige ouvert |
+| Refusé | oui | oui | — | oui | retour expéditeur |
+| Remis à un tiers | — | pièce d'identité | — | oui | livrée |
+| Remis sans signature | oui | colis remis | — | — | livrée, exploitation alertée |
+
+Deux choix méritent d'être défendus. Le code OTP disparaît au refus et à la
+remise à un tiers : un destinataire qui refuse le colis ne confirmera pas la
+remise par un code, et l'exiger rendrait le refus impossible à consigner. Et
+**aucune issue n'est pré-cochée** — « remis au destinataire » doit être affirmé,
+jamais supposé. Une case pré-cochée ferait signer au livreur un récit qu'il n'a
+pas choisi ; c'est la différence entre un constat et un formulaire.
+
+Dans le mode sans signature, le cadre de signature du destinataire **disparaît**
+au lieu de rester vide. Un cadre vide invite à le faire remplir par n'importe
+qui.
+
+**Le chiffrement au repos n'est pas une précaution de principe.** Un constat qui
+attend le réseau contient des photos de colis, des positions GPS, des numéros de
+téléphone et deux signatures manuscrites. Sur le téléphone personnel d'un
+livreur — appareil souvent partagé, parfois volé (§4.4, EXI-L13) — le laisser en
+clair reviendrait à publier la preuve avant qu'elle ne soit protégée. La clé
+AES-256 est tirée une fois et rangée dans le Keystore Android (EXI-SEC03) ; le
+vecteur d'initialisation est tiré à chaque écriture, sans quoi deux constats
+identiques produiraient deux cryptogrammes identiques et leur comparaison
+révélerait qu'ils le sont. Effacer les données locales (EXI-SEC10) détruit la
+clé, donc rend illisible ce qui resterait sur disque — et la lecture retourne
+alors `null` plutôt que de faire tomber l'écran des preuves.
+
+**Le PDF n'est pas la preuve, il en est la restitution lisible.** La preuve est
+l'empreinte que le serveur recalcule (EXI-B05). Le PDF est ce qu'on imprime,
+qu'on joint à un courrier ou qu'on tend à une assurance : il porte donc
+l'empreinte en clair, celle du constat précédent, et l'empreinte de chaque photo
+— de quoi vérifier qu'une image jointe au dossier est bien celle qui a été
+scellée. Il se génère hors ligne, à partir des fichiers locaux, avant même
+l'accusé de réception du serveur : un PDF qui n'existerait qu'une fois le réseau
+revenu ne servirait jamais au moment où l'on en a besoin. Les signatures y sont
+**rejouées** depuis leur vecteur, pas collées en image : le tracé reste net à
+toute échelle, et les points, la pression et les temps restent disponibles pour
+une expertise (EXI-CC40).
+
+**Soixante et un tests portent sur ce module**, dont ceux qui comptent vraiment :
 qu'une altération après scellement soit détectable, qu'altérer la prise en
 charge rompe la chaîne, qu'une remise référençant une autre prise en charge soit
-rejetée, et qu'une anomalie apparue en transport soit isolée par le comparateur.
+rejetée, qu'une anomalie apparue en transport soit isolée par le comparateur,
+qu'aucun contenu de constat ne soit lisible en clair sur disque, et que chaque
+issue de remise fasse apparaître à l'écran exactement les champs qu'elle exige —
+ni plus, ni moins.
 
-Reste de la spécification d'origine, pour mémoire :
+**Une limite du banc de test subsiste.** Le parcours de constat n'a pas pu être
+déroulé de bout en bout sur l'émulateur : l'état du simulateur vit en mémoire, si
+bien qu'après un redémarrage de l'application la course active n'existe plus
+côté serveur et la transition de statut n'aboutit pas. C'est une limite du banc,
+pas du code — les écrans sont couverts par des tests de widgets qui vérifient
+directement ce que l'œil aurait vérifié. Elle disparaîtra quand le simulateur se
+réhydratera depuis le cache local, ou au module 6 avec la file de
+synchronisation.
 
-| Constat de prise en charge : 4 photos guidées par gabarit | Livreur, Expéditeur | EXI-CC10 |
-| Prise de vue dans l'application uniquement, import galerie interdit | Livreur | EXI-CC11 |
-| Grille d'état à cocher, photo et commentaire imposés par anomalie | Livreur | EXI-CC12, EXI-CC13 |
-| Numéro de scellé par saisie ou scan de code-barres | Livreur | EXI-CC14 |
-| Signature manuscrite de l'expéditeur et contre-signature du livreur | Expéditeur, Livreur | EXI-CC16, EXI-CC17 |
-| Constat de remise au même gabarit, affichage côte à côte | Livreur, Destinataire | EXI-CC20, EXI-CC21 |
-| Vérification du scellé, incident automatique si rompu ou absent | Livreur | EXI-CC22 |
-| Signature du destinataire et code OTP, double preuve d'identité | Destinataire | EXI-CC24 |
-| Réception avec réserves, refus de réception, remise à un tiers | Destinataire | EXI-CC26 à EXI-CC28 |
-| Écran comparateur avant et après, écarts surlignés | Expéditeur, Livreur, Exploitation | EXI-CC30, EXI-CC31 |
-| Signature capturée en vectoriel, rendu PNG dérivé | Transverse | EXI-CC40 |
-| Empreinte SHA-256 du constat, chaînage remise sur prise en charge | Transverse | EXI-CC43, EXI-CC44 |
-| Constat scellé à la validation, aucune modification ultérieure | Transverse | EXI-CC04 |
-| Constat stocké chiffré tant qu'il n'est pas accusé par le serveur | Transverse | EXI-CC46 |
-| Export du constat en PDF signé | Expéditeur, Exploitation | EXI-CC32 |
+**Seule exigence du module encore ouverte : le scan du code de scellé**
+(EXI-CC14). La saisie manuelle du numéro est en place et suffit ; le scan par
+code-barres arrive au module 10, avec les autres optimisations de saisie.
 
 ### Module 6 — Mode hors ligne intégral
 

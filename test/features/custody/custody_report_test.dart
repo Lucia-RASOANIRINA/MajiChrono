@@ -48,6 +48,10 @@ void main() {
     bool otpVerified = false,
     String? anomalyNote,
     List<CustodyPhoto>? extraPhotos,
+    HandoverOutcome? outcome,
+    String? reserveReason,
+    String? thirdPartyName,
+    String? thirdPartyRelation,
   }) =>
       CustodyReport(
         id: 'cst_1',
@@ -67,6 +71,10 @@ void main() {
         capturedAt: DateTime(2026, 8, 14, 10, 32),
         point: const GeoPoint(-18.9010, 47.5490),
         sealCheck: sealCheck,
+        outcome: outcome,
+        reserveReason: reserveReason,
+        thirdPartyName: thirdPartyName,
+        thirdPartyRelation: thirdPartyRelation,
         otpVerified: otpVerified,
       );
 
@@ -127,12 +135,22 @@ void main() {
       SealCheck? sealCheck = SealCheck.intact,
       bool otp = true,
       List<CustodyPhoto>? extra,
+      HandoverOutcome outcome = HandoverOutcome.delivered,
+      int signatures = 2,
+      String? reason,
+      String? thirdPartyName,
+      String? thirdPartyRelation,
     }) =>
         report(
           stage: CustodyStage.handover,
           sealCheck: sealCheck,
           otpVerified: otp,
           extraPhotos: extra,
+          outcome: outcome,
+          signatures: signatures,
+          reserveReason: reason,
+          thirdPartyName: thirdPartyName,
+          thirdPartyRelation: thirdPartyRelation,
         );
 
     test('une remise complete est valide', () {
@@ -163,6 +181,161 @@ void main() {
       expect(SealCheck.broken.requiresIncident, isTrue);
       expect(SealCheck.absent.requiresIncident, isTrue);
       expect(SealCheck.intact.requiresIncident, isFalse);
+    });
+
+    test('une issue de remise doit etre choisie explicitement', () {
+      // Une remise sans issue renseignee ne dit pas ce qui s'est passe. Aucun
+      // defaut implicite : « livre » doit etre affirme, jamais suppose.
+      expect(handover(outcome: HandoverOutcome.delivered).isComplete, isTrue);
+      expect(
+        report(
+          stage: CustodyStage.handover,
+          sealCheck: SealCheck.intact,
+          otpVerified: true,
+        ).isComplete,
+        isFalse,
+      );
+    });
+  });
+
+  group('issues de remise (EXI-CC26 a EXI-CC29)', () {
+    CustodyReport handover({
+      required HandoverOutcome outcome,
+      bool otp = true,
+      int signatures = 2,
+      List<CustodyPhoto>? extra,
+      String? reason,
+      String? thirdPartyName,
+      String? thirdPartyRelation,
+    }) => report(
+      stage: CustodyStage.handover,
+      sealCheck: SealCheck.intact,
+      otpVerified: otp,
+      outcome: outcome,
+      signatures: signatures,
+      extraPhotos: extra,
+      reserveReason: reason,
+      thirdPartyName: thirdPartyName,
+      thirdPartyRelation: thirdPartyRelation,
+    );
+
+    test('une remise sous reserves exige un motif (EXI-CC26)', () {
+      expect(handover(outcome: HandoverOutcome.withReserves).isComplete, isFalse);
+      expect(
+        handover(
+          outcome: HandoverOutcome.withReserves,
+          reason: 'Coin du carton enfonce a l ouverture',
+        ).isComplete,
+        isTrue,
+      );
+    });
+
+    test('une remise sous reserves ouvre un litige (EXI-CC26)', () {
+      expect(HandoverOutcome.withReserves.opensDispute, isTrue);
+      expect(HandoverOutcome.delivered.opensDispute, isFalse);
+    });
+
+    test('un refus exige motif et photo, mais pas d OTP (EXI-CC27)', () {
+      // Un destinataire qui refuse le colis ne confirmera pas la remise par un
+      // code : exiger l'OTP rendrait le refus impossible a consigner.
+      expect(HandoverOutcome.refused.requiresOtp, isFalse);
+
+      expect(
+        handover(outcome: HandoverOutcome.refused, otp: false).isComplete,
+        isFalse,
+      );
+      expect(
+        handover(
+          outcome: HandoverOutcome.refused,
+          otp: false,
+          reason: 'Le destinataire refuse : commande annulee de son cote',
+          extra: [photo(PhotoAngle.top, note: 'Colis refuse, scelle intact')],
+        ).isComplete,
+        isTrue,
+      );
+    });
+
+    test('un refus renvoie le colis, il ne le livre pas', () {
+      expect(HandoverOutcome.refused.resultingStatus, isNot(DeliveryStatus.delivered));
+    });
+
+    test('une remise a un tiers identifie le tiers (EXI-CC28)', () {
+      final idPhoto = [photo(PhotoAngle.top, note: 'Piece d identite du tiers')];
+
+      // Le nom seul ne suffit pas : c'est le **lien** avec le destinataire qui
+      // rend la remise opposable en cas de contestation.
+      expect(
+        handover(
+          outcome: HandoverOutcome.thirdParty,
+          otp: false,
+          extra: idPhoto,
+          thirdPartyName: 'Rakoto Andrianina',
+        ).isComplete,
+        isFalse,
+      );
+
+      // La piece d'identite photographiee n'est pas optionnelle non plus.
+      expect(
+        handover(
+          outcome: HandoverOutcome.thirdParty,
+          otp: false,
+          thirdPartyName: 'Rakoto Andrianina',
+          thirdPartyRelation: 'Gardien de l immeuble',
+        ).isComplete,
+        isFalse,
+      );
+
+      expect(
+        handover(
+          outcome: HandoverOutcome.thirdParty,
+          otp: false,
+          extra: idPhoto,
+          thirdPartyName: 'Rakoto Andrianina',
+          thirdPartyRelation: 'Gardien de l immeuble',
+        ).isComplete,
+        isTrue,
+      );
+    });
+
+    test('une remise sans signature se paie d une photo (EXI-CC29)', () {
+      expect(HandoverOutcome.noSignature.requiresRecipientSignature, isFalse);
+
+      // Une seule signature — celle du livreur — mais motif et photo obligatoires.
+      expect(
+        handover(
+          outcome: HandoverOutcome.noSignature,
+          otp: false,
+          signatures: 1,
+        ).isComplete,
+        isFalse,
+      );
+      expect(
+        handover(
+          outcome: HandoverOutcome.noSignature,
+          otp: false,
+          signatures: 1,
+          reason: 'Destinataire presse, refuse de signer',
+          extra: [photo(PhotoAngle.top, note: 'Colis remis en main propre')],
+        ).isComplete,
+        isTrue,
+      );
+    });
+
+    test('une remise nominale n exige ni motif ni photo supplementaire', () {
+      expect(HandoverOutcome.delivered.requiresReason, isFalse);
+      expect(HandoverOutcome.delivered.requiresExtraPhoto, isFalse);
+      expect(HandoverOutcome.delivered.requiresOtp, isTrue);
+    });
+
+    test('l issue entre dans l empreinte du constat (EXI-CC43)', () {
+      // Sinon deux constats racontant des remises differentes porteraient la
+      // meme empreinte, et le scellement ne protegerait pas le recit.
+      final delivered = handover(outcome: HandoverOutcome.delivered);
+      final reserved = handover(
+        outcome: HandoverOutcome.withReserves,
+        reason: 'Coin du carton enfonce a l ouverture',
+      );
+      expect(delivered.computeHash(), isNot(reserved.computeHash()));
     });
   });
 

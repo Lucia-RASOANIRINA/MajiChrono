@@ -1190,6 +1190,180 @@ abstract class AppLocalizations {
   /// **'Poids confirme'**
   String get custodyWeightConfirm;
 
+  /// No description provided for @custodyOutcomeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Issue de la remise'**
+  String get custodyOutcomeTitle;
+
+  /// No description provided for @custodyOutcomeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dites ce qui s\'est reellement passe. Chaque issue a ses obligations.'**
+  String get custodyOutcomeHelp;
+
+  /// No description provided for @outcomeDelivered.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis au destinataire'**
+  String get outcomeDelivered;
+
+  /// No description provided for @outcomeWithReserves.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis sous reserves'**
+  String get outcomeWithReserves;
+
+  /// No description provided for @outcomeRefused.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuse par le destinataire'**
+  String get outcomeRefused;
+
+  /// No description provided for @outcomeThirdParty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis a un tiers'**
+  String get outcomeThirdParty;
+
+  /// No description provided for @outcomeNoSignature.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remis sans signature'**
+  String get outcomeNoSignature;
+
+  /// No description provided for @custodyOutcomeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif ecrit'**
+  String get custodyOutcomeReason;
+
+  /// No description provided for @custodyOutcomeReasonHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce motif sera lu tel quel en cas de litige.'**
+  String get custodyOutcomeReasonHelp;
+
+  /// No description provided for @custodyReservesNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un litige sera ouvert automatiquement.'**
+  String get custodyReservesNotice;
+
+  /// No description provided for @custodyRefusedNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le colis repart en retour expediteur.'**
+  String get custodyRefusedNotice;
+
+  /// No description provided for @custodyNoSignatureNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'exploitation sera alertee. La photo du colis remis est obligatoire.'**
+  String get custodyNoSignatureNotice;
+
+  /// No description provided for @custodyThirdPartyName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom du tiers'**
+  String get custodyThirdPartyName;
+
+  /// No description provided for @custodyThirdPartyRelation.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lien avec le destinataire'**
+  String get custodyThirdPartyRelation;
+
+  /// No description provided for @custodyThirdPartyRelationHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gardien, voisin, collegue...'**
+  String get custodyThirdPartyRelationHint;
+
+  /// No description provided for @custodyExtraPhotoSeal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo du scelle'**
+  String get custodyExtraPhotoSeal;
+
+  /// No description provided for @custodyExtraPhotoId.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de la piece d\'identite'**
+  String get custodyExtraPhotoId;
+
+  /// No description provided for @custodyExtraPhotoHandover.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo du colis remis'**
+  String get custodyExtraPhotoHandover;
+
+  /// No description provided for @custodyExtraPhotoMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo supplementaire requise'**
+  String get custodyExtraPhotoMissing;
+
+  /// No description provided for @custodyExportPdf.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exporter en PDF'**
+  String get custodyExportPdf;
+
+  /// No description provided for @custodyExportPdfDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat exporte'**
+  String get custodyExportPdfDone;
+
+  /// No description provided for @custodyExportPdfFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Export impossible'**
+  String get custodyExportPdfFailed;
+
+  /// No description provided for @custodyPdfTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat contradictoire'**
+  String get custodyPdfTitle;
+
+  /// No description provided for @custodyPdfHash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Empreinte SHA-256'**
+  String get custodyPdfHash;
+
+  /// No description provided for @custodyPdfPreviousHash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Empreinte precedente'**
+  String get custodyPdfPreviousHash;
+
+  /// No description provided for @custodyPdfSealedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scelle le'**
+  String get custodyPdfSealedAt;
+
+  /// No description provided for @custodyPdfServerTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recu par le serveur le'**
+  String get custodyPdfServerTime;
+
+  /// No description provided for @custodyPdfPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non transmis'**
+  String get custodyPdfPending;
+
+  /// No description provided for @custodyPdfNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Document genere par MajiChrono. Toute alteration rompt l\'empreinte.'**
+  String get custodyPdfNotice;
+
   /// No description provided for @custodyOtpTitle.
   ///
   /// In fr, this message translates to:

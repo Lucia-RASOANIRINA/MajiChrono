@@ -7,6 +7,7 @@ import 'package:majichrono/core/network/api_client.dart';
 import 'package:majichrono/core/network/api_endpoints.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/storage/app_database.dart';
+import 'package:majichrono/features/custody/data/services/custody_vault.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
@@ -22,10 +23,15 @@ import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart
 ///    accuse, meme si l'envoi echoue de facon repetee — c'est la contrepartie
 ///    d'EXI-S05, qui interdit l'abandon automatique.
 class CustodyRepository {
-  CustodyRepository({required this._client, required this._db});
+  CustodyRepository({
+    required this._client,
+    required this._db,
+    required this._vault,
+  });
 
   final ApiClient _client;
   final AppDatabase _db;
+  final CustodyVault _vault;
 
   static const String _prefix = 'custody/';
 
@@ -84,26 +90,35 @@ class CustodyRepository {
     }
   }
 
-  Future<void> _persist(CustodyReport report, {required bool acknowledged}) =>
-      _db.into(_db.cachedDocuments).insertOnConflictUpdate(
-        CachedDocumentsCompanion.insert(
-          key: _key(report.id),
-          body: jsonEncode({
+  Future<void> _persist(CustodyReport report, {required bool acknowledged}) async {
+    // EXI-CC46 : le constat est chiffre sur disque tant qu'il n'est pas accuse.
+    // Il contient des photos, des positions, des numeros et deux signatures ;
+    // sur le telephone personnel d'un livreur, le laisser en clair reviendrait
+    // a publier la preuve avant qu'elle ne soit protegee.
+    final envelope = await _vault.encryptJson({
             'report': report.toJson(),
             // Les chemins de fichiers sont ranges **a cote** du constat, jamais
             // dedans : ils sont propres a l'appareil, et les inclure dans le
             // corps canonique changerait l'empreinte d'un telephone a l'autre.
             // Le serveur recalcule cette empreinte (EXI-B05) ; elle doit donc
             // ne dependre que du contenu, pas de l'endroit ou il est range.
+            // La cle est l'empreinte de la photo, pas son angle : une remise
+            // peut porter deux photos du meme angle (scelle rompu, piece
+            // d'identite d'un tiers), et indexer par angle en perdrait une.
             'paths': {
-              for (final photo in report.photos)
-                photo.angle.wireName: photo.localPath,
+              for (final photo in report.photos) photo.sha256: photo.localPath,
             },
-            'acknowledged': acknowledged,
-          }),
-          fetchedAt: DateTime.now(),
-        ),
-      );
+      'acknowledged': acknowledged,
+    });
+
+    await _db.into(_db.cachedDocuments).insertOnConflictUpdate(
+      CachedDocumentsCompanion.insert(
+        key: _key(report.id),
+        body: envelope,
+        fetchedAt: DateTime.now(),
+      ),
+    );
+  }
 
   CustodyReport _withServerTime(CustodyReport report, DateTime? serverTime) =>
       CustodyReport(
@@ -136,7 +151,14 @@ class CustodyRepository {
     CustodyReport? handover;
 
     for (final row in rows) {
-      final decoded = jsonDecode(row.body) as Map<String, dynamic>;
+      // Les enveloppes anterieures au chiffrement restent lisibles : une
+      // migration qui detruirait des preuves serait pire que le defaut qu'elle
+      // corrige.
+      final decoded = CustodyVault.isEnvelope(row.body)
+          ? await _vault.decryptJson(row.body)
+          : jsonDecode(row.body) as Map<String, dynamic>;
+      if (decoded == null) continue;
+
       final json = decoded['report'] as Map<String, dynamic>;
       if (json['deliveryId'] != deliveryId) continue;
 
@@ -161,13 +183,16 @@ class CustodyRepository {
         .map((p) {
           final angle = PhotoAngle.fromWire(p['angle'] as String?);
           if (angle == null) return null;
+          final digest = '${p['sha256'] ?? ''}';
           return CustodyPhoto(
             angle: angle,
-            localPath: paths[angle.wireName] ?? '',
+            // Les enregistrements anterieurs indexaient par angle : on les relit
+            // plutot que de les perdre.
+            localPath: paths[digest] ?? paths[angle.wireName] ?? '',
             takenAt:
                 DateTime.tryParse('${p['takenAt']}')?.toLocal() ?? DateTime.now(),
             sizeBytes: (p['sizeBytes'] as num?)?.toInt() ?? 0,
-            sha256: '${p['sha256'] ?? ''}',
+            sha256: digest,
             point: GeoPoint.fromJson(p['point'] as Map<String, dynamic>?),
             anomalyNote: p['anomalyNote'] as String?,
           );
@@ -183,16 +208,22 @@ class CustodyRepository {
       grid: ConditionGrid.fromJson(json['grid'] as List<dynamic>?),
       sealNumber: '${json['sealNumber'] ?? ''}',
       weight: WeightCategory.fromWire(json['weight'] as String?),
-      // Les signatures ne sont pas rechargees pour l'affichage : le comparateur
-      // montre les photos et les ecarts d'etat, pas les traces. Elles restent
-      // dans le corps transmis et dans l'empreinte, ou elles ont leur role.
-      signatures: const [],
+      // Les signatures sont rechargees : le comparateur ne les affiche pas,
+      // mais l'export PDF (EXI-CC32) en a besoin, et un constat exporte sans
+      // les traces qui l'engagent ne vaudrait pas grand-chose.
+      signatures: (json['signatures'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(_signatureFromJson)
+          .toList(),
       capturedAt:
           DateTime.tryParse('${json['capturedAt']}')?.toLocal() ?? DateTime.now(),
       point:
           GeoPoint.fromJson(json['point'] as Map<String, dynamic>?) ??
           GeoPoint.antananarivo,
       sealCheck: SealCheck.fromWire(json['sealCheck'] as String?),
+      outcome: HandoverOutcome.fromWire(json['outcome'] as String?),
+      thirdPartyName: json['thirdPartyName'] as String?,
+      thirdPartyRelation: json['thirdPartyRelation'] as String?,
       reserveReason: json['reserveReason'] as String?,
       otpVerified: json['otpVerified'] == true,
       previousHash: json['previousHash'] as String?,
@@ -200,4 +231,28 @@ class CustodyRepository {
       sealedAt: DateTime.tryParse('${json['sealedAt']}')?.toLocal(),
     );
   }
+
+  VectorSignature _signatureFromJson(Map<String, dynamic> json) =>
+      VectorSignature(
+        signerLabel: '${json['signerLabel'] ?? ''}',
+        signedAt:
+            DateTime.tryParse('${json['signedAt']}')?.toLocal() ??
+            DateTime.now(),
+        strokes: (json['strokes'] as List<dynamic>? ?? [])
+            .whereType<List<dynamic>>()
+            .map(
+              (stroke) => stroke
+                  .whereType<Map<String, dynamic>>()
+                  .map(
+                    (p) => SignaturePoint(
+                      (p['x'] as num?)?.toDouble() ?? 0,
+                      (p['y'] as num?)?.toDouble() ?? 0,
+                      (p['p'] as num?)?.toDouble() ?? 0,
+                      (p['t'] as num?)?.toInt() ?? 0,
+                    ),
+                  )
+                  .toList(),
+            )
+            .toList(),
+      );
 }

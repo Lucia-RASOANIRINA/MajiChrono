@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
+import 'package:majichrono/features/custody/presentation/custody_export.dart';
+import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 
@@ -19,9 +21,16 @@ import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 /// lequel on instruit un litige — on regarde, on constate, on verifie que rien
 /// n'a ete retouche.
 class CustodyComparatorScreen extends StatelessWidget {
-  const CustodyComparatorScreen({required this.chain, super.key});
+  const CustodyComparatorScreen({
+    required this.chain,
+    required this.delivery,
+    super.key,
+  });
 
   final CustodyChain chain;
+
+  /// La course sert d'en-tete au PDF exporte (EXI-CC32).
+  final Delivery delivery;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +53,28 @@ class CustodyComparatorScreen extends StatelessWidget {
     final diff = chain.diff;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.custodyComparatorTitle)),
+      appBar: AppBar(
+        title: Text(l10n.custodyComparatorTitle),
+        actions: [
+          // EXI-CC32 : l'export est offert aux trois profils qui voient le
+          // comparateur (EXI-CC31). Reserver le PDF a l'exploitation reviendrait
+          // a garder la preuve d'un cote de la table.
+          PopupMenuButton<CustodyReport>(
+            icon: const Icon(Icons.picture_as_pdf_outlined),
+            tooltip: l10n.custodyExportPdf,
+            onSelected: (report) => exportCustodyPdf(
+              context,
+              report: report,
+              delivery: delivery,
+            ),
+            itemBuilder: (_) => [
+              PopupMenuItem(value: pickup, child: Text(l10n.custodyBefore)),
+              if (handover != null)
+                PopupMenuItem(value: handover, child: Text(l10n.custodyAfter)),
+            ],
+          ),
+        ],
+      ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [

@@ -13,9 +13,12 @@ import 'package:majichrono/core/network/network_profile.dart';
 import 'package:majichrono/core/storage/app_database.dart';
 import 'package:majichrono/features/custody/data/custody_repository.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
+import 'package:majichrono/features/custody/data/services/custody_vault.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
+
+import '../../helpers/fake_secure_store.dart';
 
 /// Transmission des constats.
 ///
@@ -49,6 +52,7 @@ void main() {
         ),
       ),
       db: db,
+      vault: CustodyVault(FakeSecureStore(), random: Random(9)),
     );
   }
 
