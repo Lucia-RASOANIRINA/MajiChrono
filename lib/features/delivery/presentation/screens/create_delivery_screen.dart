@@ -6,7 +6,10 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
+import 'package:majichrono/features/delivery/domain/entities/delivery_options.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
+import 'package:majichrono/features/delivery/domain/entities/shopping_order.dart';
+import 'package:majichrono/features/delivery/presentation/widgets/delivery_options_step.dart';
 import 'package:majichrono/features/delivery/domain/repositories/delivery_repository.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/widgets/address_form.dart';
@@ -40,18 +43,39 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final TextEditingController _value = TextEditingController();
   final TextEditingController _description = TextEditingController();
 
+  // Differenciants (module 9).
+  Payer _payer = Payer.sender;
+  List<ShoppingItem> _items = const [];
+  String? _relayPointId;
+  final TextEditingController _cap = TextEditingController();
+  final TextEditingController _storeHint = TextEditingController();
+
   bool _busy = false;
 
   @override
   void dispose() {
     _value.dispose();
     _description.dispose();
+    _cap.dispose();
+    _storeHint.dispose();
     super.dispose();
+  }
+
+  /// Une course d'achat pour compte n'avance pas sans liste ni plafond : le
+  /// livreur ne saurait pas quoi acheter, ni jusqu'ou aller.
+  ShoppingOrder? get _shopping {
+    if (_kind != DeliveryKind.shopping) return null;
+    return ShoppingOrder(
+      items: _items,
+      capAriary: int.tryParse(_cap.text.replaceAll(' ', '')) ?? 0,
+      storeHint: _storeHint.text.trim().isEmpty ? null : _storeHint.text.trim(),
+    );
   }
 
   bool get _canContinue => switch (_step) {
         0 => _pickup != null && _dropoff != null,
         1 => true,
+        2 => _shopping?.isComplete ?? true,
         _ => true,
       };
 
@@ -86,6 +110,9 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                   ),
                   slot: _slot,
                   paymentMethod: _payment,
+                  payer: _payer,
+                  shopping: _shopping,
+                  relayPointId: _relayPointId,
                 ),
               );
 
@@ -114,14 +141,19 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
 
-    final titles = [l10n.stepAddresses, l10n.stepPackage, l10n.stepReview];
+    final titles = [
+      l10n.stepAddresses,
+      l10n.stepPackage,
+      l10n.stepOptions,
+      l10n.stepReview,
+    ];
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.newDeliveryTitle),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(value: (_step + 1) / 3, minHeight: 4),
+          child: LinearProgressIndicator(value: (_step + 1) / 4, minHeight: 4),
         ),
       ),
       body: Column(
@@ -141,12 +173,12 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
           ),
           Expanded(child: _buildStep(l10n)),
           McPrimaryAction(
-            label: _step == 2 ? l10n.confirmDelivery : l10n.commonContinue,
+            label: _step == 3 ? l10n.confirmDelivery : l10n.commonContinue,
             busy: _busy,
             onPressed: !_canContinue
                 ? null
                 : () {
-                    if (_step < 2) {
+                    if (_step < 3) {
                       setState(() => _step++);
                     } else {
                       _submit();
@@ -176,6 +208,19 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             onWeight: (w) => setState(() => _weight = w),
             onSlot: (s) => setState(() => _slot = s),
             onPayment: (p) => setState(() => _payment = p),
+          ),
+        2 => DeliveryOptionsStep(
+            kind: _kind,
+            weight: _weight,
+            dropoffDistrict: _dropoff?.district ?? '',
+            payer: _payer,
+            items: _items,
+            cap: _cap,
+            storeHint: _storeHint,
+            relayPointId: _relayPointId,
+            onPayer: (p) => setState(() => _payer = p),
+            onItems: (i) => setState(() => _items = i),
+            onRelay: (id) => setState(() => _relayPointId = id),
           ),
         _ => _ReviewStep(
             pickup: _pickup!,
@@ -329,20 +374,17 @@ class _PackageStep extends StatelessWidget {
               ChoiceChip(
                 label: Text(kindLabel(k)),
                 selected: kind == k,
-                // L'achat pour compte arrive au module 9 : la puce reste
-                // visible mais desactivee, plutot que masquee. L'utilisateur
-                // voit que la fonction existe et viendra.
-                onSelected: k == DeliveryKind.shopping
-                    ? null
-                    : (_) => onKind(k),
+                onSelected: (_) => onKind(k),
               ),
           ],
         ),
+        // L'achat pour compte se poursuit au pas « Options » : liste
+        // d'articles et plafond de depense (EXI-C07).
         if (kind == DeliveryKind.shopping)
           Padding(
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Text(
-              l10n.kindShoppingSoon,
+              l10n.shoppingHelp,
               style: theme.textTheme.bodyMedium
                   ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
             ),

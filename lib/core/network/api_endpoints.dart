@@ -57,6 +57,12 @@ class ApiEndpoints {
   static String paymentConfirm(String id) => '/payments/$id/confirm';
   static String paymentCash(String id) => '/payments/$id/cash';
 
+  // --- Urgence livreur (EXI-L13, D10) ----------------------------------
+  static const String emergency = '/drivers/emergency';
+
+  // --- Points relais (differenciant D6) ---------------------------------
+  static const String relayPoints = '/relay-points';
+
   // --- Notations -------------------------------------------------------
   static const String reviews = '/reviews';
 

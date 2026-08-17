@@ -1,3 +1,5 @@
+import 'package:majichrono/features/delivery/domain/entities/delivery_options.dart';
+import 'package:majichrono/features/delivery/domain/entities/shopping_order.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
 
 /// Nature de la course (EXI-C06).
@@ -228,6 +230,9 @@ class Delivery {
     this.driverName,
     this.trackingToken,
     this.pendingSync = false,
+    this.payer = Payer.sender,
+    this.shopping,
+    this.relayPointId,
   });
 
   final String id;
@@ -252,6 +257,15 @@ class Delivery {
   /// l'utilisateur, mais aucun livreur ne l'a encore vue.
   final bool pendingSync;
 
+  /// Qui paie la course (EXI-C42). Port paye par defaut.
+  final Payer payer;
+
+  /// Liste de courses, lorsque le type est l'achat pour compte (EXI-C07).
+  final ShoppingOrder? shopping;
+
+  /// Point relais de remise, lorsqu'il en est designe un (differenciant D6).
+  final String? relayPointId;
+
   double get distanceKm => pickup.point.distanceKmTo(dropoff.point);
 
   Delivery copyWith({
@@ -261,6 +275,7 @@ class Delivery {
     String? driverName,
     String? trackingToken,
     bool? pendingSync,
+    ShoppingOrder? shopping,
   }) =>
       Delivery(
         id: id,
@@ -277,6 +292,9 @@ class Delivery {
         driverName: driverName ?? this.driverName,
         trackingToken: trackingToken ?? this.trackingToken,
         pendingSync: pendingSync ?? this.pendingSync,
+        payer: payer,
+        shopping: shopping ?? this.shopping,
+        relayPointId: relayPointId,
       );
 
   Map<String, dynamic> toJson() => {
@@ -293,6 +311,9 @@ class Delivery {
         if (driverId != null) 'driverId': driverId,
         if (driverName != null) 'driverName': driverName,
         if (trackingToken != null) 'trackingToken': trackingToken,
+        'payer': payer.wireName,
+        if (shopping != null) 'shopping': shopping!.toJson(),
+        if (relayPointId != null) 'relayPointId': relayPointId,
       };
 
   static Delivery? fromJson(Map<String, dynamic> json) {
@@ -316,6 +337,9 @@ class Delivery {
       driverId: json['driverId'] as String?,
       driverName: json['driverName'] as String?,
       trackingToken: json['trackingToken'] as String?,
+      payer: Payer.fromWire(json['payer'] as String?),
+      shopping: ShoppingOrder.fromJson(json['shopping'] as Map<String, dynamic>?),
+      relayPointId: json['relayPointId'] as String?,
     );
   }
 }

@@ -271,6 +271,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get stepPackage => 'Colis';
 
   @override
+  String get stepOptions => 'Options';
+
+  @override
   String get stepReview => 'Recapitulatif';
 
   @override
@@ -724,6 +727,190 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String get custodyChainHelp =>
       'L\'empreinte de la remise integre celle de la prise en charge.';
+
+  @override
+  String get emergencyButton => 'Urgence';
+
+  @override
+  String get emergencyTitle => 'Alerte d\'urgence';
+
+  @override
+  String get emergencyHelp =>
+      'L\'exploitation est prevenue immediatement, avec votre derniere position connue.';
+
+  @override
+  String get emergencySend => 'Envoyer l\'alerte';
+
+  @override
+  String get emergencyKindOptional => 'Preciser (facultatif)';
+
+  @override
+  String get emergencyAccident => 'Accident';
+
+  @override
+  String get emergencyAggression => 'Agression';
+
+  @override
+  String get emergencyBreakdown => 'Panne';
+
+  @override
+  String get emergencyMedical => 'Malaise';
+
+  @override
+  String get emergencyUnspecified => 'Non precise';
+
+  @override
+  String get emergencySent => 'Alerte envoyee';
+
+  @override
+  String get emergencyCallbackSoon =>
+      'On vous rappelle tout de suite. Mettez-vous en securite.';
+
+  @override
+  String get emergencyAcknowledgePending =>
+      'L\'exploitation a ete prevenue. Restez joignable.';
+
+  @override
+  String get economyTitle => 'Mode economie';
+
+  @override
+  String get economyHelp =>
+      'Differe les photos jusqu\'a une connexion non facturee et n\'ouvre plus de nouvelles tuiles de carte.';
+
+  @override
+  String get economyProofNever =>
+      'Les constats partent toujours en entier, meme en mode economie.';
+
+  @override
+  String get economyDeferPhotos => 'Differer les photos hors constat';
+
+  @override
+  String get economyBlockTiles => 'Ne pas telecharger de nouvelles tuiles';
+
+  @override
+  String get economyReduceCadence => 'Espacer l\'envoi des positions';
+
+  @override
+  String get shoppingTitle => 'Achat pour compte';
+
+  @override
+  String get shoppingHelp =>
+      'Le livreur avance l\'argent et vous remet le ticket de caisse.';
+
+  @override
+  String get shoppingAddItem => 'Ajouter un article';
+
+  @override
+  String get shoppingItemLabel => 'Article';
+
+  @override
+  String get shoppingItemQuantity => 'Quantite';
+
+  @override
+  String get shoppingItemPrice => 'Prix unitaire estime';
+
+  @override
+  String get shoppingSubstitutable => 'Remplacable si indisponible';
+
+  @override
+  String get shoppingStoreHint => 'Magasin suggere (facultatif)';
+
+  @override
+  String get shoppingCap => 'Plafond de depense';
+
+  @override
+  String get shoppingCapHelp =>
+      'Le livreur n\'achete pas au-dela. C\'est sa seule protection : il avance son propre argent.';
+
+  @override
+  String get shoppingCapTooLow => 'Le plafond est inferieur a votre estimation';
+
+  @override
+  String shoppingCapOutOfRange(String min, String max) {
+    return 'Plafond entre $min et $max';
+  }
+
+  @override
+  String get shoppingEstimated => 'Estimation des articles';
+
+  @override
+  String get shoppingEmpty => 'Aucun article';
+
+  @override
+  String get shoppingActualTotal => 'Montant paye (ticket)';
+
+  @override
+  String get shoppingReceipt => 'Ticket de caisse';
+
+  @override
+  String get shoppingReceiptMissing =>
+      'Photo obligatoire pour le remboursement';
+
+  @override
+  String get shoppingReceiptTaken => 'Ticket photographie';
+
+  @override
+  String shoppingOverCap(String amount) {
+    return 'Au-dela du plafond. Remboursement : $amount';
+  }
+
+  @override
+  String get payerTitle => 'Qui paie';
+
+  @override
+  String get payerSender => 'Moi (port paye)';
+
+  @override
+  String get payerRecipient => 'Le destinataire (port du)';
+
+  @override
+  String get payerRecipientNotice =>
+      'Prevenez votre destinataire du montant : sans cela il refusera le colis.';
+
+  @override
+  String get relayTitle => 'Point relais';
+
+  @override
+  String get relayHelp =>
+      'Le colis attend en boutique. Utile si votre destinataire n\'est pas chez lui en journee.';
+
+  @override
+  String get relayNone => 'Livraison a l\'adresse';
+
+  @override
+  String get relayHours => 'Horaires';
+
+  @override
+  String relayStorage(int days) {
+    return 'Garde $days jours';
+  }
+
+  @override
+  String get relayTooHeavy => 'Colis trop lourd pour ce relais';
+
+  @override
+  String get groupTitle => 'Courses groupees';
+
+  @override
+  String get groupHelp =>
+      'Deux a trois courses sur le meme axe. Les retraits d\'abord, les remises ensuite.';
+
+  @override
+  String groupSaved(String km) {
+    return '$km km economises';
+  }
+
+  @override
+  String get groupAdd => 'Grouper avec celle-ci';
+
+  @override
+  String get groupNotViable => 'Cette course fait trop devier votre trajet';
+
+  @override
+  String get groupStopPickup => 'Retrait';
+
+  @override
+  String get groupStopDropoff => 'Remise';
 
   @override
   String get adminReasonLabel => 'Motif de la decision';

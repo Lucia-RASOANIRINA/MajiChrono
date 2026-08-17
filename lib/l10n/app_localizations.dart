@@ -584,6 +584,12 @@ abstract class AppLocalizations {
   /// **'Colis'**
   String get stepPackage;
 
+  /// No description provided for @stepOptions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Options'**
+  String get stepOptions;
+
   /// No description provided for @stepReview.
   ///
   /// In fr, this message translates to:
@@ -1453,6 +1459,336 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'L\'empreinte de la remise integre celle de la prise en charge.'**
   String get custodyChainHelp;
+
+  /// No description provided for @emergencyButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Urgence'**
+  String get emergencyButton;
+
+  /// No description provided for @emergencyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alerte d\'urgence'**
+  String get emergencyTitle;
+
+  /// No description provided for @emergencyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'exploitation est prevenue immediatement, avec votre derniere position connue.'**
+  String get emergencyHelp;
+
+  /// No description provided for @emergencySend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer l\'alerte'**
+  String get emergencySend;
+
+  /// No description provided for @emergencyKindOptional.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preciser (facultatif)'**
+  String get emergencyKindOptional;
+
+  /// No description provided for @emergencyAccident.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accident'**
+  String get emergencyAccident;
+
+  /// No description provided for @emergencyAggression.
+  ///
+  /// In fr, this message translates to:
+  /// **'Agression'**
+  String get emergencyAggression;
+
+  /// No description provided for @emergencyBreakdown.
+  ///
+  /// In fr, this message translates to:
+  /// **'Panne'**
+  String get emergencyBreakdown;
+
+  /// No description provided for @emergencyMedical.
+  ///
+  /// In fr, this message translates to:
+  /// **'Malaise'**
+  String get emergencyMedical;
+
+  /// No description provided for @emergencyUnspecified.
+  ///
+  /// In fr, this message translates to:
+  /// **'Non precise'**
+  String get emergencyUnspecified;
+
+  /// No description provided for @emergencySent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alerte envoyee'**
+  String get emergencySent;
+
+  /// No description provided for @emergencyCallbackSoon.
+  ///
+  /// In fr, this message translates to:
+  /// **'On vous rappelle tout de suite. Mettez-vous en securite.'**
+  String get emergencyCallbackSoon;
+
+  /// No description provided for @emergencyAcknowledgePending.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'exploitation a ete prevenue. Restez joignable.'**
+  String get emergencyAcknowledgePending;
+
+  /// No description provided for @economyTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mode economie'**
+  String get economyTitle;
+
+  /// No description provided for @economyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Differe les photos jusqu\'a une connexion non facturee et n\'ouvre plus de nouvelles tuiles de carte.'**
+  String get economyHelp;
+
+  /// No description provided for @economyProofNever.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les constats partent toujours en entier, meme en mode economie.'**
+  String get economyProofNever;
+
+  /// No description provided for @economyDeferPhotos.
+  ///
+  /// In fr, this message translates to:
+  /// **'Differer les photos hors constat'**
+  String get economyDeferPhotos;
+
+  /// No description provided for @economyBlockTiles.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ne pas telecharger de nouvelles tuiles'**
+  String get economyBlockTiles;
+
+  /// No description provided for @economyReduceCadence.
+  ///
+  /// In fr, this message translates to:
+  /// **'Espacer l\'envoi des positions'**
+  String get economyReduceCadence;
+
+  /// No description provided for @shoppingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Achat pour compte'**
+  String get shoppingTitle;
+
+  /// No description provided for @shoppingHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur avance l\'argent et vous remet le ticket de caisse.'**
+  String get shoppingHelp;
+
+  /// No description provided for @shoppingAddItem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter un article'**
+  String get shoppingAddItem;
+
+  /// No description provided for @shoppingItemLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Article'**
+  String get shoppingItemLabel;
+
+  /// No description provided for @shoppingItemQuantity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quantite'**
+  String get shoppingItemQuantity;
+
+  /// No description provided for @shoppingItemPrice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prix unitaire estime'**
+  String get shoppingItemPrice;
+
+  /// No description provided for @shoppingSubstitutable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remplacable si indisponible'**
+  String get shoppingSubstitutable;
+
+  /// No description provided for @shoppingStoreHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Magasin suggere (facultatif)'**
+  String get shoppingStoreHint;
+
+  /// No description provided for @shoppingCap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plafond de depense'**
+  String get shoppingCap;
+
+  /// No description provided for @shoppingCapHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur n\'achete pas au-dela. C\'est sa seule protection : il avance son propre argent.'**
+  String get shoppingCapHelp;
+
+  /// No description provided for @shoppingCapTooLow.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le plafond est inferieur a votre estimation'**
+  String get shoppingCapTooLow;
+
+  /// No description provided for @shoppingCapOutOfRange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Plafond entre {min} et {max}'**
+  String shoppingCapOutOfRange(String min, String max);
+
+  /// No description provided for @shoppingEstimated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Estimation des articles'**
+  String get shoppingEstimated;
+
+  /// No description provided for @shoppingEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun article'**
+  String get shoppingEmpty;
+
+  /// No description provided for @shoppingActualTotal.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant paye (ticket)'**
+  String get shoppingActualTotal;
+
+  /// No description provided for @shoppingReceipt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ticket de caisse'**
+  String get shoppingReceipt;
+
+  /// No description provided for @shoppingReceiptMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo obligatoire pour le remboursement'**
+  String get shoppingReceiptMissing;
+
+  /// No description provided for @shoppingReceiptTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ticket photographie'**
+  String get shoppingReceiptTaken;
+
+  /// No description provided for @shoppingOverCap.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au-dela du plafond. Remboursement : {amount}'**
+  String shoppingOverCap(String amount);
+
+  /// No description provided for @payerTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qui paie'**
+  String get payerTitle;
+
+  /// No description provided for @payerSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moi (port paye)'**
+  String get payerSender;
+
+  /// No description provided for @payerRecipient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le destinataire (port du)'**
+  String get payerRecipient;
+
+  /// No description provided for @payerRecipientNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prevenez votre destinataire du montant : sans cela il refusera le colis.'**
+  String get payerRecipientNotice;
+
+  /// No description provided for @relayTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Point relais'**
+  String get relayTitle;
+
+  /// No description provided for @relayHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le colis attend en boutique. Utile si votre destinataire n\'est pas chez lui en journee.'**
+  String get relayHelp;
+
+  /// No description provided for @relayNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison a l\'adresse'**
+  String get relayNone;
+
+  /// No description provided for @relayHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Horaires'**
+  String get relayHours;
+
+  /// No description provided for @relayStorage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garde {days} jours'**
+  String relayStorage(int days);
+
+  /// No description provided for @relayTooHeavy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis trop lourd pour ce relais'**
+  String get relayTooHeavy;
+
+  /// No description provided for @groupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses groupees'**
+  String get groupTitle;
+
+  /// No description provided for @groupHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deux a trois courses sur le meme axe. Les retraits d\'abord, les remises ensuite.'**
+  String get groupHelp;
+
+  /// No description provided for @groupSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'{km} km economises'**
+  String groupSaved(String km);
+
+  /// No description provided for @groupAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Grouper avec celle-ci'**
+  String get groupAdd;
+
+  /// No description provided for @groupNotViable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette course fait trop devier votre trajet'**
+  String get groupNotViable;
+
+  /// No description provided for @groupStopPickup.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrait'**
+  String get groupStopPickup;
+
+  /// No description provided for @groupStopDropoff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remise'**
+  String get groupStopDropoff;
 
   /// No description provided for @adminReasonLabel.
   ///

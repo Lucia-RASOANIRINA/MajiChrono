@@ -10,6 +10,7 @@ import 'package:majichrono/core/storage/prefs_store.dart';
 import 'package:majichrono/core/sync/sync_item.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/driver/domain/entities/delivery_group.dart';
 import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
 
 /// Interrupteur en ligne / hors ligne du livreur (EXI-L03).
@@ -60,12 +61,35 @@ final availableDeliveriesProvider =
 ///
 /// Un livreur n'execute qu'une course a la fois tant que le groupage (EXI-L06,
 /// module 9) n'est pas livre.
-final activeDriverDeliveryProvider = Provider<Delivery?>((ref) {
+/// Courses actives du livreur.
+///
+/// Le pluriel est arrive avec le groupage (EXI-L06, D7) : jusqu'au module 9,
+/// le socle supposait **une seule** course a la fois. Lever cette hypothese
+/// etait la vraie difficulte du differenciant — pas l'ecran.
+final activeDriverDeliveriesProvider = Provider<List<Delivery>>((ref) {
   final all = ref.watch(deliveriesProvider).valueOrNull ?? const <Delivery>[];
-  final active = all.where(
-    (d) => d.driverId != null && d.status.isActive && !d.pendingSync,
-  );
+  return all
+      .where((d) => d.driverId != null && d.status.isActive && !d.pendingSync)
+      .toList();
+});
+
+/// Course courante, c'est-a-dire la premiere du groupe.
+///
+/// Conservee pour les ecrans qui n'en traitent qu'une : le bouton d'action
+/// suivante, l'itineraire, le constat. Un groupe se parcourt arret par arret,
+/// et chaque arret concerne une seule course.
+final activeDriverDeliveryProvider = Provider<Delivery?>((ref) {
+  final active = ref.watch(activeDriverDeliveriesProvider);
   return active.isEmpty ? null : active.first;
+});
+
+/// Groupe courant, lorsque le livreur porte plusieurs courses (EXI-L06).
+final activeGroupProvider = Provider<DeliveryGroup?>((ref) {
+  final active = ref.watch(activeDriverDeliveriesProvider);
+  if (active.length < DeliveryGroup.minSize) return null;
+  return DeliveryGroup(
+    deliveries: active.take(DeliveryGroup.maxSize).toList(),
+  );
 });
 
 final earningsProvider = FutureProvider.autoDispose<EarningsSummary>((ref) async {

@@ -15,6 +15,9 @@ import 'package:majichrono/features/delivery/presentation/providers/delivery_pro
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
+import 'package:majichrono/features/driver/presentation/screens/grouped_route_screen.dart';
+import 'package:majichrono/features/driver/presentation/widgets/emergency_button.dart';
+import 'package:majichrono/features/driver/presentation/widgets/shopping_receipt_card.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
@@ -156,6 +159,20 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                 ),
               ),
             ),
+          // Le parcours groupe n'apparait que lorsqu'il y a un groupe : un
+          // bouton qui mene a une liste d'une seule course serait un detour.
+          if (ref.watch(activeGroupProvider) != null)
+            IconButton(
+              icon: const Icon(Icons.route_outlined),
+              tooltip: l10n.groupTitle,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => GroupedRouteScreen(
+                    group: ref.read(activeGroupProvider)!,
+                  ),
+                ),
+              ),
+            ),
           // Le livreur relit ses propres constats : c'est ce qui lui permet de
           // contester une reclamation avec la preuve qu'il a lui-meme etablie.
           CustodyProofAction(delivery: delivery),
@@ -226,6 +243,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                 ),
               ),
             ),
+          // EXI-C07 : la liste et le plafond restent sous les yeux du livreur
+          // pendant toute la course, pas seulement a l'acceptation.
+          if (delivery.kind == DeliveryKind.shopping) ...[
+            const SizedBox(height: AppSpacing.lg),
+            ShoppingReceiptCard(delivery: delivery),
+          ],
           const SizedBox(height: AppSpacing.lg),
           OutlinedButton.icon(
             onPressed: () => _showIncidentSheet(context, delivery),
@@ -233,6 +256,12 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
             label: Text(l10n.driverIncident),
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.warning),
           ),
+          const SizedBox(height: AppSpacing.md),
+          // EXI-L13, D10. Volontairement **sous** le signalement d'incident et
+          // visuellement distinct : ce sont deux gestes differents. Un incident
+          // se motive et se met en file ; une urgence part tout de suite. Les
+          // confondre ferait porter a l'une la prudence de l'autre.
+          EmergencyButton(deliveryId: delivery.id),
         ],
       ),
       bottomNavigationBar: action == null

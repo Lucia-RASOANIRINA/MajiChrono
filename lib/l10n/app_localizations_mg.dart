@@ -271,6 +271,9 @@ class AppLocalizationsMg extends AppLocalizations {
   String get stepPackage => 'Entana';
 
   @override
+  String get stepOptions => 'Safidy';
+
+  @override
   String get stepReview => 'Famintinana';
 
   @override
@@ -727,6 +730,190 @@ class AppLocalizationsMg extends AppLocalizations {
   @override
   String get custodyChainHelp =>
       'Ny dian-tanan\'ny fanolorana dia mirakitra izay an\'ny fandraisana.';
+
+  @override
+  String get emergencyButton => 'Vonjy maika';
+
+  @override
+  String get emergencyTitle => 'Fanairana maika';
+
+  @override
+  String get emergencyHelp =>
+      'Fantatry ny mpandrindra avy hatrany, miaraka amin\'ny toerana farany fantatra.';
+
+  @override
+  String get emergencySend => 'Alefa ny fanairana';
+
+  @override
+  String get emergencyKindOptional => 'Fanazavana (tsy voatery)';
+
+  @override
+  String get emergencyAccident => 'Loza';
+
+  @override
+  String get emergencyAggression => 'Fanafihana';
+
+  @override
+  String get emergencyBreakdown => 'Simba ny fiara';
+
+  @override
+  String get emergencyMedical => 'Marary';
+
+  @override
+  String get emergencyUnspecified => 'Tsy voafaritra';
+
+  @override
+  String get emergencySent => 'Voalefa ny fanairana';
+
+  @override
+  String get emergencyCallbackSoon =>
+      'Hantsoina avy hatrany ianao. Mitadiava toerana azo antoka.';
+
+  @override
+  String get emergencyAcknowledgePending =>
+      'Nampandrenesina ny mpandrindra. Aza lavitra ny findaina.';
+
+  @override
+  String get economyTitle => 'Fomba fitsitsiana';
+
+  @override
+  String get economyHelp =>
+      'Ahemotra ny sary mandra-pahitana aterineto tsy mandoa, ary tsy misintona sarintany vaovao.';
+
+  @override
+  String get economyProofNever =>
+      'Mandeha manontolo foana ny fanamarinana, na dia amin\'ny fomba fitsitsiana aza.';
+
+  @override
+  String get economyDeferPhotos => 'Hahemotra ny sary tsy an\'ny fanamarinana';
+
+  @override
+  String get economyBlockTiles => 'Tsy hisintona sarintany vaovao';
+
+  @override
+  String get economyReduceCadence => 'Halavaina ny fandefasana toerana';
+
+  @override
+  String get shoppingTitle => 'Fividianana ho an\'ny hafa';
+
+  @override
+  String get shoppingHelp =>
+      'Ny mpanatitra no mandoa aloha ary manolotra ny tapakila.';
+
+  @override
+  String get shoppingAddItem => 'Hanampy entana';
+
+  @override
+  String get shoppingItemLabel => 'Entana';
+
+  @override
+  String get shoppingItemQuantity => 'Isa';
+
+  @override
+  String get shoppingItemPrice => 'Vidiny tombanana';
+
+  @override
+  String get shoppingSubstitutable => 'Azo soloina raha tsy misy';
+
+  @override
+  String get shoppingStoreHint => 'Fivarotana atolotra (tsy voatery)';
+
+  @override
+  String get shoppingCap => 'Fetran\'ny fandaniana';
+
+  @override
+  String get shoppingCapHelp =>
+      'Tsy mividy mihoatra ny mpanatitra. Izay no arony : ny volany manokana no aloany aloha.';
+
+  @override
+  String get shoppingCapTooLow => 'Ambany noho ny tombanao ny fetra';
+
+  @override
+  String shoppingCapOutOfRange(String min, String max) {
+    return 'Fetra eo anelanelan\'ny $min sy $max';
+  }
+
+  @override
+  String get shoppingEstimated => 'Tombana ny entana';
+
+  @override
+  String get shoppingEmpty => 'Tsy misy entana';
+
+  @override
+  String get shoppingActualTotal => 'Vola naloa (tapakila)';
+
+  @override
+  String get shoppingReceipt => 'Tapakilan\'ny fivarotana';
+
+  @override
+  String get shoppingReceiptMissing => 'Tsy maintsy misy sary hahazoana onitra';
+
+  @override
+  String get shoppingReceiptTaken => 'Voasary ny tapakila';
+
+  @override
+  String shoppingOverCap(String amount) {
+    return 'Mihoatra ny fetra. Onitra : $amount';
+  }
+
+  @override
+  String get payerTitle => 'Iza no mandoa';
+
+  @override
+  String get payerSender => 'Izaho (efa voaloa)';
+
+  @override
+  String get payerRecipient => 'Ny mpandray (aloa any)';
+
+  @override
+  String get payerRecipientNotice =>
+      'Ampandreneso ny mpandray ny vola : raha tsy izany dia handa ny entana izy.';
+
+  @override
+  String get relayTitle => 'Toerana fandraisana';
+
+  @override
+  String get relayHelp =>
+      'Miandry ao am-pivarotana ny entana. Mahasoa raha tsy ao an-trano ny mpandray.';
+
+  @override
+  String get relayNone => 'Fanaterana any amin\'ny adiresy';
+
+  @override
+  String get relayHours => 'Ora fisokafana';
+
+  @override
+  String relayStorage(int days) {
+    return 'Tehirizina $days andro';
+  }
+
+  @override
+  String get relayTooHeavy =>
+      'Mavesatra loatra ho an\'ity toerana ity ny entana';
+
+  @override
+  String get groupTitle => 'Dia mitambatra';
+
+  @override
+  String get groupHelp =>
+      'Dia roa ka hatramin\'ny telo amin\'ny lalana iray. Fandraisana aloha, fanolorana avy eo.';
+
+  @override
+  String groupSaved(String km) {
+    return '$km km voatsitsy';
+  }
+
+  @override
+  String get groupAdd => 'Hampiaraka amin\'ity';
+
+  @override
+  String get groupNotViable => 'Manalavitra loatra ny lalanao ity dia ity';
+
+  @override
+  String get groupStopPickup => 'Fandraisana';
+
+  @override
+  String get groupStopDropoff => 'Fanolorana';
 
   @override
   String get adminReasonLabel => 'Antony amin\'ny fanapahan-kevitra';

@@ -1,3 +1,5 @@
+import 'package:majichrono/features/delivery/domain/entities/delivery_options.dart';
+import 'package:majichrono/features/delivery/domain/entities/shopping_order.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 
@@ -11,6 +13,9 @@ class DeliveryDraft {
     required this.slot,
     required this.paymentMethod,
     this.insuredValueAriary,
+    this.payer = Payer.sender,
+    this.shopping,
+    this.relayPointId,
   });
 
   final Address pickup;
@@ -20,6 +25,11 @@ class DeliveryDraft {
   final PickupSlot slot;
   final PaymentMethod paymentMethod;
   final int? insuredValueAriary;
+
+  /// Qui paie (EXI-C42), liste de courses (EXI-C07), relais de remise (D6).
+  final Payer payer;
+  final ShoppingOrder? shopping;
+  final String? relayPointId;
 }
 
 abstract interface class DeliveryRepository {

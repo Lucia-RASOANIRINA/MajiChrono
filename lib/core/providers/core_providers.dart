@@ -20,6 +20,7 @@ import 'package:majichrono/features/admin/data/mock/admin_mock_module.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
+import 'package:majichrono/features/driver/data/mock/differentiators_mock_module.dart';
 import 'package:majichrono/features/driver/data/mock/driver_mock_module.dart';
 import 'package:majichrono/features/payment/data/mock/payment_mock_module.dart';
 import 'package:majichrono/features/tracking/data/mock/tracking_mock_module.dart';
@@ -69,7 +70,8 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     ..register(DriverMockModule(deliveries: () => deliveries.store))
     ..register(CustodyMockModule())
     ..register(PaymentMockModule())
-    ..register(AdminMockModule(deliveries: () => deliveries.store));
+    ..register(AdminMockModule(deliveries: () => deliveries.store))
+    ..register(DifferentiatorsMockModule());
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;

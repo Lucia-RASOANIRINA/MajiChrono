@@ -6,6 +6,7 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
+import 'package:majichrono/core/settings/economy_providers.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -95,6 +96,28 @@ class SettingsScreen extends ConsumerWidget {
           Card(
             child: Column(
               children: [
+                // EXI-T08. Le reglage vit ici et non dans un ecran a part :
+                // c'est une bascule, pas un parametrage.
+                Consumer(
+                  builder: (context, ref, _) {
+                    final economy = ref.watch(economySettingsProvider);
+                    return SwitchListTile(
+                      secondary: const Icon(Icons.savings_outlined),
+                      title: Text(l10n.economyTitle),
+                      subtitle: Text(
+                        economy.enabled
+                            ? l10n.economyProofNever
+                            : l10n.economyHelp,
+                      ),
+                      isThreeLine: true,
+                      value: economy.enabled,
+                      onChanged: (on) => ref
+                          .read(economySettingsProvider.notifier)
+                          .toggle(enabled: on),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.data_usage_outlined),
                   title: Text(l10n.dataUsageTitle),

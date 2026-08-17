@@ -74,6 +74,9 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
       paymentMethod: draft.paymentMethod,
       createdAt: DateTime.now(),
       pendingSync: true,
+      payer: draft.payer,
+      shopping: draft.shopping,
+      relayPointId: draft.relayPointId,
     );
 
     await _local.upsertDelivery(local, pendingSync: true);

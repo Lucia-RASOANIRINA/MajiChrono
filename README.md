@@ -832,15 +832,109 @@ travaux de plateforme.
 
 ### Module 9 — Différenciants concurrentiels
 
-| Tâche | Profil | Exigences |
+**État : module livré.** 45 tests. Le bouton d'urgence est vérifié à l'écran ;
+le pas « Options » de la création est verrouillé par onze tests de widgets.
+
+| Élément | Exigences | État |
 |---|---|---|
-| Achat pour compte : liste d'articles, plafond, photo du ticket | Expéditeur, Livreur | EXI-C07, D5 |
-| Groupage de 2 à 3 courses sur un même axe | Livreur | EXI-L06, D7 |
-| Bouton d'urgence accessible en deux appuis | Livreur | EXI-L13, D10 |
-| Réseau de points relais partenaires | Expéditeur, Destinataire | D6 |
-| Mode économie : tuiles pré-téléchargées, photos différées | Transverse | EXI-T08 |
-| Option assurance sur valeur déclarée | Expéditeur | EXI-C12 |
-| Payeur désignable, port dû | Expéditeur, Destinataire | EXI-C42 |
+| Option assurance sur valeur déclarée | EXI-C12 | Fait (module 2) |
+| Bouton d'urgence en deux appuis | EXI-L13, D10 | Fait, vérifié à l'écran |
+| Mode économie : photos différées, tuiles bloquées | EXI-T08 | Fait |
+| Achat pour compte : articles, plafond, ticket, remboursement | EXI-C07, D5 | Fait |
+| Payeur désignable, port dû | EXI-C42 | Fait |
+| Réseau de points relais | D6 | Fait |
+| Groupage de 2 à 3 courses sur un même axe | EXI-L06, D7 | Fait |
+
+**L'assurance était déjà livrée.** `insuredValueAriary` sur le brouillon, la
+ligne `PriceLineKind.insurance` dans la ventilation, le taux dans la grille
+tarifaire : EXI-C12 était traité au module 2 avec l'estimation. Elle est retirée
+du reste à faire plutôt que réécrite.
+
+**L'urgence n'est pas un incident, et le code le tient séparé.** Un incident se
+signale, se motive, rejoint la file de synchronisation et attend son tour. Une
+urgence part tout de suite : pas de menu, pas de champ, pas de dialogue de
+confirmation. « Accessible en deux appuis » se lit littéralement — un appui pour
+ouvrir, un appui pour envoyer, **rien entre les deux**.
+
+Le second appui n'est pas une politesse : il existe parce qu'un bouton
+d'urgence à un seul appui se déclenche dans une poche.
+
+La qualification — accident, agression, panne, malaise — est posée **sous** le
+bouton d'envoi, jamais avant. Une alerte sans nature part quand même, et c'est
+déjà l'essentiel. La position est facultative pour la même raison : attendre un
+point GPS coûterait les secondes qui comptent, et sous un pont il ne viendra
+jamais.
+
+Hors ligne, l'alerte rejoint la file en **priorité `custody`**, au rang des
+preuves, avec le drapeau « jamais abandonner ». Un appel à l'aide qui partirait
+derrière des positions GPS n'aurait aucun sens. Le niveau de batterie voyage
+avec elle : une alerte partie à 3 % dit à l'exploitation qu'il ne faut pas
+compter rappeler.
+
+**Le mode économie ne dégrade jamais une preuve.** Il diffère les photos hors
+constat jusqu'à une connexion non facturée et cesse d'ouvrir de nouvelles
+tuiles de carte. Mais `allowsUpload` prend un paramètre `isProof` **requis** —
+non optionnel, pour qu'aucun appelant ne puisse différer une preuve par
+inadvertance. Un constat part avec ses quatre photos en pleine définition, mode
+économie ou non : une preuve amoindrie pour économiser deux cents kilo-octets ne
+serait plus une preuve.
+
+**Le plafond de l'achat pour compte est une protection, pas un réglage.** Le
+livreur avance **son propre argent**. Trois conséquences, toutes dans le code :
+le remboursement est plafonné — ce qui a été dépensé au-delà n'engage pas
+l'expéditeur, et c'est précisément ce que le plafond signifie ; un plafond
+inférieur à l'estimation de l'expéditeur est signalé avant l'envoi plutôt que
+découvert devant la caisse ; et la substitution se décide **article par
+article**, parce qu'accepter un autre riz n'engage pas à accepter un autre
+médicament.
+
+**Le groupage est une règle géométrique, pas un compteur.** Deux courses qui
+partent dans des directions opposées ne se groupent pas — elles s'additionnent,
+et le livreur perd sur les deux. Le domaine calcule le détour imposé et les
+kilomètres économisés, et refuse un groupe qui ne fait rien gagner. Le plafond
+de trois n'est pas arbitraire : au-delà, l'ordre des arrêts devient un problème
+que personne ne résout de tête, et le risque d'intervertir deux colis grimpe.
+Les retraits précèdent toujours toutes les remises — un livreur qui livre avant
+d'avoir tout pris devra revenir.
+
+**Un quatrième pas est apparu dans la création de course.** Adresses · Colis ·
+**Options** · Récapitulatif. Les différenciants n'ont pas été entassés dans le
+pas « Colis » : ils ne décrivent pas le colis, ils décrivent la façon dont la
+course se déroule et se règle.
+
+Deux sections y sont **conditionnelles**. La liste de courses n'apparaît que si
+le type est « achat pour compte » ; un relais trop petit pour le colis reste
+visible mais inerte, avec sa raison. Masquer une option laisserait croire
+qu'elle n'existe pas ; l'afficher active laisserait découvrir le refus à la
+remise.
+
+**Le plafond suit le livreur pendant toute la course.** Côté expéditeur, il est
+saisi avec la phrase qui l'explique — « le livreur avance son propre argent ».
+Côté livreur, la carte le rappelle **en rouge et en permanence** : c'est sa
+seule protection, il ne doit jamais avoir à le chercher. S'il saisit un montant
+supérieur, l'écran annonce immédiatement ce qu'il récupérera réellement, plutôt
+que de le laisser le découvrir au remboursement.
+
+Le ticket de caisse passe par le **pipeline photo du module 5** — 1280 px,
+200 Ko, empreinte SHA-256. Une seconde chaîne photo aurait divergé de la
+première au premier ajustement.
+
+**Lever l'hypothèse « une seule course » était la vraie difficulté du
+groupage.** Jusqu'ici, `activeDriverDeliveryProvider` renvoyait une course et
+une seule. Le socle en expose maintenant trois lectures :
+`activeDriverDeliveriesProvider` (la liste), `activeDriverDeliveryProvider` (la
+première, conservée pour les écrans qui n'en traitent qu'une — bouton d'action
+suivante, itinéraire, constat) et `activeGroupProvider` (le groupe, quand il y
+en a un). L'écran de parcours groupé ne propose **aucun choix d'ordre** : les
+retraits d'abord, les remises ensuite, affiché comme une consigne.
+
+**Ce qui reste ouvert.** L'écran de parcours groupé s'affiche dès qu'un livreur
+porte deux courses actives, mais **l'acceptation multiple** elle-même n'est pas
+encore proposée dans la file d'offres : le simulateur libère une course dès
+qu'une autre est acceptée. Le domaine sait déjà décider (`DeliveryGroup.accepts`
+refuse une course hors axe), il manque le bouton « grouper avec celle-ci » dans
+la carte d'offre et la levée de l'exclusivité côté simulateur. C'est du travail
+de banc d'essai plus que de produit.
 
 ### Module 10 — Durcissement et recette terrain
 
