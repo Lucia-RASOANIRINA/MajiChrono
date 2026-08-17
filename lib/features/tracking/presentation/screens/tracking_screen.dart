@@ -4,7 +4,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
+import 'package:majichrono/features/payment/presentation/screens/payment_screen.dart';
+import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/tracking/domain/entities/tracking.dart';
@@ -54,10 +57,27 @@ class TrackingScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.trackingTitle),
-        // EXI-CC31 : l'expediteur voit exactement le meme comparateur que le
-        // livreur. Une preuve contradictoire qui ne serait visible que d'un cote
-        // ne serait plus contradictoire.
-        actions: [CustodyProofAction(delivery: delivery)],
+        actions: [
+          if (delivery.paymentMethod == PaymentMethod.majipay &&
+              (delivery.status == DeliveryStatus.delivered ||
+                  delivery.status == DeliveryStatus.deliveredWithReserves))
+            IconButton(
+              icon: const Icon(Icons.qr_code_scanner),
+              tooltip: l10n.payTitle,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PaymentScreen(
+                    delivery: delivery,
+                    role: UserRole.client,
+                  ),
+                ),
+              ),
+            ),
+          // EXI-CC31 : l'expediteur voit exactement le meme comparateur que le
+          // livreur. Une preuve contradictoire qui ne serait visible que d'un
+          // cote ne serait plus contradictoire.
+          CustodyProofAction(delivery: delivery),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),

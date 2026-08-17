@@ -729,6 +729,127 @@ class AppLocalizationsMg extends AppLocalizations {
       'Ny dian-tanan\'ny fanolorana dia mirakitra izay an\'ny fandraisana.';
 
   @override
+  String get payTitle => 'Fandoavana';
+
+  @override
+  String get payBalance => 'Volan\'ny MajiPay';
+
+  @override
+  String get payBalanceUnavailable => 'Tsy hita ny vola';
+
+  @override
+  String get payAmount => 'Vola aloa';
+
+  @override
+  String get payCollect => 'Handray vola';
+
+  @override
+  String get payCollectHelp =>
+      'Asehoy amin\'ny mpanjifa ity kaody ity. Izy no hanamafy ao amin\'ny findainy.';
+
+  @override
+  String get payOffer => 'Handoa';
+
+  @override
+  String get payOfferHelp =>
+      'Ny mpanatitra no manaraka ity kaody ity. Efa nohamafisinao ny vola.';
+
+  @override
+  String get payScan => 'Hanaraka kaody';
+
+  @override
+  String get payScanHelp =>
+      'Ataovy ao anaty efajoro ny kaody hita amin\'ny findaina hafa.';
+
+  @override
+  String get payScanInvalid => 'Tsy kaody fandoavana MajiChrono ity';
+
+  @override
+  String get payScanPermission =>
+      'Omeo alalana ny fakan-tsary mba hanaraka kaody';
+
+  @override
+  String get payShowQr => 'Asehoy ny kaodiko';
+
+  @override
+  String payQrExpires(int minutes) {
+    return 'Mandaitra $minutes min ny kaody';
+  }
+
+  @override
+  String get payQrExpired => 'Lany daty ny kaody';
+
+  @override
+  String get payQrRenew => 'Hamorona kaody vaovao';
+
+  @override
+  String get payWaiting => 'Miandry ny fanarahana...';
+
+  @override
+  String get payConfirmTitle => 'Hamafiso ny fandoavana';
+
+  @override
+  String get payConfirmTo => 'Mpandray';
+
+  @override
+  String get payConfirmPin => 'Ampidiro ny kaodinao hanamafisana';
+
+  @override
+  String payConfirmAction(String amount) {
+    return 'Hamafiso $amount';
+  }
+
+  @override
+  String get payConfirmNever =>
+      'Tsy ampy ny fanarahana kaody : tsy misy afaka maka vola aminao raha tsy misy ity kaody ity.';
+
+  @override
+  String get payWrongPin => 'Diso ny kaody';
+
+  @override
+  String get payCaptured => 'Vita ny fandoavana';
+
+  @override
+  String get payReceived => 'Voaray ny vola';
+
+  @override
+  String get payFailedInsufficient => 'Tsy ampy ny volan\'ny MajiPay';
+
+  @override
+  String get payFailedExpired => 'Lany daty ny kaody';
+
+  @override
+  String get payFailedDeclined => 'Nolavina ny fandoavana';
+
+  @override
+  String get payFailedUnavailable => 'Tsy azo ampiasaina ny MajiPay';
+
+  @override
+  String get payCashFallback => 'Handoa vola madinika';
+
+  @override
+  String get payCashHelp =>
+      'Tsy voasakan\'ny olan\'ny fandoavana mihitsy ny dia.';
+
+  @override
+  String get payCashDone => 'Voaloa tamin\'ny vola madinika';
+
+  @override
+  String get payReceiptTitle => 'Tapakila';
+
+  @override
+  String get payReceiptRef => 'Laharana';
+
+  @override
+  String get payReceiptShare => 'Hizara ny tapakila';
+
+  @override
+  String get payMethodMajipay => 'MajiPay';
+
+  @override
+  String get payMethodCash => 'Vola madinika';
+
+  @override
   String get syncPendingTitle => 'Zavatra miandry';
 
   @override

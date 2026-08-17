@@ -726,6 +726,126 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'empreinte de la remise integre celle de la prise en charge.';
 
   @override
+  String get payTitle => 'Paiement';
+
+  @override
+  String get payBalance => 'Solde MajiPay';
+
+  @override
+  String get payBalanceUnavailable => 'Solde indisponible';
+
+  @override
+  String get payAmount => 'Montant a regler';
+
+  @override
+  String get payCollect => 'Encaisser';
+
+  @override
+  String get payCollectHelp =>
+      'Presentez ce code au client. Il confirmera sur son telephone.';
+
+  @override
+  String get payOffer => 'Payer';
+
+  @override
+  String get payOfferHelp =>
+      'Le livreur scanne ce code. Vous avez deja confirme le montant.';
+
+  @override
+  String get payScan => 'Scanner un code';
+
+  @override
+  String get payScanHelp => 'Cadrez le code affiche sur l\'autre telephone.';
+
+  @override
+  String get payScanInvalid =>
+      'Ce code n\'est pas un code de paiement MajiChrono';
+
+  @override
+  String get payScanPermission => 'Autorisez l\'appareil photo pour scanner';
+
+  @override
+  String get payShowQr => 'Afficher mon code';
+
+  @override
+  String payQrExpires(int minutes) {
+    return 'Code valable $minutes min';
+  }
+
+  @override
+  String get payQrExpired => 'Code expire';
+
+  @override
+  String get payQrRenew => 'Generer un nouveau code';
+
+  @override
+  String get payWaiting => 'En attente du scan...';
+
+  @override
+  String get payConfirmTitle => 'Confirmer le paiement';
+
+  @override
+  String get payConfirmTo => 'Beneficiaire';
+
+  @override
+  String get payConfirmPin => 'Saisissez votre code pour confirmer';
+
+  @override
+  String payConfirmAction(String amount) {
+    return 'Confirmer $amount';
+  }
+
+  @override
+  String get payConfirmNever =>
+      'Scanner ne suffit pas : personne ne peut debiter votre compte sans ce code.';
+
+  @override
+  String get payWrongPin => 'Code incorrect';
+
+  @override
+  String get payCaptured => 'Paiement effectue';
+
+  @override
+  String get payReceived => 'Paiement recu';
+
+  @override
+  String get payFailedInsufficient => 'Solde MajiPay insuffisant';
+
+  @override
+  String get payFailedExpired => 'Le code a expire';
+
+  @override
+  String get payFailedDeclined => 'Paiement refuse';
+
+  @override
+  String get payFailedUnavailable => 'MajiPay est indisponible';
+
+  @override
+  String get payCashFallback => 'Regler en especes';
+
+  @override
+  String get payCashHelp =>
+      'La course n\'est jamais bloquee par un probleme de paiement.';
+
+  @override
+  String get payCashDone => 'Regle en especes';
+
+  @override
+  String get payReceiptTitle => 'Recu';
+
+  @override
+  String get payReceiptRef => 'Reference';
+
+  @override
+  String get payReceiptShare => 'Partager le recu';
+
+  @override
+  String get payMethodMajipay => 'MajiPay';
+
+  @override
+  String get payMethodCash => 'Especes';
+
+  @override
   String get syncPendingTitle => 'Elements en attente';
 
   @override

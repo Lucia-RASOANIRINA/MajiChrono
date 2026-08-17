@@ -20,6 +20,7 @@ import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
 import 'package:majichrono/features/driver/data/mock/driver_mock_module.dart';
+import 'package:majichrono/features/payment/data/mock/payment_mock_module.dart';
 import 'package:majichrono/features/tracking/data/mock/tracking_mock_module.dart';
 
 /// Injection de dependances : Riverpod est le seul mecanisme (§9.1).
@@ -65,7 +66,8 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     // afficherait un statut que la liste ne connait pas.
     ..register(TrackingMockModule(deliveries: () => deliveries.store))
     ..register(DriverMockModule(deliveries: () => deliveries.store))
-    ..register(CustodyMockModule());
+    ..register(CustodyMockModule())
+    ..register(PaymentMockModule());
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;

@@ -1454,6 +1454,228 @@ abstract class AppLocalizations {
   /// **'L\'empreinte de la remise integre celle de la prise en charge.'**
   String get custodyChainHelp;
 
+  /// No description provided for @payTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get payTitle;
+
+  /// No description provided for @payBalance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde MajiPay'**
+  String get payBalance;
+
+  /// No description provided for @payBalanceUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde indisponible'**
+  String get payBalanceUnavailable;
+
+  /// No description provided for @payAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant a regler'**
+  String get payAmount;
+
+  /// No description provided for @payCollect.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaisser'**
+  String get payCollect;
+
+  /// No description provided for @payCollectHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Presentez ce code au client. Il confirmera sur son telephone.'**
+  String get payCollectHelp;
+
+  /// No description provided for @payOffer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Payer'**
+  String get payOffer;
+
+  /// No description provided for @payOfferHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur scanne ce code. Vous avez deja confirme le montant.'**
+  String get payOfferHelp;
+
+  /// No description provided for @payScan.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner un code'**
+  String get payScan;
+
+  /// No description provided for @payScanHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cadrez le code affiche sur l\'autre telephone.'**
+  String get payScanHelp;
+
+  /// No description provided for @payScanInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce code n\'est pas un code de paiement MajiChrono'**
+  String get payScanInvalid;
+
+  /// No description provided for @payScanPermission.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autorisez l\'appareil photo pour scanner'**
+  String get payScanPermission;
+
+  /// No description provided for @payShowQr.
+  ///
+  /// In fr, this message translates to:
+  /// **'Afficher mon code'**
+  String get payShowQr;
+
+  /// No description provided for @payQrExpires.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code valable {minutes} min'**
+  String payQrExpires(int minutes);
+
+  /// No description provided for @payQrExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code expire'**
+  String get payQrExpired;
+
+  /// No description provided for @payQrRenew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Generer un nouveau code'**
+  String get payQrRenew;
+
+  /// No description provided for @payWaiting.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente du scan...'**
+  String get payWaiting;
+
+  /// No description provided for @payConfirmTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le paiement'**
+  String get payConfirmTitle;
+
+  /// No description provided for @payConfirmTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Beneficiaire'**
+  String get payConfirmTo;
+
+  /// No description provided for @payConfirmPin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Saisissez votre code pour confirmer'**
+  String get payConfirmPin;
+
+  /// No description provided for @payConfirmAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer {amount}'**
+  String payConfirmAction(String amount);
+
+  /// No description provided for @payConfirmNever.
+  ///
+  /// In fr, this message translates to:
+  /// **'Scanner ne suffit pas : personne ne peut debiter votre compte sans ce code.'**
+  String get payConfirmNever;
+
+  /// No description provided for @payWrongPin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code incorrect'**
+  String get payWrongPin;
+
+  /// No description provided for @payCaptured.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement effectue'**
+  String get payCaptured;
+
+  /// No description provided for @payReceived.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement recu'**
+  String get payReceived;
+
+  /// No description provided for @payFailedInsufficient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde MajiPay insuffisant'**
+  String get payFailedInsufficient;
+
+  /// No description provided for @payFailedExpired.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le code a expire'**
+  String get payFailedExpired;
+
+  /// No description provided for @payFailedDeclined.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement refuse'**
+  String get payFailedDeclined;
+
+  /// No description provided for @payFailedUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'MajiPay est indisponible'**
+  String get payFailedUnavailable;
+
+  /// No description provided for @payCashFallback.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regler en especes'**
+  String get payCashFallback;
+
+  /// No description provided for @payCashHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La course n\'est jamais bloquee par un probleme de paiement.'**
+  String get payCashHelp;
+
+  /// No description provided for @payCashDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regle en especes'**
+  String get payCashDone;
+
+  /// No description provided for @payReceiptTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recu'**
+  String get payReceiptTitle;
+
+  /// No description provided for @payReceiptRef.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reference'**
+  String get payReceiptRef;
+
+  /// No description provided for @payReceiptShare.
+  ///
+  /// In fr, this message translates to:
+  /// **'Partager le recu'**
+  String get payReceiptShare;
+
+  /// No description provided for @payMethodMajipay.
+  ///
+  /// In fr, this message translates to:
+  /// **'MajiPay'**
+  String get payMethodMajipay;
+
+  /// No description provided for @payMethodCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Especes'**
+  String get payMethodCash;
+
   /// No description provided for @syncPendingTitle.
   ///
   /// In fr, this message translates to:

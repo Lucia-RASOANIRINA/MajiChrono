@@ -7,7 +7,9 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
 import 'package:majichrono/features/custody/presentation/screens/custody_capture_screen.dart';
+import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
+import 'package:majichrono/features/payment/presentation/screens/payment_screen.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
@@ -135,9 +137,29 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.driverActiveDelivery),
-        // Le livreur relit ses propres constats : c'est ce qui lui permet de
-        // contester une reclamation avec la preuve qu'il a lui-meme etablie.
-        actions: [CustodyProofAction(delivery: delivery)],
+        actions: [
+          // L'encaissement n'apparait qu'une fois le colis remis : proposer de
+          // se faire payer avant d'avoir livre inverserait l'ordre des choses
+          // et exposerait le client.
+          if (delivery.paymentMethod == PaymentMethod.majipay &&
+              (delivery.status == DeliveryStatus.delivered ||
+                  delivery.status == DeliveryStatus.deliveredWithReserves))
+            IconButton(
+              icon: const Icon(Icons.qr_code_2),
+              tooltip: l10n.payCollect,
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => PaymentScreen(
+                    delivery: delivery,
+                    role: UserRole.driver,
+                  ),
+                ),
+              ),
+            ),
+          // Le livreur relit ses propres constats : c'est ce qui lui permet de
+          // contester une reclamation avec la preuve qu'il a lui-meme etablie.
+          CustodyProofAction(delivery: delivery),
+        ],
       ),
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),

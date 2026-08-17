@@ -47,8 +47,14 @@ class ApiEndpoints {
   static const String kycStatus = '/drivers/kyc/status';
 
   // --- Paiement (§11.2) ------------------------------------------------
+  static const String paymentBalance = '/payments/balance';
   static const String paymentIntent = '/payments/intent';
   static String payment(String id) => '/payments/$id';
+
+  /// Appariement des deux appareils par code QR. N'autorise aucun debit a lui
+  /// seul : le payeur confirme toujours sur son propre appareil.
+  static String paymentClaim(String id) => '/payments/$id/claim';
+  static String paymentConfirm(String id) => '/payments/$id/confirm';
   static String paymentCash(String id) => '/payments/$id/cash';
 
   // --- Notations -------------------------------------------------------

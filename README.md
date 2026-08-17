@@ -653,19 +653,89 @@ manque que la source qui alimente le tampon quand l'écran est éteint. C'est un
 travail de plateforme plutôt que de logique métier, reporté au module 10 avec
 les autres réglages de performance et de batterie.
 
-### Module 7 — Paiement délégué à MajiPay
+### Module 7 — Paiement adossé aux soldes MajiPay
 
-| Tâche | Profil | Exigences |
+**État : module livré.** 29 tests. **Écart assumé avec le cahier des charges,
+sur décision produit** : le §11.2 prévoyait un aller-retour app-to-app vers
+MajiPay (EXI-MP03) avec écran d'attente et consigne USSD (EXI-MP04). Le
+processus a été ramené **dans MajiChrono** : MajiPay ne fournit plus que les
+soldes, et les deux téléphones s'apparient par un code QR. Les exigences
+MP03/MP04 sont donc sans objet dans cette forme ; toutes les autres sont
+tenues, et deux d'entre elles — MP02 et MP06 — pèsent plus lourd qu'avant,
+puisque c'est désormais MajiChrono qui conduit la transaction.
+
+| Élément | Exigences | État |
 |---|---|---|
-| Simulateur MajiPay implémentant le contrat, avant livraison du vrai | Transverse | EXI-MP12 |
-| Intention de paiement créée côté serveur, aucun secret sur le mobile | Transverse | EXI-MP02 |
-| Ouverture app-to-app par lien profond, retour automatique | Expéditeur | EXI-MP03 |
-| Écran d'attente et consigne USSD si MajiPay n'est pas installé | Expéditeur | EXI-MP04 |
-| État du paiement par notification, sondage de repli plafonné à 120 s | Expéditeur | EXI-MP05 |
-| Idempotence stricte, jamais deux débits pour une intention | Transverse | EXI-MP06 |
-| Repli espèces automatique, la course n'est jamais bloquée | Expéditeur | EXI-MP08, EXI-C43 |
-| Reçu consultable et partageable depuis l'historique | Expéditeur | EXI-MP10 |
-| Aucune donnée de paiement dans les journaux | Transverse | EXI-MP11 |
+| Simulateur MajiPay : soldes, jetons, capture, refus | EXI-MP12 | Fait |
+| Intention créée côté serveur, aucun secret durable sur le mobile | EXI-MP02 | Fait |
+| Appariement par code QR, dans les deux sens | — | Fait |
+| Confirmation du payeur par code, sur son propre appareil | EXI-MP02 | Fait |
+| Idempotence stricte, jamais deux débits pour une intention | EXI-MP06 | Fait |
+| Sondage d'état plafonné à 120 s, cadence suivant le réseau | EXI-MP05 | Fait |
+| Repli espèces, offert avant l'échec et après | EXI-MP08, EXI-C43 | Fait |
+| Reçu affiché avec sa référence | EXI-MP10 | Fait |
+| Aucun montant, solde, jeton ni numéro dans les journaux | EXI-MP11 | Fait |
+| Ouverture app-to-app et consigne USSD | EXI-MP03, EXI-MP04 | Sans objet |
+| Partage du reçu depuis l'historique | EXI-MP10 | Module 9 |
+
+**Une règle domine le module, et elle est portée par le code : scanner
+n'autorise jamais un débit.** Le scan ne fait qu'apparier deux appareils. Celui
+qui paie confirme toujours sur le sien, avec son code. Sans cette règle,
+quiconque scanne un code affiché par un tiers pourrait se servir sur son compte.
+Le simulateur refuse d'ailleurs toute confirmation qui ne vient pas du payeur :
+un bénéficiaire ne peut pas se payer lui-même, même si le mobile le lui
+demandait.
+
+**Les deux sens existent parce que les deux situations existent.**
+
+| Sens | Qui présente | Qui scanne | Quand l'argent bouge |
+|---|---|---|---|
+| Demande d'encaissement | Le livreur | Le client | À la confirmation du client, chez lui |
+| Offre de paiement | Le client | Le livreur | Au scan — le client a déjà confirmé en créant le code |
+
+Dans les deux cas l'argent va du client au livreur, et dans les deux cas le
+payeur a donné son accord sur son propre téléphone. Pour l'offre, cet accord est
+simplement **antérieur** au scan : le client saisit son code avant d'afficher le
+sien. L'invariant tient donc dans les deux sens.
+
+**Le code QR ne porte que l'identifiant et un jeton à usage unique.** Ni
+montant, ni nom, ni numéro de compte : un code photographié à distance ne révèle
+rien, et ne vaut rien sans la confirmation du payeur. Le scanneur interroge le
+serveur pour connaître le reste. Le jeton n'est servi qu'une fois, à la
+création, et seulement à celui qui présente le code — une lecture d'intention ne
+le rend jamais. Sa durée de vie est de cinq minutes : assez pour tendre un
+téléphone, trop court pour qu'un code oublié sur un comptoir serve à quoi que ce
+soit.
+
+**Un défaut réel trouvé par les tests.** La création d'intention ignorait la clé
+d'idempotence : deux appuis sur « encaisser » produisaient **deux codes
+encaissables** pour la même course. Le premier scanné débitait, le second restait
+en circulation, prêt à débiter une seconde fois. C'est exactement ce qu'EXI-MP06
+existe pour empêcher.
+
+**Le solde est lu, jamais recopié.** MajiPay en est la source de vérité ; un
+solde mis en cache dans MajiChrono divergerait au premier mouvement fait
+ailleurs et afficherait un montant faux au moment précis où il compte. Le
+provider est `autoDispose` pour cette raison.
+
+**Le repli espèces est offert avant l'échec, pas seulement après.** Un client
+sans solde ne doit pas avoir à échouer d'abord pour découvrir qu'il peut payer
+autrement. Il reste disponible après un refus MajiPay, et devient impossible
+après un encaissement réussi — sinon la course serait réglée deux fois, une en
+monnaie et une en solde.
+
+**Le paiement n'apparaît qu'une fois le colis remis.** Proposer l'encaissement
+avant la livraison inverserait l'ordre des choses et exposerait le client. Les
+deux entrées — bouton d'encaissement chez le livreur, bouton de scan chez le
+client — n'existent que sur une course livrée et réglée par MajiPay.
+
+**Ce qui reste ouvert : le partage du reçu** (EXI-MP10, seconde moitié). Le reçu
+est affiché avec sa référence ; l'export partageable réutilisera le générateur
+PDF du module 5 et arrive au module 9 avec l'historique.
+
+**Effet de bord utile :** l'arrivée de `mobile_scanner` pour le paiement rend le
+scan du code de scellé (EXI-CC14) accessible au module 10 sans dépendance
+supplémentaire.
 
 ### Module 8 — Supervision depuis mobile
 
