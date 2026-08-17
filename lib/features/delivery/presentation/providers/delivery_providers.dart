@@ -16,6 +16,7 @@ final deliveryRepositoryProvider = Provider<DeliveryRepository>(
   (ref) => DeliveryRepositoryImpl(
     client: ref.watch(apiClientProvider),
     local: ref.watch(deliveryLocalDataSourceProvider),
+    queue: ref.watch(syncQueueProvider),
   ),
 );
 

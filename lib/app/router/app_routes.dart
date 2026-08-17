@@ -21,6 +21,9 @@ class AppRoutes {
 
   static const String settings = '/settings';
   static const String dataUsage = '/settings/data';
+
+  /// Elements en attente de synchronisation (EXI-S06).
+  static const String pendingSync = '/settings/sync';
   static const String devPanel = '/dev';
 
   // --- Client ----------------------------------------------------------

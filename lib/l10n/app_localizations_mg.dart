@@ -729,6 +729,89 @@ class AppLocalizationsMg extends AppLocalizations {
       'Ny dian-tanan\'ny fanolorana dia mirakitra izay an\'ny fandraisana.';
 
   @override
+  String get syncPendingTitle => 'Zavatra miandry';
+
+  @override
+  String get syncPendingEmpty => 'Voalefa daholo';
+
+  @override
+  String get syncPendingEmptyHelp =>
+      'Tsy misy miandry halefa any amin\'ny serivera.';
+
+  @override
+  String get syncPendingHelp =>
+      'Handeha ireto raha vao miverina ny aterineto. Ny fanamarinana no mialoha.';
+
+  @override
+  String get syncRetry => 'Averina andramana';
+
+  @override
+  String get syncRetryAll => 'Averina daholo';
+
+  @override
+  String get syncItemCustody => 'Fanamarinana';
+
+  @override
+  String get syncItemTransition => 'Dia';
+
+  @override
+  String get syncItemPosition => 'Toerana';
+
+  @override
+  String get syncItemRating => 'Naoty';
+
+  @override
+  String get syncCauseNone => 'Miandry aterineto';
+
+  @override
+  String get syncCauseNetwork => 'Tsy misy aterineto';
+
+  @override
+  String get syncCauseServer => 'Tsy namaly ny serivera';
+
+  @override
+  String get syncCauseConflict => 'Hafa ny toetra ao amin\'ny serivera';
+
+  @override
+  String get syncCauseRejected => 'Nolavin\'ny serivera';
+
+  @override
+  String get syncCauseExhausted => 'Lany ny fanandramana';
+
+  @override
+  String get syncNeverAbandon => 'Porofo : tsy afoy mihitsy';
+
+  @override
+  String syncAttempts(int count) {
+    return 'Fanandramana $count';
+  }
+
+  @override
+  String get syncAgeNow => 'vao izao';
+
+  @override
+  String syncAgeMinutes(int count) {
+    return '$count min lasa izay';
+  }
+
+  @override
+  String syncAgeHours(int count) {
+    return '$count ora lasa izay';
+  }
+
+  @override
+  String syncAgeDays(int count) {
+    return '$count andro lasa izay';
+  }
+
+  @override
+  String get syncConflictNotice =>
+      'Ny serivera no manapaka. Nohavaozina ny angonao.';
+
+  @override
+  String get syncRetryQueued => 'Nangatahina ny famerenana';
+
+  @override
   String get driverOnline => 'Miasa';
 
   @override

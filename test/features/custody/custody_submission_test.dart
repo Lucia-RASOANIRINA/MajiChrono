@@ -11,6 +11,7 @@ import 'package:majichrono/core/network/mock/mock_backend.dart';
 import 'package:majichrono/core/network/mock/mock_http_adapter.dart';
 import 'package:majichrono/core/network/network_profile.dart';
 import 'package:majichrono/core/storage/app_database.dart';
+import 'package:majichrono/core/sync/sync_queue.dart';
 import 'package:majichrono/features/custody/data/custody_repository.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/custody/data/services/custody_vault.dart';
@@ -53,6 +54,7 @@ void main() {
       ),
       db: db,
       vault: CustodyVault(FakeSecureStore(), random: Random(9)),
+      queue: SyncQueue(db),
     );
   }
 

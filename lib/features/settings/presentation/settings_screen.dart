@@ -101,6 +101,33 @@ class SettingsScreen extends ConsumerWidget {
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.dataUsage),
                 ),
+                const Divider(height: 1),
+                // EXI-S06 : le compte des elements en attente est visible ici
+                // et pas seulement dans le bandeau. Un livreur qui rentre de
+                // tournee veut verifier que ses constats sont partis, sans
+                // avoir a deviner ou regarder.
+                ListTile(
+                  leading: const Icon(Icons.cloud_upload_outlined),
+                  title: Text(l10n.syncPendingTitle),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Consumer(
+                        builder: (context, ref, _) {
+                          final count =
+                              ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
+                          if (count == 0) return const SizedBox.shrink();
+                          return Padding(
+                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            child: Badge(label: Text('$count')),
+                          );
+                        },
+                      ),
+                      const Icon(Icons.chevron_right),
+                    ],
+                  ),
+                  onTap: () => context.push(AppRoutes.pendingSync),
+                ),
                 if (config.enableDevPanel) ...[
                   const Divider(height: 1),
                   ListTile(

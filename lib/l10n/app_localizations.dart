@@ -1454,6 +1454,150 @@ abstract class AppLocalizations {
   /// **'L\'empreinte de la remise integre celle de la prise en charge.'**
   String get custodyChainHelp;
 
+  /// No description provided for @syncPendingTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Elements en attente'**
+  String get syncPendingTitle;
+
+  /// No description provided for @syncPendingEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout est transmis'**
+  String get syncPendingEmpty;
+
+  /// No description provided for @syncPendingEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rien n\'attend d\'etre envoye au serveur.'**
+  String get syncPendingEmptyHelp;
+
+  /// No description provided for @syncPendingHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ces elements partiront des le retour du reseau. Les constats passent en premier.'**
+  String get syncPendingHelp;
+
+  /// No description provided for @syncRetry.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relancer'**
+  String get syncRetry;
+
+  /// No description provided for @syncRetryAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout relancer'**
+  String get syncRetryAll;
+
+  /// No description provided for @syncItemCustody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Constat'**
+  String get syncItemCustody;
+
+  /// No description provided for @syncItemTransition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course'**
+  String get syncItemTransition;
+
+  /// No description provided for @syncItemPosition.
+  ///
+  /// In fr, this message translates to:
+  /// **'Positions'**
+  String get syncItemPosition;
+
+  /// No description provided for @syncItemRating.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notation'**
+  String get syncItemRating;
+
+  /// No description provided for @syncCauseNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente d\'une fenetre reseau'**
+  String get syncCauseNone;
+
+  /// No description provided for @syncCauseNetwork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reseau indisponible'**
+  String get syncCauseNetwork;
+
+  /// No description provided for @syncCauseServer.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le serveur n\'a pas repondu'**
+  String get syncCauseServer;
+
+  /// No description provided for @syncCauseConflict.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le serveur a un autre etat'**
+  String get syncCauseConflict;
+
+  /// No description provided for @syncCauseRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuse par le serveur'**
+  String get syncCauseRejected;
+
+  /// No description provided for @syncCauseExhausted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tentatives epuisees'**
+  String get syncCauseExhausted;
+
+  /// No description provided for @syncNeverAbandon.
+  ///
+  /// In fr, this message translates to:
+  /// **'Preuve : jamais abandonnee'**
+  String get syncNeverAbandon;
+
+  /// No description provided for @syncAttempts.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} tentatives'**
+  String syncAttempts(int count);
+
+  /// No description provided for @syncAgeNow.
+  ///
+  /// In fr, this message translates to:
+  /// **'a l\'instant'**
+  String get syncAgeNow;
+
+  /// No description provided for @syncAgeMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count} min'**
+  String syncAgeMinutes(int count);
+
+  /// No description provided for @syncAgeHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count} h'**
+  String syncAgeHours(int count);
+
+  /// No description provided for @syncAgeDays.
+  ///
+  /// In fr, this message translates to:
+  /// **'il y a {count} j'**
+  String syncAgeDays(int count);
+
+  /// No description provided for @syncConflictNotice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le serveur a impose son etat. Vos donnees ont ete mises a jour.'**
+  String get syncConflictNotice;
+
+  /// No description provided for @syncRetryQueued.
+  ///
+  /// In fr, this message translates to:
+  /// **'Relance demandee'**
+  String get syncRetryQueued;
+
   /// No description provided for @driverOnline.
   ///
   /// In fr, this message translates to:

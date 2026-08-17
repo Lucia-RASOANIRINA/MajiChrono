@@ -11,6 +11,7 @@ import 'package:majichrono/core/network/mock/mock_backend.dart';
 import 'package:majichrono/core/network/mock/mock_http_adapter.dart';
 import 'package:majichrono/core/network/network_profile.dart';
 import 'package:majichrono/core/storage/app_database.dart';
+import 'package:majichrono/core/sync/sync_queue.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
 import 'package:majichrono/features/delivery/data/datasources/delivery_local_data_source.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
@@ -197,6 +198,7 @@ void main() {
           ),
         ),
         local: DeliveryLocalDataSource(db),
+        queue: SyncQueue(db),
       );
     }
 
@@ -255,6 +257,7 @@ void main() {
           ),
         ),
         local: DeliveryLocalDataSource(db),
+        queue: SyncQueue(db),
       ).createDelivery(draft(kind: DeliveryKind.document));
 
       await repository.refreshDeliveries();

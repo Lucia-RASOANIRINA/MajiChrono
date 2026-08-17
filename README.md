@@ -568,17 +568,90 @@ code-barres arrive au module 10, avec les autres optimisations de saisie.
 
 ### Module 6 — Mode hors ligne intégral
 
-| Tâche | Profil | Exigences |
+**État : module livré.** 42 tests portent sur ce module. Le principe tient en
+une phrase : **rien n'est tenté sur le réseau avant d'avoir été écrit
+localement**. L'utilisateur voit son action aboutir tout de suite ; la file se
+charge du reste, y compris trois jours plus tard, y compris après un
+redémarrage.
+
+| Élément | Exigences | État |
 |---|---|---|
-| File de synchronisation, écriture locale avant toute tentative réseau | Transverse | §10.2 |
-| Ordre de priorité : constats, transitions, positions, notations | Transverse | EXI-S02 |
-| Reprise exponentielle jusqu'à 15 essais, puis signalement | Transverse | §10.2 |
-| Conflit détecté : le serveur fait foi, l'utilisateur est informé | Transverse | EXI-S04 |
-| Un constat n'est jamais abandonné automatiquement | Transverse | EXI-S05 |
-| Écran « éléments en attente » : liste, âge, cause, relance manuelle | Transverse | EXI-S06 |
-| Positions en tampon local, envoi par lots compressés de 50 points | Livreur | EXI-L10, EXI-S03 |
-| Purge des photos transmises et accusées | Transverse | EXI-S07 |
-| Parcours livreur complet exécutable hors ligne | Livreur | EXI-L15, EXI-P07 |
+| File de synchronisation persistante, écriture locale avant tout envoi | §10.2 | Fait |
+| Ordre de priorité : constats, transitions, positions, notations | EXI-S02 | Fait |
+| Clé d'idempotence posée au dépôt et conservée entre les reprises | EXI-S01 | Fait |
+| Reprise exponentielle plafonnée, 15 essais puis signalement | §10.2 | Fait |
+| Conflit : le serveur fait foi, l'utilisateur est informé | EXI-S04 | Fait |
+| Un constat n'est jamais abandonné automatiquement | EXI-S05 | Fait |
+| Écran « éléments en attente » : liste, âge, cause, relance | EXI-S06 | Fait |
+| Reprise des envois interrompus par une fermeture brutale | EXI-S01 | Fait |
+| Tampon local de positions, lots de 50 points | EXI-L10, EXI-S03 | Fait |
+| Purge des photos transmises et accusées | EXI-S07 | Fait |
+| Transition de statut exécutable hors ligne | EXI-L15, EXI-P07 | Fait |
+| Émission de position en arrière-plan, écran verrouillé | EXI-L09 | Module 10 |
+
+**La file est une table, pas une liste en mémoire.** Un livreur qui tue
+l'application dans un tunnel doit retrouver ses constats au redémarrage. C'est
+la seule lecture compatible avec EXI-S05, et c'est ce qui a été vérifié à
+l'écran : une transition faite hors ligne a survécu à une réinstallation, puis
+est repartie seule au retour du réseau, sans que personne n'appuie sur rien.
+
+**EXI-S05 contredit délibérément « 15 essais puis abandon ».** Les deux règles
+coexistent, et la contradiction est assumée. Après quinze échecs, une transition
+de statut est signalée et cesse d'être retentée ; un constat, lui, reste dans la
+file indéfiniment — même refusé par le serveur. Il change seulement d'état
+visible, pour qu'un humain tranche. Abandonner une preuve parce que le réseau a
+été mauvais quinze fois serait exactement le défaut que le module 5 s'est
+employé à rendre impossible.
+
+**La clé d'idempotence est posée au dépôt, jamais régénérée à la reprise.**
+C'est toute la différence entre une reprise et un doublon : un envoi parti puis
+coupé avant la réponse, rejoué sous une nouvelle clé, créerait deux courses ou
+deux constats. Trois sources, trois façons de la dériver — la course la tire au
+hasard et la conserve, le constat utilise son empreinte (recalculable), la
+transition la dérive de la course et de l'étape visée, si bien que deux appuis
+sur le même bouton produisent la même clé.
+
+**L'ordonnanceur se déclenche au retour du réseau, pas à intervalle fixe.** Un
+réveil toutes les trente secondes en zone blanche viderait la batterie sans rien
+transmettre. Un battement lent de deux minutes couvre le cas où le réseau n'a
+pas varié mais où un délai de reprise vient d'échoir. Le délai de reprise porte
+un bruit aléatoire de ±20 % : si tous les téléphones d'Antananarivo rejouaient
+leur file à la seconde exacte où le réseau revient, ils reconstruiraient la
+panne qu'ils viennent de subir.
+
+**Une coupure interrompt la vidange au lieu de la poursuivre.** Insister élément
+par élément sur un réseau tombé n'ajouterait que des tentatives inutiles au
+compteur de chacun — et rapprocherait d'autant le plafond de quinze.
+
+**« Le serveur fait foi » ne suffit pas : encore faut-il que l'utilisateur
+l'apprenne.** Le conflit remonte jusqu'à un bandeau posé au-dessus du Navigator,
+visible quel que soit l'écran affiché au moment où le serveur tranche. Un
+livreur qui a marqué une course livrée hors ligne, et dont le serveur dit
+qu'elle a été annulée entre-temps, doit le découvrir maintenant — pas devant la
+porte du destinataire.
+
+**Les positions partent par cinquante.** À quinze secondes d'intervalle sur une
+journée de huit heures, une par requête ferait près de deux mille appels : autant
+d'en-têtes, de poignées de main TLS et de réveils radio pour quelques octets
+chacun. Sur un forfait malgache (§4.4), le coût du transport dépasserait
+largement celui de la donnée transportée. Le plafond de cinquante n'est pas un
+choix d'implémentation : le serveur refuse au-delà (EXI-B06). Le tampon est
+persistant, pas en mémoire — une application tuée par le système pendant une
+tournée ne doit pas laisser un trou dans la trace.
+
+**La purge des photos n'intervient qu'après l'accusé de réception.** Effacer
+avant reviendrait à détruire la seule copie d'une preuve sur la foi d'un envoi
+qui peut encore échouer. Les métadonnées survivent — empreinte, horodatage,
+position, taille — ce qui permet de vérifier plus tard qu'une image servie par
+le serveur est bien celle qui a été scellée. Un test vérifie qu'un constat
+refusé par le serveur garde ses photos.
+
+**Ce qui reste ouvert : l'émission de position en arrière-plan** (EXI-L09), qui
+demande un service Android au premier plan et une notification permanente. Le
+tampon, le lot de cinquante et le transport sont en place et testés ; il ne
+manque que la source qui alimente le tampon quand l'écran est éteint. C'est un
+travail de plateforme plutôt que de logique métier, reporté au module 10 avec
+les autres réglages de performance et de batterie.
 
 ### Module 7 — Paiement délégué à MajiPay
 

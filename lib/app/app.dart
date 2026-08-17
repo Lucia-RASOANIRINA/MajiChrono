@@ -8,12 +8,18 @@ import 'package:majichrono/app/theme/app_theme.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/core/i18n/mg_material_localizations.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
+import 'package:majichrono/core/sync/sync_gate.dart';
 import 'package:majichrono/features/auth/presentation/widgets/inactivity_lock.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
 class MajiChronoApp extends ConsumerWidget {
   const MajiChronoApp({super.key});
+
+  /// Messager racine : la file de synchronisation signale ses conflits
+  /// (EXI-S04) sans savoir quel ecran est affiche.
+  static final GlobalKey<ScaffoldMessengerState> messengerKey =
+      GlobalKey<ScaffoldMessengerState>();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -24,6 +30,7 @@ class MajiChronoApp extends ConsumerWidget {
     return MaterialApp.router(
       onGenerateTitle: (context) => AppLocalizations.of(context).appName,
       debugShowCheckedModeBanner: false,
+      scaffoldMessengerKey: messengerKey,
       routerConfig: router,
       // La langue vient du controleur, pas du systeme : la bascule est a chaud
       // et sans redemarrage (EXI-T05).
@@ -55,9 +62,11 @@ class MajiChronoApp extends ConsumerWidget {
             textScaler: media.textScaler.clamp(minScaleFactor: 0.9, maxScaleFactor: 1.4),
           ),
           child: Builder(
-            builder: (inner) => InactivityLock(
-              child: Column(
-              children: [
+            builder: (inner) => SyncGate(
+              messengerKey: messengerKey,
+              child: InactivityLock(
+                child: Column(
+                  children: [
                 // Le bandeau reseau est pose **au-dessus du Navigator**, et non
                 // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
                 // sens litteral : il survit a tout ecran empile — reglages,
@@ -65,17 +74,18 @@ class MajiChronoApp extends ConsumerWidget {
                 // disparaitrait des le premier `push`. Or c'est precisement
                 // pendant un constat ou un paiement que savoir si le reseau est
                 // tombe change le comportement de l'utilisateur (§15.2.5).
-                const McNetworkBanner(),
-                Expanded(
-                  // Le bandeau a deja consomme l'encoche ; sans cela chaque
-                  // Scaffold enfant reappliquerait la meme marge.
-                  child: MediaQuery.removePadding(
-                    context: inner,
-                    removeTop: true,
-                    child: child ?? const SizedBox.shrink(),
-                  ),
+                    const McNetworkBanner(),
+                    Expanded(
+                      // Le bandeau a deja consomme l'encoche ; sans cela chaque
+                      // Scaffold enfant reappliquerait la meme marge.
+                      child: MediaQuery.removePadding(
+                        context: inner,
+                        removeTop: true,
+                        child: child ?? const SizedBox.shrink(),
+                      ),
+                    ),
+                  ],
                 ),
-              ],
               ),
             ),
           ),

@@ -2170,6 +2170,480 @@ class CachedDeliveriesCompanion extends UpdateCompanion<CachedDelivery> {
   }
 }
 
+class $BufferedPositionsTable extends BufferedPositions
+    with TableInfo<$BufferedPositionsTable, BufferedPosition> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $BufferedPositionsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _deliveryIdMeta = const VerificationMeta(
+    'deliveryId',
+  );
+  @override
+  late final GeneratedColumn<String> deliveryId = GeneratedColumn<String>(
+    'delivery_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _latitudeMeta = const VerificationMeta(
+    'latitude',
+  );
+  @override
+  late final GeneratedColumn<double> latitude = GeneratedColumn<double>(
+    'latitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _longitudeMeta = const VerificationMeta(
+    'longitude',
+  );
+  @override
+  late final GeneratedColumn<double> longitude = GeneratedColumn<double>(
+    'longitude',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _speedKmhMeta = const VerificationMeta(
+    'speedKmh',
+  );
+  @override
+  late final GeneratedColumn<double> speedKmh = GeneratedColumn<double>(
+    'speed_kmh',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _accuracyMetersMeta = const VerificationMeta(
+    'accuracyMeters',
+  );
+  @override
+  late final GeneratedColumn<double> accuracyMeters = GeneratedColumn<double>(
+    'accuracy_meters',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recordedAtMeta = const VerificationMeta(
+    'recordedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> recordedAt = GeneratedColumn<DateTime>(
+    'recorded_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    deliveryId,
+    latitude,
+    longitude,
+    speedKmh,
+    accuracyMeters,
+    recordedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'buffered_positions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<BufferedPosition> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('delivery_id')) {
+      context.handle(
+        _deliveryIdMeta,
+        deliveryId.isAcceptableOrUnknown(data['delivery_id']!, _deliveryIdMeta),
+      );
+    }
+    if (data.containsKey('latitude')) {
+      context.handle(
+        _latitudeMeta,
+        latitude.isAcceptableOrUnknown(data['latitude']!, _latitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_latitudeMeta);
+    }
+    if (data.containsKey('longitude')) {
+      context.handle(
+        _longitudeMeta,
+        longitude.isAcceptableOrUnknown(data['longitude']!, _longitudeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_longitudeMeta);
+    }
+    if (data.containsKey('speed_kmh')) {
+      context.handle(
+        _speedKmhMeta,
+        speedKmh.isAcceptableOrUnknown(data['speed_kmh']!, _speedKmhMeta),
+      );
+    }
+    if (data.containsKey('accuracy_meters')) {
+      context.handle(
+        _accuracyMetersMeta,
+        accuracyMeters.isAcceptableOrUnknown(
+          data['accuracy_meters']!,
+          _accuracyMetersMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recorded_at')) {
+      context.handle(
+        _recordedAtMeta,
+        recordedAt.isAcceptableOrUnknown(data['recorded_at']!, _recordedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_recordedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  BufferedPosition map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return BufferedPosition(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      deliveryId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}delivery_id'],
+      ),
+      latitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}latitude'],
+      )!,
+      longitude: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}longitude'],
+      )!,
+      speedKmh: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}speed_kmh'],
+      ),
+      accuracyMeters: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}accuracy_meters'],
+      ),
+      recordedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}recorded_at'],
+      )!,
+    );
+  }
+
+  @override
+  $BufferedPositionsTable createAlias(String alias) {
+    return $BufferedPositionsTable(attachedDatabase, alias);
+  }
+}
+
+class BufferedPosition extends DataClass
+    implements Insertable<BufferedPosition> {
+  final int id;
+
+  /// Course concernee, lorsque la position en accompagne une.
+  final String? deliveryId;
+  final double latitude;
+  final double longitude;
+  final double? speedKmh;
+  final double? accuracyMeters;
+
+  /// Horodatage de la mesure, pas de l'envoi : c'est le moment ou le livreur
+  /// etait la, et il ne doit pas etre reecrit par la date de transmission.
+  final DateTime recordedAt;
+  const BufferedPosition({
+    required this.id,
+    this.deliveryId,
+    required this.latitude,
+    required this.longitude,
+    this.speedKmh,
+    this.accuracyMeters,
+    required this.recordedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    if (!nullToAbsent || deliveryId != null) {
+      map['delivery_id'] = Variable<String>(deliveryId);
+    }
+    map['latitude'] = Variable<double>(latitude);
+    map['longitude'] = Variable<double>(longitude);
+    if (!nullToAbsent || speedKmh != null) {
+      map['speed_kmh'] = Variable<double>(speedKmh);
+    }
+    if (!nullToAbsent || accuracyMeters != null) {
+      map['accuracy_meters'] = Variable<double>(accuracyMeters);
+    }
+    map['recorded_at'] = Variable<DateTime>(recordedAt);
+    return map;
+  }
+
+  BufferedPositionsCompanion toCompanion(bool nullToAbsent) {
+    return BufferedPositionsCompanion(
+      id: Value(id),
+      deliveryId: deliveryId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(deliveryId),
+      latitude: Value(latitude),
+      longitude: Value(longitude),
+      speedKmh: speedKmh == null && nullToAbsent
+          ? const Value.absent()
+          : Value(speedKmh),
+      accuracyMeters: accuracyMeters == null && nullToAbsent
+          ? const Value.absent()
+          : Value(accuracyMeters),
+      recordedAt: Value(recordedAt),
+    );
+  }
+
+  factory BufferedPosition.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return BufferedPosition(
+      id: serializer.fromJson<int>(json['id']),
+      deliveryId: serializer.fromJson<String?>(json['deliveryId']),
+      latitude: serializer.fromJson<double>(json['latitude']),
+      longitude: serializer.fromJson<double>(json['longitude']),
+      speedKmh: serializer.fromJson<double?>(json['speedKmh']),
+      accuracyMeters: serializer.fromJson<double?>(json['accuracyMeters']),
+      recordedAt: serializer.fromJson<DateTime>(json['recordedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'deliveryId': serializer.toJson<String?>(deliveryId),
+      'latitude': serializer.toJson<double>(latitude),
+      'longitude': serializer.toJson<double>(longitude),
+      'speedKmh': serializer.toJson<double?>(speedKmh),
+      'accuracyMeters': serializer.toJson<double?>(accuracyMeters),
+      'recordedAt': serializer.toJson<DateTime>(recordedAt),
+    };
+  }
+
+  BufferedPosition copyWith({
+    int? id,
+    Value<String?> deliveryId = const Value.absent(),
+    double? latitude,
+    double? longitude,
+    Value<double?> speedKmh = const Value.absent(),
+    Value<double?> accuracyMeters = const Value.absent(),
+    DateTime? recordedAt,
+  }) => BufferedPosition(
+    id: id ?? this.id,
+    deliveryId: deliveryId.present ? deliveryId.value : this.deliveryId,
+    latitude: latitude ?? this.latitude,
+    longitude: longitude ?? this.longitude,
+    speedKmh: speedKmh.present ? speedKmh.value : this.speedKmh,
+    accuracyMeters: accuracyMeters.present
+        ? accuracyMeters.value
+        : this.accuracyMeters,
+    recordedAt: recordedAt ?? this.recordedAt,
+  );
+  BufferedPosition copyWithCompanion(BufferedPositionsCompanion data) {
+    return BufferedPosition(
+      id: data.id.present ? data.id.value : this.id,
+      deliveryId: data.deliveryId.present
+          ? data.deliveryId.value
+          : this.deliveryId,
+      latitude: data.latitude.present ? data.latitude.value : this.latitude,
+      longitude: data.longitude.present ? data.longitude.value : this.longitude,
+      speedKmh: data.speedKmh.present ? data.speedKmh.value : this.speedKmh,
+      accuracyMeters: data.accuracyMeters.present
+          ? data.accuracyMeters.value
+          : this.accuracyMeters,
+      recordedAt: data.recordedAt.present
+          ? data.recordedAt.value
+          : this.recordedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BufferedPosition(')
+          ..write('id: $id, ')
+          ..write('deliveryId: $deliveryId, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('speedKmh: $speedKmh, ')
+          ..write('accuracyMeters: $accuracyMeters, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    deliveryId,
+    latitude,
+    longitude,
+    speedKmh,
+    accuracyMeters,
+    recordedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is BufferedPosition &&
+          other.id == this.id &&
+          other.deliveryId == this.deliveryId &&
+          other.latitude == this.latitude &&
+          other.longitude == this.longitude &&
+          other.speedKmh == this.speedKmh &&
+          other.accuracyMeters == this.accuracyMeters &&
+          other.recordedAt == this.recordedAt);
+}
+
+class BufferedPositionsCompanion extends UpdateCompanion<BufferedPosition> {
+  final Value<int> id;
+  final Value<String?> deliveryId;
+  final Value<double> latitude;
+  final Value<double> longitude;
+  final Value<double?> speedKmh;
+  final Value<double?> accuracyMeters;
+  final Value<DateTime> recordedAt;
+  const BufferedPositionsCompanion({
+    this.id = const Value.absent(),
+    this.deliveryId = const Value.absent(),
+    this.latitude = const Value.absent(),
+    this.longitude = const Value.absent(),
+    this.speedKmh = const Value.absent(),
+    this.accuracyMeters = const Value.absent(),
+    this.recordedAt = const Value.absent(),
+  });
+  BufferedPositionsCompanion.insert({
+    this.id = const Value.absent(),
+    this.deliveryId = const Value.absent(),
+    required double latitude,
+    required double longitude,
+    this.speedKmh = const Value.absent(),
+    this.accuracyMeters = const Value.absent(),
+    required DateTime recordedAt,
+  }) : latitude = Value(latitude),
+       longitude = Value(longitude),
+       recordedAt = Value(recordedAt);
+  static Insertable<BufferedPosition> custom({
+    Expression<int>? id,
+    Expression<String>? deliveryId,
+    Expression<double>? latitude,
+    Expression<double>? longitude,
+    Expression<double>? speedKmh,
+    Expression<double>? accuracyMeters,
+    Expression<DateTime>? recordedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (deliveryId != null) 'delivery_id': deliveryId,
+      if (latitude != null) 'latitude': latitude,
+      if (longitude != null) 'longitude': longitude,
+      if (speedKmh != null) 'speed_kmh': speedKmh,
+      if (accuracyMeters != null) 'accuracy_meters': accuracyMeters,
+      if (recordedAt != null) 'recorded_at': recordedAt,
+    });
+  }
+
+  BufferedPositionsCompanion copyWith({
+    Value<int>? id,
+    Value<String?>? deliveryId,
+    Value<double>? latitude,
+    Value<double>? longitude,
+    Value<double?>? speedKmh,
+    Value<double?>? accuracyMeters,
+    Value<DateTime>? recordedAt,
+  }) {
+    return BufferedPositionsCompanion(
+      id: id ?? this.id,
+      deliveryId: deliveryId ?? this.deliveryId,
+      latitude: latitude ?? this.latitude,
+      longitude: longitude ?? this.longitude,
+      speedKmh: speedKmh ?? this.speedKmh,
+      accuracyMeters: accuracyMeters ?? this.accuracyMeters,
+      recordedAt: recordedAt ?? this.recordedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (deliveryId.present) {
+      map['delivery_id'] = Variable<String>(deliveryId.value);
+    }
+    if (latitude.present) {
+      map['latitude'] = Variable<double>(latitude.value);
+    }
+    if (longitude.present) {
+      map['longitude'] = Variable<double>(longitude.value);
+    }
+    if (speedKmh.present) {
+      map['speed_kmh'] = Variable<double>(speedKmh.value);
+    }
+    if (accuracyMeters.present) {
+      map['accuracy_meters'] = Variable<double>(accuracyMeters.value);
+    }
+    if (recordedAt.present) {
+      map['recorded_at'] = Variable<DateTime>(recordedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('BufferedPositionsCompanion(')
+          ..write('id: $id, ')
+          ..write('deliveryId: $deliveryId, ')
+          ..write('latitude: $latitude, ')
+          ..write('longitude: $longitude, ')
+          ..write('speedKmh: $speedKmh, ')
+          ..write('accuracyMeters: $accuracyMeters, ')
+          ..write('recordedAt: $recordedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2182,6 +2656,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $CachedDeliveriesTable cachedDeliveries = $CachedDeliveriesTable(
     this,
   );
+  late final $BufferedPositionsTable bufferedPositions =
+      $BufferedPositionsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2192,6 +2668,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     cachedDocuments,
     savedAddresses,
     cachedDeliveries,
+    bufferedPositions,
   ];
 }
 
@@ -3348,6 +3825,257 @@ typedef $$CachedDeliveriesTableProcessedTableManager =
       CachedDelivery,
       PrefetchHooks Function()
     >;
+typedef $$BufferedPositionsTableCreateCompanionBuilder =
+    BufferedPositionsCompanion Function({
+      Value<int> id,
+      Value<String?> deliveryId,
+      required double latitude,
+      required double longitude,
+      Value<double?> speedKmh,
+      Value<double?> accuracyMeters,
+      required DateTime recordedAt,
+    });
+typedef $$BufferedPositionsTableUpdateCompanionBuilder =
+    BufferedPositionsCompanion Function({
+      Value<int> id,
+      Value<String?> deliveryId,
+      Value<double> latitude,
+      Value<double> longitude,
+      Value<double?> speedKmh,
+      Value<double?> accuracyMeters,
+      Value<DateTime> recordedAt,
+    });
+
+class $$BufferedPositionsTableFilterComposer
+    extends Composer<_$AppDatabase, $BufferedPositionsTable> {
+  $$BufferedPositionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get speedKmh => $composableBuilder(
+    column: $table.speedKmh,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get accuracyMeters => $composableBuilder(
+    column: $table.accuracyMeters,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$BufferedPositionsTableOrderingComposer
+    extends Composer<_$AppDatabase, $BufferedPositionsTable> {
+  $$BufferedPositionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get latitude => $composableBuilder(
+    column: $table.latitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get longitude => $composableBuilder(
+    column: $table.longitude,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get speedKmh => $composableBuilder(
+    column: $table.speedKmh,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get accuracyMeters => $composableBuilder(
+    column: $table.accuracyMeters,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$BufferedPositionsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $BufferedPositionsTable> {
+  $$BufferedPositionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get deliveryId => $composableBuilder(
+    column: $table.deliveryId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<double> get latitude =>
+      $composableBuilder(column: $table.latitude, builder: (column) => column);
+
+  GeneratedColumn<double> get longitude =>
+      $composableBuilder(column: $table.longitude, builder: (column) => column);
+
+  GeneratedColumn<double> get speedKmh =>
+      $composableBuilder(column: $table.speedKmh, builder: (column) => column);
+
+  GeneratedColumn<double> get accuracyMeters => $composableBuilder(
+    column: $table.accuracyMeters,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get recordedAt => $composableBuilder(
+    column: $table.recordedAt,
+    builder: (column) => column,
+  );
+}
+
+class $$BufferedPositionsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $BufferedPositionsTable,
+          BufferedPosition,
+          $$BufferedPositionsTableFilterComposer,
+          $$BufferedPositionsTableOrderingComposer,
+          $$BufferedPositionsTableAnnotationComposer,
+          $$BufferedPositionsTableCreateCompanionBuilder,
+          $$BufferedPositionsTableUpdateCompanionBuilder,
+          (
+            BufferedPosition,
+            BaseReferences<
+              _$AppDatabase,
+              $BufferedPositionsTable,
+              BufferedPosition
+            >,
+          ),
+          BufferedPosition,
+          PrefetchHooks Function()
+        > {
+  $$BufferedPositionsTableTableManager(
+    _$AppDatabase db,
+    $BufferedPositionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$BufferedPositionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$BufferedPositionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$BufferedPositionsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> deliveryId = const Value.absent(),
+                Value<double> latitude = const Value.absent(),
+                Value<double> longitude = const Value.absent(),
+                Value<double?> speedKmh = const Value.absent(),
+                Value<double?> accuracyMeters = const Value.absent(),
+                Value<DateTime> recordedAt = const Value.absent(),
+              }) => BufferedPositionsCompanion(
+                id: id,
+                deliveryId: deliveryId,
+                latitude: latitude,
+                longitude: longitude,
+                speedKmh: speedKmh,
+                accuracyMeters: accuracyMeters,
+                recordedAt: recordedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String?> deliveryId = const Value.absent(),
+                required double latitude,
+                required double longitude,
+                Value<double?> speedKmh = const Value.absent(),
+                Value<double?> accuracyMeters = const Value.absent(),
+                required DateTime recordedAt,
+              }) => BufferedPositionsCompanion.insert(
+                id: id,
+                deliveryId: deliveryId,
+                latitude: latitude,
+                longitude: longitude,
+                speedKmh: speedKmh,
+                accuracyMeters: accuracyMeters,
+                recordedAt: recordedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map((e) => (e.readTable(table), BaseReferences(db, table, e)))
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$BufferedPositionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $BufferedPositionsTable,
+      BufferedPosition,
+      $$BufferedPositionsTableFilterComposer,
+      $$BufferedPositionsTableOrderingComposer,
+      $$BufferedPositionsTableAnnotationComposer,
+      $$BufferedPositionsTableCreateCompanionBuilder,
+      $$BufferedPositionsTableUpdateCompanionBuilder,
+      (
+        BufferedPosition,
+        BaseReferences<
+          _$AppDatabase,
+          $BufferedPositionsTable,
+          BufferedPosition
+        >,
+      ),
+      BufferedPosition,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -3362,4 +4090,6 @@ class $AppDatabaseManager {
       $$SavedAddressesTableTableManager(_db, _db.savedAddresses);
   $$CachedDeliveriesTableTableManager get cachedDeliveries =>
       $$CachedDeliveriesTableTableManager(_db, _db.cachedDeliveries);
+  $$BufferedPositionsTableTableManager get bufferedPositions =>
+      $$BufferedPositionsTableTableManager(_db, _db.bufferedPositions);
 }

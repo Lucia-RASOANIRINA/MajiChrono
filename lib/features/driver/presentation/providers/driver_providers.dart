@@ -7,6 +7,7 @@ import 'package:majichrono/core/network/api_endpoints.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/storage/prefs_store.dart';
+import 'package:majichrono/core/sync/sync_item.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
@@ -109,35 +110,83 @@ class DriverActions {
     _ref.invalidate(availableDeliveriesProvider);
   }
 
-  /// Fait progresser la course d'une etape (EXI-L08).
+  /// Fait progresser la course d'une etape (EXI-L08, EXI-L15).
   ///
   /// Le mobile propose, le serveur dispose (§8.3) : une transition refusee
   /// remonte telle quelle, avec l'etat courant du serveur, plutot que d'etre
   /// appliquee localement puis contredite.
+  ///
+  /// Hors ligne, en revanche, la transition **n'echoue pas** : elle est
+  /// appliquee localement et deposee dans la file. C'est ce qui rend le parcours
+  /// livreur executable de bout en bout en zone blanche (EXI-L15, EXI-P07) — un
+  /// livreur qui ne peut pas avancer parce qu'il n'a pas de reseau reste bloque
+  /// devant une porte, le colis a la main.
   Future<void> advance(Delivery delivery, DriverAction action) async {
-    final json = await _ref.read(apiClientProvider).post<Map<String, dynamic>>(
-          '/deliveries/${delivery.id}/status',
-          body: {'status': action.to.wireName},
-        );
-    final updated = Delivery.fromJson(json);
-    if (updated != null) {
+    final path = ApiEndpoints.deliveryStatus(delivery.id);
+    final body = {'status': action.to.wireName};
+
+    // La cle est derivee de la course et de l'etape visee : deux appuis sur le
+    // meme bouton produisent la meme cle, donc une seule transition cote
+    // serveur (EXI-S01).
+    final key = 'status_${delivery.id}_${action.to.wireName}';
+
+    try {
+      final json = await _ref
+          .read(apiClientProvider)
+          .post<Map<String, dynamic>>(path, body: body, idempotencyKey: key);
+      final updated = Delivery.fromJson(json);
+      if (updated != null) {
+        await _ref
+            .read(deliveryLocalDataSourceProvider)
+            .upsertDelivery(updated, pendingSync: false);
+      }
+    } on Failure catch (failure) {
+      // Un refus du serveur est definitif : il connait l'etat reel de la course
+      // et le mobile doit s'y plier (EXI-S04). Seule une coupure justifie de
+      // poursuivre localement.
+      if (!failure.isRetryable) rethrow;
+
+      await _ref.read(syncQueueProvider).enqueue(
+        method: 'POST',
+        path: path,
+        idempotencyKey: key,
+        body: body,
+        priority: SyncPriority.transition,
+      );
+
+      // L'etape est appliquee localement, marquee non transmise : l'interface
+      // avance, et le bandeau dit qu'il reste quelque chose a envoyer.
       await _ref
           .read(deliveryLocalDataSourceProvider)
-          .upsertDelivery(updated, pendingSync: false);
+          .upsertDelivery(delivery.copyWith(status: action.to), pendingSync: true);
     }
+
     _ref.invalidate(earningsProvider);
   }
 
   /// Signale un incident (EXI-L14).
+  ///
+  /// Un incident survient rarement au meilleur endroit du reseau : il est
+  /// depose en file plutot que perdu, mais sans bloquer le livreur.
   Future<void> reportIncident(String deliveryId, IncidentType type) async {
+    final path = ApiEndpoints.deliveryStatus(deliveryId);
+    final body = {'incident': type.wireName};
+    final key = 'incident_${deliveryId}_${type.wireName}';
+
     try {
-      await _ref.read(apiClientProvider).post<Map<String, dynamic>>(
-            '/deliveries/$deliveryId/status',
-            body: {'incident': type.wireName},
-          );
-    } on Failure {
-      // TODO(module 6) : deposer l'incident dans la file de synchronisation.
-      rethrow;
+      await _ref
+          .read(apiClientProvider)
+          .post<Map<String, dynamic>>(path, body: body, idempotencyKey: key);
+    } on Failure catch (failure) {
+      if (!failure.isRetryable) rethrow;
+
+      await _ref.read(syncQueueProvider).enqueue(
+        method: 'POST',
+        path: path,
+        idempotencyKey: key,
+        body: body,
+        priority: SyncPriority.transition,
+      );
     }
   }
 }

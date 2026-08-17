@@ -24,6 +24,7 @@ import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/public_tracking_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/tracking_screen.dart';
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
+import 'package:majichrono/features/settings/presentation/pending_sync_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -109,6 +110,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(path: AppRoutes.settings, builder: (_, _) => const SettingsScreen()),
       GoRoute(path: AppRoutes.dataUsage, builder: (_, _) => const DataUsageScreen()),
+      GoRoute(
+        path: AppRoutes.pendingSync,
+        builder: (_, _) => const PendingSyncScreen(),
+      ),
       GoRoute(path: AppRoutes.devPanel, builder: (_, _) => const DevPanelScreen()),
       GoRoute(
         path: AppRoutes.publicTrack,

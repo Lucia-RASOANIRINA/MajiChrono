@@ -15,6 +15,7 @@ final custodyRepositoryProvider = Provider<CustodyRepository>(
     client: ref.watch(apiClientProvider),
     db: ref.watch(appDatabaseProvider),
     vault: ref.watch(custodyVaultProvider),
+    queue: ref.watch(syncQueueProvider),
   ),
 );
 

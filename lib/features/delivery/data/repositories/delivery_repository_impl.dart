@@ -2,6 +2,8 @@ import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/logging/app_logger.dart';
 import 'package:majichrono/core/network/api_client.dart';
 import 'package:majichrono/core/network/api_endpoints.dart';
+import 'package:majichrono/core/sync/sync_item.dart';
+import 'package:majichrono/core/sync/sync_queue.dart';
 import 'package:majichrono/features/delivery/data/datasources/delivery_local_data_source.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
@@ -12,11 +14,13 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
   DeliveryRepositoryImpl({
     required this._client,
     required this._local,
+    required this._queue,
     Uuid? uuid,
-  })  : _uuid = uuid ?? const Uuid();
+  }) : _uuid = uuid ?? const Uuid();
 
   final ApiClient _client;
   final DeliveryLocalDataSource _local;
+  final SyncQueue _queue;
   final Uuid _uuid;
 
   @override
@@ -90,9 +94,18 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
       AppLogger.instance.info('delivery_queued', data: {
         'reason': failure.runtimeType.toString(),
       });
-      // TODO(module 6) : deposer l'element dans la file de synchronisation avec
-      // sa cle d'idempotence, pour que l'ordonnanceur le rejoue. En attendant,
-      // la course reste locale et visible comme non transmise.
+
+      // La cle generee plus haut est **deposee avec l'element**, pas
+      // regeneree a la reprise : c'est elle qui garantit qu'une course
+      // envoyee deux fois n'en cree qu'une (EXI-S01, EXI-B01).
+      await _queue.enqueue(
+        method: 'POST',
+        path: ApiEndpoints.deliveries,
+        idempotencyKey: idempotencyKey,
+        body: local.toJson()..remove('id'),
+        priority: SyncPriority.transition,
+      );
+
       return local;
     }
   }

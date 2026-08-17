@@ -13,6 +13,9 @@ import 'package:majichrono/core/network/network_status.dart';
 import 'package:majichrono/core/storage/app_database.dart';
 import 'package:majichrono/core/storage/prefs_store.dart';
 import 'package:majichrono/core/storage/secure_store.dart';
+import 'package:majichrono/core/sync/sync_item.dart';
+import 'package:majichrono/core/sync/sync_queue.dart';
+import 'package:majichrono/core/sync/sync_scheduler.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
@@ -99,6 +102,29 @@ final networkStatusProvider = StreamProvider<NetworkStatus>((ref) {
   Future<void>.delayed(const Duration(milliseconds: 300), () => service.start());
   return service.stream;
 });
+
+/// File de synchronisation (§10.2). Rien ne part sur le reseau sans y passer.
+final syncQueueProvider = Provider<SyncQueue>(
+  (ref) => SyncQueue(ref.watch(appDatabaseProvider)),
+);
+
+/// Ordonnanceur de la file. Il se declenche au retour du reseau (EXI-S02).
+final syncSchedulerProvider = Provider<SyncScheduler>((ref) {
+  final scheduler = SyncScheduler(
+    queue: ref.watch(syncQueueProvider),
+    client: ref.watch(apiClientProvider),
+    // On passe le flux du service plutot que le provider : l'ordonnanceur ne
+    // doit pas dependre du cycle de vie d'un widget.
+    networkStatus: ref.watch(networkStatusServiceProvider).stream,
+  );
+  ref.onDispose(scheduler.dispose);
+  return scheduler;
+});
+
+/// Elements en attente, tries par priorite puis anciennete (EXI-S06).
+final pendingItemsProvider = StreamProvider<List<SyncItem>>(
+  (ref) => ref.watch(syncQueueProvider).watchOutstanding(),
+);
 
 /// Nombre d'elements en attente de synchronisation, affiche dans le bandeau.
 final pendingSyncCountProvider = StreamProvider<int>((ref) {

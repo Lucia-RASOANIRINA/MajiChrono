@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:drift/drift.dart' hide Column;
 import 'package:majichrono/core/error/failure.dart';
@@ -7,6 +8,8 @@ import 'package:majichrono/core/network/api_client.dart';
 import 'package:majichrono/core/network/api_endpoints.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/storage/app_database.dart';
+import 'package:majichrono/core/sync/sync_item.dart';
+import 'package:majichrono/core/sync/sync_queue.dart';
 import 'package:majichrono/features/custody/data/services/custody_vault.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
@@ -27,11 +30,13 @@ class CustodyRepository {
     required this._client,
     required this._db,
     required this._vault,
+    required this._queue,
   });
 
   final ApiClient _client;
   final AppDatabase _db;
   final CustodyVault _vault;
+  final SyncQueue _queue;
 
   static const String _prefix = 'custody/';
 
@@ -48,11 +53,13 @@ class CustodyRepository {
 
     await _persist(sealed, acknowledged: false);
 
-    try {
-      final path = sealed.stage == CustodyStage.pickup
-          ? ApiEndpoints.custodyPickup(sealed.deliveryId)
-          : ApiEndpoints.custodyHandover(sealed.deliveryId);
+    // Le chemin est calcule hors du `try` : il sert aussi bien a l'envoi qu'au
+    // depot en file si celui-ci echoue.
+    final path = sealed.stage == CustodyStage.pickup
+        ? ApiEndpoints.custodyPickup(sealed.deliveryId)
+        : ApiEndpoints.custodyHandover(sealed.deliveryId);
 
+    try {
       final json = await _client.post<Map<String, dynamic>>(
         path,
         body: sealed.toJson(),
@@ -77,15 +84,27 @@ class CustodyRepository {
 
       final acknowledged = _withServerTime(sealed, serverTime);
       await _persist(acknowledged, acknowledged: true);
+      await _purgePhotos(acknowledged);
       return acknowledged;
     } on Failure catch (failure) {
       AppLogger.instance.info(
         'custody_queued',
         data: {'reason': failure.runtimeType.toString()},
       );
-      // TODO(module 6) : deposer dans la file de synchronisation avec la
-      // priorite la plus haute (EXI-S02) et le drapeau « jamais abandonner »
-      // (EXI-S05). En attendant, le constat reste local et non accuse.
+
+      // Priorite la plus haute (EXI-S02) et drapeau « jamais abandonner »
+      // (EXI-S05), pose par la priorite elle-meme. La cle d'idempotence est
+      // l'empreinte : elle est recalculable, si bien qu'un constat depose deux
+      // fois ne produira jamais qu'une ligne dans la file et qu'un
+      // enregistrement cote serveur.
+      await _queue.enqueue(
+        method: 'POST',
+        path: path,
+        idempotencyKey: sealed.hash!,
+        body: sealed.toJson(),
+        priority: SyncPriority.custody,
+      );
+
       return sealed;
     }
   }
@@ -118,6 +137,44 @@ class CustodyRepository {
         fetchedAt: DateTime.now(),
       ),
     );
+  }
+
+  /// Efface les photos une fois le constat accuse par le serveur (EXI-S07).
+  ///
+  /// L'ordre compte : la purge n'intervient **qu'apres** l'accuse de reception.
+  /// Effacer avant reviendrait a detruire la seule copie d'une preuve sur la foi
+  /// d'un envoi qui peut encore echouer. Un telephone d'entree de gamme dispose
+  /// de quelques gigaoctets ; garder indefiniment quatre a six photos par course
+  /// finirait par saturer le stockage et faire echouer la course suivante — mais
+  /// c'est la deuxieme preoccupation, pas la premiere.
+  ///
+  /// Les metadonnees, elles, restent : empreinte, horodatage, position, taille.
+  /// Ce qui permet de verifier a posteriori qu'une image produite par le serveur
+  /// est bien celle qui a ete scellee.
+  Future<void> _purgePhotos(CustodyReport report) async {
+    var freed = 0;
+
+    for (final photo in report.photos) {
+      if (photo.localPath.isEmpty) continue;
+      final file = File(photo.localPath);
+      if (!file.existsSync()) continue;
+
+      try {
+        await file.delete();
+        freed += photo.sizeBytes;
+      } on FileSystemException catch (error) {
+        // Un fichier verrouille n'est pas un echec de transmission : le constat
+        // est accuse, la place se liberera au prochain passage.
+        AppLogger.instance.warn(
+          'custody_purge_failed',
+          data: {'reason': error.osError?.message ?? 'io'},
+        );
+      }
+    }
+
+    if (freed > 0) {
+      AppLogger.instance.info('custody_photos_purged', data: {'bytes': freed});
+    }
   }
 
   CustodyReport _withServerTime(CustodyReport report, DateTime? serverTime) =>

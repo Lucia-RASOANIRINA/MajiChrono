@@ -726,6 +726,89 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'empreinte de la remise integre celle de la prise en charge.';
 
   @override
+  String get syncPendingTitle => 'Elements en attente';
+
+  @override
+  String get syncPendingEmpty => 'Tout est transmis';
+
+  @override
+  String get syncPendingEmptyHelp =>
+      'Rien n\'attend d\'etre envoye au serveur.';
+
+  @override
+  String get syncPendingHelp =>
+      'Ces elements partiront des le retour du reseau. Les constats passent en premier.';
+
+  @override
+  String get syncRetry => 'Relancer';
+
+  @override
+  String get syncRetryAll => 'Tout relancer';
+
+  @override
+  String get syncItemCustody => 'Constat';
+
+  @override
+  String get syncItemTransition => 'Course';
+
+  @override
+  String get syncItemPosition => 'Positions';
+
+  @override
+  String get syncItemRating => 'Notation';
+
+  @override
+  String get syncCauseNone => 'En attente d\'une fenetre reseau';
+
+  @override
+  String get syncCauseNetwork => 'Reseau indisponible';
+
+  @override
+  String get syncCauseServer => 'Le serveur n\'a pas repondu';
+
+  @override
+  String get syncCauseConflict => 'Le serveur a un autre etat';
+
+  @override
+  String get syncCauseRejected => 'Refuse par le serveur';
+
+  @override
+  String get syncCauseExhausted => 'Tentatives epuisees';
+
+  @override
+  String get syncNeverAbandon => 'Preuve : jamais abandonnee';
+
+  @override
+  String syncAttempts(int count) {
+    return '$count tentatives';
+  }
+
+  @override
+  String get syncAgeNow => 'a l\'instant';
+
+  @override
+  String syncAgeMinutes(int count) {
+    return 'il y a $count min';
+  }
+
+  @override
+  String syncAgeHours(int count) {
+    return 'il y a $count h';
+  }
+
+  @override
+  String syncAgeDays(int count) {
+    return 'il y a $count j';
+  }
+
+  @override
+  String get syncConflictNotice =>
+      'Le serveur a impose son etat. Vos donnees ont ete mises a jour.';
+
+  @override
+  String get syncRetryQueued => 'Relance demandee';
+
+  @override
   String get driverOnline => 'En ligne';
 
   @override

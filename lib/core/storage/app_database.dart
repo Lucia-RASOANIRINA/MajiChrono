@@ -101,6 +101,33 @@ class CachedDeliveries extends Table {
   Set<Column> get primaryKey => {id};
 }
 
+/// Tampon local des positions du livreur (EXI-L10, EXI-S03).
+///
+/// Les positions ne partent pas une par une : elles s'accumulent ici et sont
+/// envoyees par lots de cinquante. Une position pese peu, mais une par
+/// quinze secondes pendant huit heures en fait deux mille — autant de requetes,
+/// d'en-tetes et de poignees de main TLS sur un forfait qui se compte en
+/// megaoctets (§4.4).
+///
+/// Le tampon est **persistant** et non en memoire : une application tuee par le
+/// systeme pendant une tournee ne doit pas laisser un trou dans la trace, qui
+/// est ce qui permet de reconstituer un trajet en cas de litige.
+class BufferedPositions extends Table {
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Course concernee, lorsque la position en accompagne une.
+  TextColumn get deliveryId => text().nullable()();
+
+  RealColumn get latitude => real()();
+  RealColumn get longitude => real()();
+  RealColumn get speedKmh => real().nullable()();
+  RealColumn get accuracyMeters => real().nullable()();
+
+  /// Horodatage de la mesure, pas de l'envoi : c'est le moment ou le livreur
+  /// etait la, et il ne doit pas etre reecrit par la date de transmission.
+  DateTimeColumn get recordedAt => dateTime()();
+}
+
 @DriftDatabase(
   tables: [
     SyncQueueItems,
@@ -108,6 +135,7 @@ class CachedDeliveries extends Table {
     CachedDocuments,
     SavedAddresses,
     CachedDeliveries,
+    BufferedPositions,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -117,7 +145,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -130,6 +158,10 @@ class AppDatabase extends _$AppDatabase {
       if (from < 2) {
         await m.createTable(savedAddresses);
         await m.createTable(cachedDeliveries);
+      }
+      // v2 -> v3 : arrivee du module 6 (tampon de positions du livreur).
+      if (from < 3) {
+        await m.createTable(bufferedPositions);
       }
     },
     beforeOpen: (details) async {
