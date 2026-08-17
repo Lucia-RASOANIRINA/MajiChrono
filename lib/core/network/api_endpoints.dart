@@ -65,11 +65,29 @@ class ApiEndpoints {
   static String dispute(String id) => '/disputes/$id';
   static String disputeMessages(String id) => '/disputes/$id/messages';
 
+  /// Decision finale sur un litige (EXI-A05). Distincte des messages : clore un
+  /// litige n'est pas y repondre.
+  static String disputeDecision(String id) => '/disputes/$id/decision';
+
   // --- Suivi public (EXI-C24) ------------------------------------------
   static String publicTrack(String token) => '/public/track/$token';
 
   // --- Administration --------------------------------------------------
   static const String adminDashboard = '/admin/dashboard';
   static const String adminFleet = '/admin/fleet';
+  static const String adminKyc = '/admin/kyc';
   static String adminKycReview(String id) => '/admin/kyc/$id/review';
+
+  /// Suspension et reintegration d'un compte (EXI-A06).
+  static String adminDriverSuspension(String id) =>
+      '/admin/drivers/$id/suspension';
+
+  /// Reaffectation manuelle d'une course (EXI-A07).
+  ///
+  /// Route distincte de `/deliveries/{id}/status` a dessein : le graphe de
+  /// transitions du livreur ne prevoit pas ce mouvement, et le faire passer par
+  /// la meme porte reviendrait a donner au mobile un pouvoir qu'il ne doit pas
+  /// avoir.
+  static String adminDeliveryReassign(String id) =>
+      '/admin/deliveries/$id/reassign';
 }

@@ -729,6 +729,214 @@ class AppLocalizationsMg extends AppLocalizations {
       'Ny dian-tanan\'ny fanolorana dia mirakitra izay an\'ny fandraisana.';
 
   @override
+  String get adminReasonLabel => 'Antony amin\'ny fanapahan-kevitra';
+
+  @override
+  String adminReasonMissing(int count) {
+    return 'Mbola $count litera. Ny antony dia hanazavana, fa tsy hamenoana toerana.';
+  }
+
+  @override
+  String get adminReasonOk =>
+      'Hovakiana araka izao ity antony ity raha misy fanoherana.';
+
+  @override
+  String get adminReasonRecorded =>
+      'Voarakitra miaraka amin\'ny antony sy ny mpanao azy ny fanapahan-kevitra.';
+
+  @override
+  String get adminDashboardTitle => 'Tabilaon-tsafidy';
+
+  @override
+  String get adminActiveDeliveries => 'Dia an-dalana';
+
+  @override
+  String get adminOnlineDrivers => 'Mpanatitra miasa';
+
+  @override
+  String get adminOpenIncidents => 'Olana misokatra';
+
+  @override
+  String get adminOpenDisputes => 'Fifandirana misokatra';
+
+  @override
+  String get adminPendingKyc => 'Antontan-taratasy hamarinina';
+
+  @override
+  String get adminRevenueToday => 'Vola voaray androany';
+
+  @override
+  String get adminByStatus => 'Fizarazaran\'ny dia';
+
+  @override
+  String get adminFleetTitle => 'Ekipa';
+
+  @override
+  String get adminFleetAll => 'Rehetra';
+
+  @override
+  String get adminFleetAvailable => 'Malalaka';
+
+  @override
+  String get adminFleetBusy => 'An-dalana';
+
+  @override
+  String get adminFleetOffline => 'Tsy miasa';
+
+  @override
+  String get adminFleetSuspended => 'Nampiatoana';
+
+  @override
+  String get adminFleetEmpty => 'Tsy misy mpanatitra amin\'ity sivana ity';
+
+  @override
+  String get adminFleetStale => 'Toerana efa ela';
+
+  @override
+  String get adminFleetMapUnavailable =>
+      'Tsy misy sarintany raha tsy misy aterineto';
+
+  @override
+  String get adminSuspend => 'Hampiato ny kaonty';
+
+  @override
+  String get adminReinstate => 'Hamerina ny kaonty';
+
+  @override
+  String get adminSuspendHelp =>
+      'Tsy hahazo dia intsony ny mpanatitra mandritra ny fampiatoana.';
+
+  @override
+  String get adminReinstateHelp => 'Afaka hiasa indray ny mpanatitra.';
+
+  @override
+  String adminSuspendedSince(String reason) {
+    return 'Nampiatoana : $reason';
+  }
+
+  @override
+  String get adminKycTitle => 'Antontan-taratasy hamarinina';
+
+  @override
+  String get adminKycEmpty => 'Tsy misy antontan-taratasy miandry';
+
+  @override
+  String get adminKycIncomplete => 'Tsy feno ny antontan-taratasy';
+
+  @override
+  String get adminKycComplete => 'Feno ny antontan-taratasy';
+
+  @override
+  String adminKycMissingDocs(int count) {
+    return 'Tsy ampy taratasy $count';
+  }
+
+  @override
+  String get adminKycApprove => 'Ekena ny antontan-taratasy';
+
+  @override
+  String get adminKycReject => 'Lavina ny antontan-taratasy';
+
+  @override
+  String get adminKycApproveHelp =>
+      'Hiditra ao amin\'ny ekipa ny mpanatitra, tsy miasa mandra-piasany.';
+
+  @override
+  String get adminKycRejectHelp =>
+      'Halefa amin\'ny mpanatitra ny antony mba hahafahany manitsy.';
+
+  @override
+  String adminKycSubmittedAt(String age) {
+    return 'Napetraka $age';
+  }
+
+  @override
+  String get adminDeliveriesTitle => 'Dia';
+
+  @override
+  String get adminDeliveriesEmpty => 'Tsy misy dia mifanaraka';
+
+  @override
+  String get adminFilterStatus => 'Toetra';
+
+  @override
+  String get adminFilterSearch => 'Fokontany, mari-pamantarana, mpanatitra...';
+
+  @override
+  String get adminFilterClear => 'Hamafa ny sivana';
+
+  @override
+  String get adminReassign => 'Hanova mpanatitra';
+
+  @override
+  String get adminReassignTitle => 'Hanova mpanatitra ho an\'ny dia';
+
+  @override
+  String get adminReassignHelp =>
+      'Ny mpanatitra malalaka ihany no afaka mandray dia.';
+
+  @override
+  String get adminReassignPick => 'Misafidy mpanatitra';
+
+  @override
+  String get adminReassignNone => 'Tsy misy mpanatitra malalaka';
+
+  @override
+  String get adminDisputesTitle => 'Fifandirana';
+
+  @override
+  String get adminDisputesEmpty => 'Tsy misy fifandirana misokatra';
+
+  @override
+  String get adminDisputeOpen => 'Misokatra';
+
+  @override
+  String get adminDisputeInvestigating => 'Fanadihadiana';
+
+  @override
+  String get adminDisputeResolved => 'Nekena ho an\'ny mpanjifa';
+
+  @override
+  String get adminDisputeRejected => 'Nolavina ny fifandirana';
+
+  @override
+  String get adminDisputeReason => 'Antony nanokafana';
+
+  @override
+  String get adminDisputeReply => 'Hamaly';
+
+  @override
+  String get adminDisputeMessage => 'Ny hafatrao';
+
+  @override
+  String get adminDisputeResolve => 'Hanome rariny ny mpanjifa';
+
+  @override
+  String get adminDisputeDismiss => 'Hanilika ny fifandirana';
+
+  @override
+  String get adminDisputeResolveHelp => 'Ho voavaha ho an\'ny mpanjifa ny dia.';
+
+  @override
+  String get adminDisputeDismissHelp =>
+      'Hikatona tsy misy tohiny ny fifandirana.';
+
+  @override
+  String get adminDisputeClosed =>
+      'Mikatona ny fifandirana. Tsy azo valiana intsony.';
+
+  @override
+  String adminDisputeDecidedBy(String author) {
+    return 'Nofaritan\'i $author';
+  }
+
+  @override
+  String get adminOpenComparator => 'Hanokatra ny mpampitaha';
+
+  @override
+  String get adminActionDone => 'Voarakitra ny fanapahan-kevitra';
+
+  @override
   String get payTitle => 'Fandoavana';
 
   @override

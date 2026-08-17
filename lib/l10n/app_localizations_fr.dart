@@ -726,6 +726,214 @@ class AppLocalizationsFr extends AppLocalizations {
       'L\'empreinte de la remise integre celle de la prise en charge.';
 
   @override
+  String get adminReasonLabel => 'Motif de la decision';
+
+  @override
+  String adminReasonMissing(int count) {
+    return 'Encore $count caracteres. Un motif sert a expliquer, pas a remplir un champ.';
+  }
+
+  @override
+  String get adminReasonOk =>
+      'Ce motif sera relu tel quel en cas de contestation.';
+
+  @override
+  String get adminReasonRecorded =>
+      'La decision est enregistree avec son motif et son auteur.';
+
+  @override
+  String get adminDashboardTitle => 'Tableau de bord';
+
+  @override
+  String get adminActiveDeliveries => 'Courses en cours';
+
+  @override
+  String get adminOnlineDrivers => 'Livreurs en ligne';
+
+  @override
+  String get adminOpenIncidents => 'Incidents ouverts';
+
+  @override
+  String get adminOpenDisputes => 'Litiges ouverts';
+
+  @override
+  String get adminPendingKyc => 'Dossiers a valider';
+
+  @override
+  String get adminRevenueToday => 'Encaisse aujourd\'hui';
+
+  @override
+  String get adminByStatus => 'Repartition des courses';
+
+  @override
+  String get adminFleetTitle => 'Flotte';
+
+  @override
+  String get adminFleetAll => 'Tous';
+
+  @override
+  String get adminFleetAvailable => 'Disponible';
+
+  @override
+  String get adminFleetBusy => 'En course';
+
+  @override
+  String get adminFleetOffline => 'Hors service';
+
+  @override
+  String get adminFleetSuspended => 'Suspendu';
+
+  @override
+  String get adminFleetEmpty => 'Aucun livreur dans ce filtre';
+
+  @override
+  String get adminFleetStale => 'Position ancienne';
+
+  @override
+  String get adminFleetMapUnavailable => 'Carte indisponible hors ligne';
+
+  @override
+  String get adminSuspend => 'Suspendre le compte';
+
+  @override
+  String get adminReinstate => 'Reintegrer le compte';
+
+  @override
+  String get adminSuspendHelp =>
+      'Le livreur ne recevra plus de courses tant que la suspension dure.';
+
+  @override
+  String get adminReinstateHelp =>
+      'Le livreur pourra de nouveau se mettre en ligne.';
+
+  @override
+  String adminSuspendedSince(String reason) {
+    return 'Suspendu : $reason';
+  }
+
+  @override
+  String get adminKycTitle => 'Dossiers a valider';
+
+  @override
+  String get adminKycEmpty => 'Aucun dossier en attente';
+
+  @override
+  String get adminKycIncomplete => 'Dossier incomplet';
+
+  @override
+  String get adminKycComplete => 'Dossier complet';
+
+  @override
+  String adminKycMissingDocs(int count) {
+    return '$count piece(s) manquante(s)';
+  }
+
+  @override
+  String get adminKycApprove => 'Valider le dossier';
+
+  @override
+  String get adminKycReject => 'Refuser le dossier';
+
+  @override
+  String get adminKycApproveHelp =>
+      'Le livreur entrera dans la flotte, hors service jusqu\'a ce qu\'il se mette en ligne.';
+
+  @override
+  String get adminKycRejectHelp =>
+      'Le motif sera transmis au livreur pour qu\'il puisse corriger son dossier.';
+
+  @override
+  String adminKycSubmittedAt(String age) {
+    return 'Depose $age';
+  }
+
+  @override
+  String get adminDeliveriesTitle => 'Courses';
+
+  @override
+  String get adminDeliveriesEmpty => 'Aucune course ne correspond';
+
+  @override
+  String get adminFilterStatus => 'Statut';
+
+  @override
+  String get adminFilterSearch => 'Quartier, repere, livreur...';
+
+  @override
+  String get adminFilterClear => 'Effacer les filtres';
+
+  @override
+  String get adminReassign => 'Reaffecter';
+
+  @override
+  String get adminReassignTitle => 'Reaffecter la course';
+
+  @override
+  String get adminReassignHelp =>
+      'Seuls les livreurs disponibles peuvent recevoir une course.';
+
+  @override
+  String get adminReassignPick => 'Choisir un livreur';
+
+  @override
+  String get adminReassignNone => 'Aucun livreur disponible';
+
+  @override
+  String get adminDisputesTitle => 'Litiges';
+
+  @override
+  String get adminDisputesEmpty => 'Aucun litige ouvert';
+
+  @override
+  String get adminDisputeOpen => 'Ouvert';
+
+  @override
+  String get adminDisputeInvestigating => 'En instruction';
+
+  @override
+  String get adminDisputeResolved => 'Tranche en faveur du client';
+
+  @override
+  String get adminDisputeRejected => 'Litige ecarte';
+
+  @override
+  String get adminDisputeReason => 'Motif d\'ouverture';
+
+  @override
+  String get adminDisputeReply => 'Repondre';
+
+  @override
+  String get adminDisputeMessage => 'Votre message';
+
+  @override
+  String get adminDisputeResolve => 'Trancher en faveur du client';
+
+  @override
+  String get adminDisputeDismiss => 'Ecarter le litige';
+
+  @override
+  String get adminDisputeResolveHelp =>
+      'La course sera reglee au benefice du client.';
+
+  @override
+  String get adminDisputeDismissHelp => 'Le litige sera clos sans suite.';
+
+  @override
+  String get adminDisputeClosed =>
+      'Litige clos. Aucune reponse n\'est plus possible.';
+
+  @override
+  String adminDisputeDecidedBy(String author) {
+    return 'Decide par $author';
+  }
+
+  @override
+  String get adminOpenComparator => 'Ouvrir le comparateur';
+
+  @override
+  String get adminActionDone => 'Decision enregistree';
+
+  @override
   String get payTitle => 'Paiement';
 
   @override

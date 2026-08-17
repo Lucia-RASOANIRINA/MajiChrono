@@ -178,26 +178,8 @@ class StatusBadge extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    final (color, label) = switch (status) {
-      DeliveryStatus.draft => (AppColors.neutral, l10n.statusDraft),
-      DeliveryStatus.pending => (AppColors.warning, l10n.statusPending),
-      DeliveryStatus.accepted => (AppColors.info, l10n.statusAccepted),
-      DeliveryStatus.atPickup => (AppColors.info, l10n.statusAtPickup),
-      DeliveryStatus.pickedUp => (AppColors.info, l10n.statusPickedUp),
-      DeliveryStatus.inTransit => (AppColors.info, l10n.statusInTransit),
-      DeliveryStatus.atDestination => (AppColors.info, l10n.statusAtDestination),
-      DeliveryStatus.delivered => (AppColors.success, l10n.statusDelivered),
-      DeliveryStatus.deliveredWithReserves => (
-          AppColors.warning,
-          l10n.statusDeliveredWithReserves
-        ),
-      DeliveryStatus.refused => (AppColors.danger, l10n.statusRefused),
-      DeliveryStatus.returning => (AppColors.warning, l10n.statusReturning),
-      DeliveryStatus.paid => (AppColors.success, l10n.statusPaid),
-      DeliveryStatus.disputed => (AppColors.danger, l10n.statusDisputed),
-      DeliveryStatus.cancelled => (AppColors.neutral, l10n.statusCancelled),
-      DeliveryStatus.closed => (AppColors.neutral, l10n.statusClosed),
-    };
+    final color = statusColor(status);
+    final label = statusLabel(l10n, status);
 
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -218,3 +200,45 @@ class StatusBadge extends StatelessWidget {
     );
   }
 }
+
+/// Libelle d'un statut de course.
+///
+/// Extrait de `StatusBadge` pour servir aussi les puces de filtre de la
+/// supervision (EXI-A04) : deux tables de correspondance finiraient par
+/// diverger, et deux ecrans nommeraient le meme statut differemment.
+String statusLabel(AppLocalizations l10n, DeliveryStatus status) =>
+    switch (status) {
+      DeliveryStatus.draft => l10n.statusDraft,
+      DeliveryStatus.pending => l10n.statusPending,
+      DeliveryStatus.accepted => l10n.statusAccepted,
+      DeliveryStatus.atPickup => l10n.statusAtPickup,
+      DeliveryStatus.pickedUp => l10n.statusPickedUp,
+      DeliveryStatus.inTransit => l10n.statusInTransit,
+      DeliveryStatus.atDestination => l10n.statusAtDestination,
+      DeliveryStatus.delivered => l10n.statusDelivered,
+      DeliveryStatus.deliveredWithReserves => l10n.statusDeliveredWithReserves,
+      DeliveryStatus.refused => l10n.statusRefused,
+      DeliveryStatus.returning => l10n.statusReturning,
+      DeliveryStatus.paid => l10n.statusPaid,
+      DeliveryStatus.disputed => l10n.statusDisputed,
+      DeliveryStatus.cancelled => l10n.statusCancelled,
+      DeliveryStatus.closed => l10n.statusClosed,
+    };
+
+/// Couleur d'un statut. Elle double toujours le libelle, jamais l'inverse
+/// (EXI-T09 : la couleur seule serait illisible en plein soleil).
+Color statusColor(DeliveryStatus status) => switch (status) {
+  DeliveryStatus.draft ||
+  DeliveryStatus.cancelled ||
+  DeliveryStatus.closed => AppColors.neutral,
+  DeliveryStatus.pending ||
+  DeliveryStatus.deliveredWithReserves ||
+  DeliveryStatus.returning => AppColors.warning,
+  DeliveryStatus.accepted ||
+  DeliveryStatus.atPickup ||
+  DeliveryStatus.pickedUp ||
+  DeliveryStatus.inTransit ||
+  DeliveryStatus.atDestination => AppColors.info,
+  DeliveryStatus.delivered || DeliveryStatus.paid => AppColors.success,
+  DeliveryStatus.refused || DeliveryStatus.disputed => AppColors.danger,
+};

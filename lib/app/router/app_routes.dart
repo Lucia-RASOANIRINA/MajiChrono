@@ -46,6 +46,13 @@ class AppRoutes {
   static const String adminDisputes = '/admin/disputes';
   static const String adminProfile = '/admin/profile';
 
+  /// Ecrans atteints depuis le tableau de bord plutot que par un onglet : la
+  /// barre inferieure en compte deja quatre, et au-dela les libelles ne tiennent
+  /// plus sur un ecran de 320 dp (§15.1).
+  static const String adminKyc = '/admin/kyc';
+  static const String adminDeliveries = '/admin/deliveries';
+  static String adminDispute(String id) => '/admin/disputes/$id';
+
   // --- Liens profonds --------------------------------------------------
   static const String publicTrack = '/track/:token';
   static String publicTrackFor(String token) => '/track/$token';

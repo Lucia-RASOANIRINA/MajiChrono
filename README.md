@@ -739,15 +739,96 @@ supplémentaire.
 
 ### Module 8 — Supervision depuis mobile
 
-| Tâche | Profil | Exigences |
+**État : module livré.** 32 tests. Vérifié à l'écran de bout en bout, compte
+d'exploitation `+261 32 00 000 03`.
+
+| Élément | Exigences | État |
 |---|---|---|
-| Tableau de bord : courses, livreurs en ligne, incidents, chiffre du jour | Exploitation | EXI-A01 |
-| Carte de flotte temps réel, filtrable par statut | Exploitation | EXI-A02 |
-| File de validation KYC, visionneuse de pièces, refus motivé | Exploitation | EXI-A03 |
-| Liste des courses, filtres multicritères, accès aux deux constats | Exploitation | EXI-A04 |
-| Gestion des litiges : comparateur, échange, décision, clôture | Exploitation | EXI-A05 |
-| Suspension et réactivation d'un compte, motif obligatoire | Exploitation | EXI-A06 |
-| Réaffectation manuelle d'une course | Exploitation | EXI-A07 |
+| Tableau de bord : dossiers, litiges, incidents, courses, flotte, chiffre du jour | EXI-A01 | Fait |
+| Carte de flotte, filtrable par statut, position ancienne signalée | EXI-A02 | Fait |
+| File KYC ordonnée, état de complétude, refus motivé | EXI-A03 | Fait |
+| Liste des courses, filtres multicritères, accès aux deux constats | EXI-A04 | Fait |
+| Litiges : comparateur, échange, décision motivée, clôture | EXI-A05 | Fait |
+| Suspension et réintégration d'un compte, motif obligatoire | EXI-A06 | Fait |
+| Réaffectation manuelle d'une course | EXI-A07 | Fait |
+| Visionneuse d'images des pièces KYC | EXI-A03 | Module 10 |
+
+**Aucune action d'exploitation n'est anonyme ni muette, et c'est le *type* qui
+le garantit.** `ModerationDecision` a un constructeur privé : on n'en obtient un
+que par `ModerationDecision.taken(...)`, qui rend `null` si le motif fait moins
+de dix caractères. Toutes les méthodes qui décident en exigent un. Il n'existe
+donc **aucun chemin de code** menant à une suspension, un refus de dossier ou
+une clôture de litige sans motif — la règle n'est pas rappelée par un
+commentaire qu'on peut oublier de lire, elle est tenue par le compilateur.
+
+Le seuil de dix caractères ne garantit pas la pertinence ; il écarte le réflexe.
+Un champ obligatoire se remplit avec « ok » ou « ras » quand rien ne s'y oppose.
+Et le motif est exigé **même pour les décisions favorables** : savoir pourquoi
+un compte a été réintégré importe autant que de savoir pourquoi il avait été
+suspendu.
+
+**La feuille de motif dit ce qui manque plutôt que de rester muette.** Le compte
+à rebours descend en direct — « Encore 5 caractères » — puis bascule sur « Ce
+motif sera relu tel quel en cas de contestation ». Un bouton grisé sans
+explication pousse à taper n'importe quoi jusqu'à ce qu'il s'allume.
+
+**Le comparateur des constats est celui du module 5, tel quel.** EXI-CC31 impose
+que les trois profils voient la même chose. Une vue d'exploitation enrichie
+casserait le caractère contradictoire de la preuve : ce ne serait plus un
+comparateur, ce serait un dossier à charge. La liste des courses et l'écran de
+litige réutilisent donc le même widget que l'expéditeur et le livreur.
+
+**Trois refus portent la valeur du simulateur** — ce sont eux qui rendent le
+contrat vérifiable avant que le vrai back-office n'existe :
+
+| Refus | Pourquoi |
+|---|---|
+| Réaffecter vers un livreur hors service ou suspendu | Confier le colis à personne, tout en affichant qu'il est pris en charge |
+| Suspendre un livreur en course | Le colis serait orphelin, entre deux mains — la course doit être réaffectée d'abord |
+| Rouvrir un litige déjà tranché | Une décision qu'on peut défaire silencieusement n'engage personne |
+
+**La réaffectation a sa propre route, pas celle du livreur.** Le graphe de
+transitions `DriverAllowed` ne prévoit aucun mouvement vers `disputed` ni aucune
+réaffectation ; faire passer une action d'exploitation par
+`/deliveries/{id}/status` aurait donné au mobile un pouvoir qu'il ne doit pas
+avoir. `/admin/deliveries/{id}/reassign` est une porte distincte, avec ses
+propres contrôles.
+
+**Un livreur suspendu reste visible sur la carte.** Le retirer donnerait
+l'illusion d'une flotte plus saine qu'elle ne l'est, et ferait oublier qu'une
+décision attend d'être levée. Son motif de suspension reste affiché tant qu'elle
+dure — une décision qu'on ne peut plus relire ne peut plus être levée en
+connaissance de cause.
+
+**Une position ancienne se dit.** Au-delà de dix minutes, le repère passe en
+creux : il annonce « il était là » plutôt que « il est là ». Afficher un point
+plein au mauvais endroit enverrait un exploitant chercher quelqu'un qui n'y est
+plus.
+
+**Deux défauts trouvés à l'écran, invisibles aux tests.**
+
+Le premier : « Dossier incomplet · 2 pièce(s) manquante(s) » débordait de quinze
+pixels sur un écran de 320 dp — et davantage en malgache. Le texte ne pouvait
+pas passer à la ligne.
+
+Le second, plus subtil : la carte et la liste calculaient chacune leur propre
+`DateTime.now()` pour juger de l'ancienneté d'une position. Deux appels à
+quelques millisecondes d'écart peuvent tomber de part et d'autre du seuil, et
+afficher un repère plein sous une ligne qui annonce « position ancienne ».
+L'instant de référence est désormais calculé une seule fois par écran.
+
+**Un choix de navigation.** La file KYC et la liste des courses sont atteintes
+depuis le tableau de bord, pas par un onglet : la barre inférieure en compte
+déjà quatre, et au-delà les libellés ne tiennent plus sur un écran de 320 dp
+(§15.1). Chaque compteur du tableau de bord est cliquable et mène à l'écran qui
+permet d'agir — afficher « 3 dossiers à valider » sans y conduire oblige à
+chercher, et on ne cherche pas quand on est pressé.
+
+**Ce qui reste ouvert : la visionneuse d'images des pièces KYC.** L'écran montre
+aujourd'hui quelles pièces sont fournies et lesquelles manquent, ce qui suffit à
+décider d'un refus pour dossier incomplet. L'affichage des images elles-mêmes
+attend la capture KYC côté livreur, reportée au module 10 avec les autres
+travaux de plateforme.
 
 ### Module 9 — Différenciants concurrentiels
 

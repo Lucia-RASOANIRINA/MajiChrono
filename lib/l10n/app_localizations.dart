@@ -1454,6 +1454,384 @@ abstract class AppLocalizations {
   /// **'L\'empreinte de la remise integre celle de la prise en charge.'**
   String get custodyChainHelp;
 
+  /// No description provided for @adminReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif de la decision'**
+  String get adminReasonLabel;
+
+  /// No description provided for @adminReasonMissing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encore {count} caracteres. Un motif sert a expliquer, pas a remplir un champ.'**
+  String adminReasonMissing(int count);
+
+  /// No description provided for @adminReasonOk.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce motif sera relu tel quel en cas de contestation.'**
+  String get adminReasonOk;
+
+  /// No description provided for @adminReasonRecorded.
+  ///
+  /// In fr, this message translates to:
+  /// **'La decision est enregistree avec son motif et son auteur.'**
+  String get adminReasonRecorded;
+
+  /// No description provided for @adminDashboardTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tableau de bord'**
+  String get adminDashboardTitle;
+
+  /// No description provided for @adminActiveDeliveries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses en cours'**
+  String get adminActiveDeliveries;
+
+  /// No description provided for @adminOnlineDrivers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreurs en ligne'**
+  String get adminOnlineDrivers;
+
+  /// No description provided for @adminOpenIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents ouverts'**
+  String get adminOpenIncidents;
+
+  /// No description provided for @adminOpenDisputes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges ouverts'**
+  String get adminOpenDisputes;
+
+  /// No description provided for @adminPendingKyc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossiers a valider'**
+  String get adminPendingKyc;
+
+  /// No description provided for @adminRevenueToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Encaisse aujourd\'hui'**
+  String get adminRevenueToday;
+
+  /// No description provided for @adminByStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repartition des courses'**
+  String get adminByStatus;
+
+  /// No description provided for @adminFleetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Flotte'**
+  String get adminFleetTitle;
+
+  /// No description provided for @adminFleetAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tous'**
+  String get adminFleetAll;
+
+  /// No description provided for @adminFleetAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponible'**
+  String get adminFleetAvailable;
+
+  /// No description provided for @adminFleetBusy.
+  ///
+  /// In fr, this message translates to:
+  /// **'En course'**
+  String get adminFleetBusy;
+
+  /// No description provided for @adminFleetOffline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hors service'**
+  String get adminFleetOffline;
+
+  /// No description provided for @adminFleetSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendu'**
+  String get adminFleetSuspended;
+
+  /// No description provided for @adminFleetEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun livreur dans ce filtre'**
+  String get adminFleetEmpty;
+
+  /// No description provided for @adminFleetStale.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position ancienne'**
+  String get adminFleetStale;
+
+  /// No description provided for @adminFleetMapUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Carte indisponible hors ligne'**
+  String get adminFleetMapUnavailable;
+
+  /// No description provided for @adminSuspend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendre le compte'**
+  String get adminSuspend;
+
+  /// No description provided for @adminReinstate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reintegrer le compte'**
+  String get adminReinstate;
+
+  /// No description provided for @adminSuspendHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur ne recevra plus de courses tant que la suspension dure.'**
+  String get adminSuspendHelp;
+
+  /// No description provided for @adminReinstateHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur pourra de nouveau se mettre en ligne.'**
+  String get adminReinstateHelp;
+
+  /// No description provided for @adminSuspendedSince.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendu : {reason}'**
+  String adminSuspendedSince(String reason);
+
+  /// No description provided for @adminKycTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossiers a valider'**
+  String get adminKycTitle;
+
+  /// No description provided for @adminKycEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun dossier en attente'**
+  String get adminKycEmpty;
+
+  /// No description provided for @adminKycIncomplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier incomplet'**
+  String get adminKycIncomplete;
+
+  /// No description provided for @adminKycComplete.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier complet'**
+  String get adminKycComplete;
+
+  /// No description provided for @adminKycMissingDocs.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} piece(s) manquante(s)'**
+  String adminKycMissingDocs(int count);
+
+  /// No description provided for @adminKycApprove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Valider le dossier'**
+  String get adminKycApprove;
+
+  /// No description provided for @adminKycReject.
+  ///
+  /// In fr, this message translates to:
+  /// **'Refuser le dossier'**
+  String get adminKycReject;
+
+  /// No description provided for @adminKycApproveHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur entrera dans la flotte, hors service jusqu\'a ce qu\'il se mette en ligne.'**
+  String get adminKycApproveHelp;
+
+  /// No description provided for @adminKycRejectHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le motif sera transmis au livreur pour qu\'il puisse corriger son dossier.'**
+  String get adminKycRejectHelp;
+
+  /// No description provided for @adminKycSubmittedAt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depose {age}'**
+  String adminKycSubmittedAt(String age);
+
+  /// No description provided for @adminDeliveriesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses'**
+  String get adminDeliveriesTitle;
+
+  /// No description provided for @adminDeliveriesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course ne correspond'**
+  String get adminDeliveriesEmpty;
+
+  /// No description provided for @adminFilterStatus.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statut'**
+  String get adminFilterStatus;
+
+  /// No description provided for @adminFilterSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Quartier, repere, livreur...'**
+  String get adminFilterSearch;
+
+  /// No description provided for @adminFilterClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer les filtres'**
+  String get adminFilterClear;
+
+  /// No description provided for @adminReassign.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reaffecter'**
+  String get adminReassign;
+
+  /// No description provided for @adminReassignTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reaffecter la course'**
+  String get adminReassignTitle;
+
+  /// No description provided for @adminReassignHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Seuls les livreurs disponibles peuvent recevoir une course.'**
+  String get adminReassignHelp;
+
+  /// No description provided for @adminReassignPick.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir un livreur'**
+  String get adminReassignPick;
+
+  /// No description provided for @adminReassignNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun livreur disponible'**
+  String get adminReassignNone;
+
+  /// No description provided for @adminDisputesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges'**
+  String get adminDisputesTitle;
+
+  /// No description provided for @adminDisputesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun litige ouvert'**
+  String get adminDisputesEmpty;
+
+  /// No description provided for @adminDisputeOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get adminDisputeOpen;
+
+  /// No description provided for @adminDisputeInvestigating.
+  ///
+  /// In fr, this message translates to:
+  /// **'En instruction'**
+  String get adminDisputeInvestigating;
+
+  /// No description provided for @adminDisputeResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tranche en faveur du client'**
+  String get adminDisputeResolved;
+
+  /// No description provided for @adminDisputeRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige ecarte'**
+  String get adminDisputeRejected;
+
+  /// No description provided for @adminDisputeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif d\'ouverture'**
+  String get adminDisputeReason;
+
+  /// No description provided for @adminDisputeReply.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repondre'**
+  String get adminDisputeReply;
+
+  /// No description provided for @adminDisputeMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre message'**
+  String get adminDisputeMessage;
+
+  /// No description provided for @adminDisputeResolve.
+  ///
+  /// In fr, this message translates to:
+  /// **'Trancher en faveur du client'**
+  String get adminDisputeResolve;
+
+  /// No description provided for @adminDisputeDismiss.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ecarter le litige'**
+  String get adminDisputeDismiss;
+
+  /// No description provided for @adminDisputeResolveHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'La course sera reglee au benefice du client.'**
+  String get adminDisputeResolveHelp;
+
+  /// No description provided for @adminDisputeDismissHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le litige sera clos sans suite.'**
+  String get adminDisputeDismissHelp;
+
+  /// No description provided for @adminDisputeClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige clos. Aucune reponse n\'est plus possible.'**
+  String get adminDisputeClosed;
+
+  /// No description provided for @adminDisputeDecidedBy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decide par {author}'**
+  String adminDisputeDecidedBy(String author);
+
+  /// No description provided for @adminOpenComparator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir le comparateur'**
+  String get adminOpenComparator;
+
+  /// No description provided for @adminActionDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decision enregistree'**
+  String get adminActionDone;
+
   /// No description provided for @payTitle.
   ///
   /// In fr, this message translates to:

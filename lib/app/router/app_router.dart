@@ -4,6 +4,11 @@ import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/shell/module_placeholder.dart';
+import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/disputes_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/fleet_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/kyc_queue_screen.dart';
 import 'package:majichrono/app/shell/role_shell.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
@@ -113,6 +118,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.pendingSync,
         builder: (_, _) => const PendingSyncScreen(),
+      ),
+      // Ecrans de supervision atteints depuis le tableau de bord (EXI-A03,
+      // EXI-A04) : la barre inferieure compte deja quatre onglets.
+      GoRoute(path: AppRoutes.adminKyc, builder: (_, _) => const KycQueueScreen()),
+      GoRoute(
+        path: AppRoutes.adminDeliveries,
+        builder: (_, _) => const AdminDeliveriesScreen(),
       ),
       GoRoute(path: AppRoutes.devPanel, builder: (_, _) => const DevPanelScreen()),
       GoRoute(
@@ -306,7 +318,7 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.adminHome,
-          builder: (_, _) => const SocleHomeScreen(role: UserRole.admin),
+          builder: (_, _) => const AdminDashboardScreen(),
         ),
       ],
     ),
@@ -314,12 +326,7 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.adminFleet,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navFleet,
-            module: '8',
-            icon: Icons.map_outlined,
-            requirements: const ['EXI-A02'],
-          ),
+          builder: (_, _) => const FleetScreen(),
         ),
       ],
     ),
@@ -327,12 +334,7 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.adminDisputes,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navDisputes,
-            module: '8',
-            icon: Icons.gavel_outlined,
-            requirements: const ['EXI-A05', 'EXI-CC30'],
-          ),
+          builder: (_, _) => const DisputesScreen(),
         ),
       ],
     ),

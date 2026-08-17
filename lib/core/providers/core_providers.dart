@@ -16,6 +16,7 @@ import 'package:majichrono/core/storage/secure_store.dart';
 import 'package:majichrono/core/sync/sync_item.dart';
 import 'package:majichrono/core/sync/sync_queue.dart';
 import 'package:majichrono/core/sync/sync_scheduler.dart';
+import 'package:majichrono/features/admin/data/mock/admin_mock_module.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
@@ -67,7 +68,8 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     ..register(TrackingMockModule(deliveries: () => deliveries.store))
     ..register(DriverMockModule(deliveries: () => deliveries.store))
     ..register(CustodyMockModule())
-    ..register(PaymentMockModule());
+    ..register(PaymentMockModule())
+    ..register(AdminMockModule(deliveries: () => deliveries.store));
 });
 
 /// Jeton d'acces courant. Alimente par le module 1 (authentification) ;
