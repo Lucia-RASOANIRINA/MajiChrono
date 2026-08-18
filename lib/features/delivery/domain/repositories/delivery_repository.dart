@@ -38,7 +38,10 @@ abstract interface class DeliveryRepository {
   /// Flux du carnet, servi par la base locale : il reste disponible hors ligne.
   Stream<List<SavedAddress>> watchAddressBook();
 
-  Future<SavedAddress> saveAddress({required String label, required Address address});
+  Future<SavedAddress> saveAddress({
+    required String label,
+    required Address address,
+  });
 
   Future<void> deleteAddress(String id);
 

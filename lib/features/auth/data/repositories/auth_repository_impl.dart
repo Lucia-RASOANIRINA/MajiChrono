@@ -5,6 +5,7 @@ import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:majichrono/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
+import 'package:majichrono/features/auth/domain/entities/google_entities.dart';
 import 'package:majichrono/features/auth/domain/repositories/auth_repository.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
 
@@ -55,8 +56,53 @@ class AuthRepositoryImpl implements AuthRepository {
     final accountJson = json['account'] as Map<String, dynamic>;
     await _local.saveAccount(accountJson);
 
-    return OtpVerification(session: session, account: _accountFrom(accountJson));
+    return OtpVerification(
+      session: session,
+      account: _accountFrom(accountJson),
+    );
   }
+
+  @override
+  Future<EmailChallenge> requestEmailCode(String email) async {
+    final normalized = email.trim().toLowerCase();
+    final json = await _remote.requestEmailCode(normalized);
+    return EmailChallenge(
+      challengeId: json['challengeId'] as String,
+      email: json['email'] as String? ?? normalized,
+      expiresAt: DateTime.parse(json['expiresAt'] as String).toLocal(),
+      attemptsLeft: (json['attemptsLeft'] as num?)?.toInt() ?? 3,
+      debugCode: json['debugCode'] as String?,
+    );
+  }
+
+  @override
+  Future<EmailVerification> verifyEmailCode({
+    required String challengeId,
+    required String code,
+  }) async {
+    final json = await _remote.verifyEmailCode(
+      challengeId: challengeId,
+      code: code,
+    );
+
+    if (json['linked'] != true) {
+      return EmailUnlinked(json['email'] as String? ?? '');
+    }
+
+    final session = _sessionFrom(json['session'] as Map<String, dynamic>);
+    await _persist(session);
+
+    final accountJson = json['account'] as Map<String, dynamic>;
+    await _local.saveAccount(accountJson);
+
+    return EmailLinked(
+      OtpVerification(session: session, account: _accountFrom(accountJson)),
+    );
+  }
+
+  @override
+  Future<void> linkEmail(String email) =>
+      _remote.linkEmail(email.trim().toLowerCase());
 
   @override
   Future<UserAccount> chooseProfile({
@@ -160,7 +206,8 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> setPin(String pin) => _local.setPin(pin);
 
   @override
-  Future<bool> verifyPin(String pin) async => await _local.verifyPin(pin) == null;
+  Future<bool> verifyPin(String pin) async =>
+      await _local.verifyPin(pin) == null;
 
   @override
   Future<void> clearPin() => _local.clearPin();
@@ -178,18 +225,23 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   AuthSession _sessionFrom(Map<String, dynamic> json) => AuthSession(
-        accessToken: json['accessToken'] as String,
-        refreshToken: json['refreshToken'] as String,
-        accessExpiresAt:
-            DateTime.parse(json['accessExpiresAt'] as String).toLocal(),
-        refreshExpiresAt:
-            DateTime.parse(json['refreshExpiresAt'] as String).toLocal(),
-      );
+    accessToken: json['accessToken'] as String,
+    refreshToken: json['refreshToken'] as String,
+    accessExpiresAt: DateTime.parse(
+      json['accessExpiresAt'] as String,
+    ).toLocal(),
+    refreshExpiresAt: DateTime.parse(
+      json['refreshExpiresAt'] as String,
+    ).toLocal(),
+  );
 
   AccountResult _accountFrom(Map<String, dynamic> json) {
     final phone = MalagasyPhone.tryParse(json['phone'] as String? ?? '');
     if (phone == null) {
-      throw const ServerFailure(statusCode: 500, code: 'invalid_phone_in_account');
+      throw const ServerFailure(
+        statusCode: 500,
+        code: 'invalid_phone_in_account',
+      );
     }
 
     final role = UserRole.fromWire(json['role'] as String?);
@@ -202,7 +254,8 @@ class AuthRepositoryImpl implements AuthRepository {
         role: role,
         displayName: json['displayName'] as String? ?? '',
         createdAt:
-            DateTime.tryParse('${json['createdAt']}')?.toLocal() ?? DateTime.now(),
+            DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+            DateTime.now(),
         avatarUrl: json['avatarUrl'] as String?,
         rating: (json['rating'] as num?)?.toDouble(),
         kycStatus: KycStatus.fromWire(json['kycStatus'] as String?),

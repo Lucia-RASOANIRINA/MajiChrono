@@ -9,6 +9,7 @@ import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
+import 'package:majichrono/features/driver/presentation/widgets/package_traits.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 
@@ -63,9 +64,7 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
       await ref.read(driverActionsProvider).accept(widget.offer.delivery.id);
     } on ConflictFailure {
       // Course prise par un autre : cas normal de la course a l'acceptation.
-      messenger.showSnackBar(
-        SnackBar(content: Text(l10n.driverAlreadyTaken)),
-      );
+      messenger.showSnackBar(SnackBar(content: Text(l10n.driverAlreadyTaken)));
     } on Failure catch (failure) {
       messenger.showSnackBar(
         SnackBar(content: Text(failure.localizedMessage(l10n))),
@@ -100,11 +99,18 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
                 ),
                 Text(
                   formatAriary(offer.estimatedEarningAriary),
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(color: AppColors.success),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: AppColors.success,
+                  ),
                 ),
               ],
             ),
+
+            // Ce que le livreur doit savoir **avant** d'accepter : fragile,
+            // lourd, precieux. L'information existait dans la declaration
+            // (EXI-C08) sans etre montree nulle part.
+            PackageTraits(delivery: offer.delivery),
+
             const SizedBox(height: AppSpacing.md),
             _Line(
               icon: Icons.trip_origin,
@@ -130,9 +136,7 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
               child: FilledButton(
                 onPressed: expired || _busy ? null : _accept,
                 child: Text(
-                  expired
-                      ? l10n.driverAccept
-                      : l10n.driverAcceptIn(_remaining),
+                  expired ? l10n.driverAccept : l10n.driverAcceptIn(_remaining),
                 ),
               ),
             ),
@@ -170,8 +174,9 @@ class _Line extends StatelessWidget {
         const SizedBox(width: AppSpacing.sm),
         Text(
           trailing,
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
       ],
     );

@@ -19,14 +19,18 @@ class PrefsStore {
   final SharedPreferences _prefs;
 
   String? getString(String key) => _prefs.getString(key);
-  Future<void> setString(String key, String value) => _prefs.setString(key, value);
+  Future<void> setString(String key, String value) =>
+      _prefs.setString(key, value);
 
-  bool getBool(String key, {bool fallback = false}) => _prefs.getBool(key) ?? fallback;
-  Future<void> setBool(String key, {required bool value}) => _prefs.setBool(key, value);
+  bool getBool(String key, {bool fallback = false}) =>
+      _prefs.getBool(key) ?? fallback;
+  Future<void> setBool(String key, {required bool value}) =>
+      _prefs.setBool(key, value);
 
   double getDouble(String key, {double fallback = 0}) =>
       _prefs.getDouble(key) ?? fallback;
-  Future<void> setDouble(String key, double value) => _prefs.setDouble(key, value);
+  Future<void> setDouble(String key, double value) =>
+      _prefs.setDouble(key, value);
 
   Future<void> remove(String key) => _prefs.remove(key);
 

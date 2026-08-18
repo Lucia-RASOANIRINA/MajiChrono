@@ -103,9 +103,7 @@ class _ShoppingReceiptCardState extends ConsumerState<ShoppingReceiptCard> {
                       color: theme.colorScheme.onSurfaceVariant,
                     ),
                     const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text('${item.quantity} × ${item.label}'),
-                    ),
+                    Expanded(child: Text('${item.quantity} × ${item.label}')),
                     if (item.estimatedUnitAriary != null)
                       Text(formatAriary(item.estimatedTotalAriary)),
                   ],
@@ -118,8 +116,11 @@ class _ShoppingReceiptCardState extends ConsumerState<ShoppingReceiptCard> {
             // chercher.
             Row(
               children: [
-                const Icon(Icons.shield_outlined,
-                    size: 18, color: AppColors.danger),
+                const Icon(
+                  Icons.shield_outlined,
+                  size: 18,
+                  color: AppColors.danger,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -166,8 +167,11 @@ class _ShoppingReceiptCardState extends ConsumerState<ShoppingReceiptCard> {
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Icon(Icons.warning_amber_outlined,
-                      size: 18, color: AppColors.danger),
+                  const Icon(
+                    Icons.warning_amber_outlined,
+                    size: 18,
+                    color: AppColors.danger,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
@@ -193,7 +197,9 @@ class _ShoppingReceiptCardState extends ConsumerState<ShoppingReceiptCard> {
                 decoration: BoxDecoration(
                   borderRadius: AppRadii.componentAll,
                   border: Border.all(
-                    color: _receipt == null ? AppColors.danger : AppColors.success,
+                    color: _receipt == null
+                        ? AppColors.danger
+                        : AppColors.success,
                     width: _receipt == null ? 1 : 2,
                   ),
                 ),

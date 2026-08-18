@@ -92,7 +92,9 @@ class NetworkStatusService {
     _probing = true;
     try {
       final transport = _mapTransport(await _connectivity.checkConnectivity());
-      final rtt = transport == NetworkTransport.none ? null : await _apiClient.probe();
+      final rtt = transport == NetworkTransport.none
+          ? null
+          : await _apiClient.probe();
       _emit(
         NetworkStatus(
           reachable: rtt != null,
@@ -118,7 +120,9 @@ class NetworkStatusService {
       return NetworkTransport.none;
     }
     if (results.contains(ConnectivityResult.wifi)) return NetworkTransport.wifi;
-    if (results.contains(ConnectivityResult.mobile)) return NetworkTransport.mobile;
+    if (results.contains(ConnectivityResult.mobile)) {
+      return NetworkTransport.mobile;
+    }
     if (results.contains(ConnectivityResult.ethernet)) {
       return NetworkTransport.ethernet;
     }

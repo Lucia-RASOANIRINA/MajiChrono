@@ -22,8 +22,7 @@ class AppScrollBehavior extends MaterialScrollBehavior {
     BuildContext context,
     Widget child,
     ScrollableDetails details,
-  ) =>
-      child;
+  ) => child;
 
   @override
   ScrollPhysics getScrollPhysics(BuildContext context) =>

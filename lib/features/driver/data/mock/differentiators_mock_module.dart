@@ -69,7 +69,10 @@ class DifferentiatorsMockModule extends MockModule {
   /// Des boutiques de quartier, avec leurs vraies contraintes : horaires,
   /// poids maximal, duree de garde. Un relais qui accepterait tout ne serait
   /// pas un relais, ce serait un entrepot.
-  Future<MockResponse> _relayPoints(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _relayPoints(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final district = req.query['district'];
 
     const points = [

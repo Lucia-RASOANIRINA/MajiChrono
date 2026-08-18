@@ -28,7 +28,8 @@ class CreateDeliveryScreen extends ConsumerStatefulWidget {
   const CreateDeliveryScreen({super.key});
 
   @override
-  ConsumerState<CreateDeliveryScreen> createState() => _CreateDeliveryScreenState();
+  ConsumerState<CreateDeliveryScreen> createState() =>
+      _CreateDeliveryScreenState();
 }
 
 class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
@@ -73,13 +74,15 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   bool get _canContinue => switch (_step) {
-        0 => _pickup != null && _dropoff != null,
-        1 => true,
-        2 => _shopping?.isComplete ?? true,
-        _ => true,
-      };
+    0 => _pickup != null && _dropoff != null,
+    1 => true,
+    2 => _shopping?.isComplete ?? true,
+    _ => true,
+  };
 
-  PriceEstimate get _estimate => ref.read(tariffGridProvider).estimate(
+  PriceEstimate get _estimate => ref
+      .read(tariffGridProvider)
+      .estimate(
         straightLineKm: _pickup!.point.distanceKmTo(_dropoff!.point),
         kind: _kind,
         weight: _weight,
@@ -94,27 +97,29 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     final router = GoRouter.of(context);
 
     try {
-      final delivery =
-          await ref.read(deliveryRepositoryProvider).createDelivery(
-                DeliveryDraft(
-                  pickup: _pickup!,
-                  dropoff: _dropoff!,
-                  kind: _kind,
-                  package: PackageDeclaration(
-                    weight: _weight,
-                    declaredValueAriary:
-                        int.tryParse(_value.text.replaceAll(' ', '')),
-                    description: _description.text.trim().isEmpty
-                        ? null
-                        : _description.text.trim(),
-                  ),
-                  slot: _slot,
-                  paymentMethod: _payment,
-                  payer: _payer,
-                  shopping: _shopping,
-                  relayPointId: _relayPointId,
+      final delivery = await ref
+          .read(deliveryRepositoryProvider)
+          .createDelivery(
+            DeliveryDraft(
+              pickup: _pickup!,
+              dropoff: _dropoff!,
+              kind: _kind,
+              package: PackageDeclaration(
+                weight: _weight,
+                declaredValueAriary: int.tryParse(
+                  _value.text.replaceAll(' ', ''),
                 ),
-              );
+                description: _description.text.trim().isEmpty
+                    ? null
+                    : _description.text.trim(),
+              ),
+              slot: _slot,
+              paymentMethod: _payment,
+              payer: _payer,
+              shopping: _shopping,
+              relayPointId: _relayPointId,
+            ),
+          );
 
       messenger.showSnackBar(
         SnackBar(
@@ -191,47 +196,47 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   Widget _buildStep(AppLocalizations l10n) => switch (_step) {
-        0 => _AddressStep(
-            pickup: _pickup,
-            dropoff: _dropoff,
-            onPickup: (a) => setState(() => _pickup = a),
-            onDropoff: (a) => setState(() => _dropoff = a),
-          ),
-        1 => _PackageStep(
-            kind: _kind,
-            weight: _weight,
-            slot: _slot,
-            payment: _payment,
-            value: _value,
-            description: _description,
-            onKind: (k) => setState(() => _kind = k),
-            onWeight: (w) => setState(() => _weight = w),
-            onSlot: (s) => setState(() => _slot = s),
-            onPayment: (p) => setState(() => _payment = p),
-          ),
-        2 => DeliveryOptionsStep(
-            kind: _kind,
-            weight: _weight,
-            dropoffDistrict: _dropoff?.district ?? '',
-            payer: _payer,
-            items: _items,
-            cap: _cap,
-            storeHint: _storeHint,
-            relayPointId: _relayPointId,
-            onPayer: (p) => setState(() => _payer = p),
-            onItems: (i) => setState(() => _items = i),
-            onRelay: (id) => setState(() => _relayPointId = id),
-          ),
-        _ => _ReviewStep(
-            pickup: _pickup!,
-            dropoff: _dropoff!,
-            kind: _kind,
-            weight: _weight,
-            slot: _slot,
-            payment: _payment,
-            estimate: _estimate,
-          ),
-      };
+    0 => _AddressStep(
+      pickup: _pickup,
+      dropoff: _dropoff,
+      onPickup: (a) => setState(() => _pickup = a),
+      onDropoff: (a) => setState(() => _dropoff = a),
+    ),
+    1 => _PackageStep(
+      kind: _kind,
+      weight: _weight,
+      slot: _slot,
+      payment: _payment,
+      value: _value,
+      description: _description,
+      onKind: (k) => setState(() => _kind = k),
+      onWeight: (w) => setState(() => _weight = w),
+      onSlot: (s) => setState(() => _slot = s),
+      onPayment: (p) => setState(() => _payment = p),
+    ),
+    2 => DeliveryOptionsStep(
+      kind: _kind,
+      weight: _weight,
+      dropoffDistrict: _dropoff?.district ?? '',
+      payer: _payer,
+      items: _items,
+      cap: _cap,
+      storeHint: _storeHint,
+      relayPointId: _relayPointId,
+      onPayer: (p) => setState(() => _payer = p),
+      onItems: (i) => setState(() => _items = i),
+      onRelay: (id) => setState(() => _relayPointId = id),
+    ),
+    _ => _ReviewStep(
+      pickup: _pickup!,
+      dropoff: _dropoff!,
+      kind: _kind,
+      weight: _weight,
+      slot: _slot,
+      payment: _payment,
+      estimate: _estimate,
+    ),
+  };
 }
 
 class _StepChip extends StatelessWidget {
@@ -246,16 +251,18 @@ class _StepChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: active ? scheme.primaryContainer : scheme.surfaceContainerHighest,
+        color: active
+            ? scheme.primaryContainer
+            : scheme.surfaceContainerHighest,
         borderRadius: AppRadii.componentAll,
       ),
       child: Text(
         label,
         textAlign: TextAlign.center,
         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-              color: active ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
-            ),
+          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
+          color: active ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+        ),
       ),
     );
   }
@@ -286,7 +293,10 @@ class _AddressStep extends ConsumerWidget {
         const SizedBox(height: AppSpacing.md),
         AddressForm(initial: pickup, onChanged: onPickup),
         const SizedBox(height: AppSpacing.xxl),
-        _SectionHeader(title: l10n.addrDropoffTitle, icon: Icons.place_outlined),
+        _SectionHeader(
+          title: l10n.addrDropoffTitle,
+          icon: Icons.place_outlined,
+        ),
         const SizedBox(height: AppSpacing.md),
         AddressForm(initial: dropoff, onChanged: onDropoff),
         const SizedBox(height: AppSpacing.xl),
@@ -347,19 +357,19 @@ class _PackageStep extends StatelessWidget {
     final theme = Theme.of(context);
 
     String kindLabel(DeliveryKind k) => switch (k) {
-          DeliveryKind.standard => l10n.kindStandard,
-          DeliveryKind.document => l10n.kindDocument,
-          DeliveryKind.fragile => l10n.kindFragile,
-          DeliveryKind.food => l10n.kindFood,
-          DeliveryKind.shopping => l10n.kindShopping,
-        };
+      DeliveryKind.standard => l10n.kindStandard,
+      DeliveryKind.document => l10n.kindDocument,
+      DeliveryKind.fragile => l10n.kindFragile,
+      DeliveryKind.food => l10n.kindFood,
+      DeliveryKind.shopping => l10n.kindShopping,
+    };
 
     String weightLabel(WeightCategory w) => switch (w) {
-          WeightCategory.upTo2 => l10n.pkgWeightLt2,
-          WeightCategory.from2to5 => l10n.pkgWeight2to5,
-          WeightCategory.from5to15 => l10n.pkgWeight5to15,
-          WeightCategory.over15 => l10n.pkgWeightGt15,
-        };
+      WeightCategory.upTo2 => l10n.pkgWeightLt2,
+      WeightCategory.from2to5 => l10n.pkgWeight2to5,
+      WeightCategory.from5to15 => l10n.pkgWeight5to15,
+      WeightCategory.over15 => l10n.pkgWeightGt15,
+    };
 
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -385,8 +395,9 @@ class _PackageStep extends StatelessWidget {
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Text(
               l10n.shoppingHelp,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
           ),
         const SizedBox(height: AppSpacing.xl),
@@ -423,8 +434,9 @@ class _PackageStep extends StatelessWidget {
         const SizedBox(height: AppSpacing.sm),
         Text(
           l10n.pkgPhotoLater,
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: AppSpacing.xl),
         Text(l10n.slotTitle, style: theme.textTheme.titleMedium),
@@ -456,7 +468,8 @@ class _PackageStep extends StatelessWidget {
                   selected: slot.startHour == hour,
                   onSelected: (_) => onSlot(
                     PickupSlot.scheduled(
-                      date: slot.scheduledDate ??
+                      date:
+                          slot.scheduledDate ??
                           DateTime.now().add(const Duration(days: 1)),
                       hour: hour,
                     ),

@@ -78,7 +78,10 @@ class CustodyRepository {
       if (serverTime != null) {
         final drift = serverTime.difference(sealed.capturedAt).inSeconds;
         if (drift.abs() > 120) {
-          AppLogger.instance.warn('custody_clock_drift', data: {'seconds': drift});
+          AppLogger.instance.warn(
+            'custody_clock_drift',
+            data: {'seconds': drift},
+          );
         }
       }
 
@@ -109,34 +112,39 @@ class CustodyRepository {
     }
   }
 
-  Future<void> _persist(CustodyReport report, {required bool acknowledged}) async {
+  Future<void> _persist(
+    CustodyReport report, {
+    required bool acknowledged,
+  }) async {
     // EXI-CC46 : le constat est chiffre sur disque tant qu'il n'est pas accuse.
     // Il contient des photos, des positions, des numeros et deux signatures ;
     // sur le telephone personnel d'un livreur, le laisser en clair reviendrait
     // a publier la preuve avant qu'elle ne soit protegee.
     final envelope = await _vault.encryptJson({
-            'report': report.toJson(),
-            // Les chemins de fichiers sont ranges **a cote** du constat, jamais
-            // dedans : ils sont propres a l'appareil, et les inclure dans le
-            // corps canonique changerait l'empreinte d'un telephone a l'autre.
-            // Le serveur recalcule cette empreinte (EXI-B05) ; elle doit donc
-            // ne dependre que du contenu, pas de l'endroit ou il est range.
-            // La cle est l'empreinte de la photo, pas son angle : une remise
-            // peut porter deux photos du meme angle (scelle rompu, piece
-            // d'identite d'un tiers), et indexer par angle en perdrait une.
-            'paths': {
-              for (final photo in report.photos) photo.sha256: photo.localPath,
-            },
+      'report': report.toJson(),
+      // Les chemins de fichiers sont ranges **a cote** du constat, jamais
+      // dedans : ils sont propres a l'appareil, et les inclure dans le
+      // corps canonique changerait l'empreinte d'un telephone a l'autre.
+      // Le serveur recalcule cette empreinte (EXI-B05) ; elle doit donc
+      // ne dependre que du contenu, pas de l'endroit ou il est range.
+      // La cle est l'empreinte de la photo, pas son angle : une remise
+      // peut porter deux photos du meme angle (scelle rompu, piece
+      // d'identite d'un tiers), et indexer par angle en perdrait une.
+      'paths': {
+        for (final photo in report.photos) photo.sha256: photo.localPath,
+      },
       'acknowledged': acknowledged,
     });
 
-    await _db.into(_db.cachedDocuments).insertOnConflictUpdate(
-      CachedDocumentsCompanion.insert(
-        key: _key(report.id),
-        body: envelope,
-        fetchedAt: DateTime.now(),
-      ),
-    );
+    await _db
+        .into(_db.cachedDocuments)
+        .insertOnConflictUpdate(
+          CachedDocumentsCompanion.insert(
+            key: _key(report.id),
+            body: envelope,
+            fetchedAt: DateTime.now(),
+          ),
+        );
   }
 
   /// Efface les photos une fois le constat accuse par le serveur (EXI-S07).
@@ -177,6 +185,13 @@ class CustodyRepository {
     }
   }
 
+  /// Repose le constat avec l'horodatage serveur, **sans rien perdre**.
+  ///
+  /// Toute champ omis ici disparait de la copie conservee localement, et
+  /// l'empreinte recalculee a la relecture ne correspond plus a celle qui a ete
+  /// scellee : la chaine se declare rompue alors que rien n'a ete falsifie.
+  /// C'est exactement ce qui est arrive quand les issues de remise (EXI-CC26 a
+  /// CC29) ont ete ajoutees sans toucher a cette methode.
   CustodyReport _withServerTime(CustodyReport report, DateTime? serverTime) =>
       CustodyReport(
         id: report.id,
@@ -190,6 +205,9 @@ class CustodyRepository {
         capturedAt: report.capturedAt,
         point: report.point,
         sealCheck: report.sealCheck,
+        outcome: report.outcome,
+        thirdPartyName: report.thirdPartyName,
+        thirdPartyRelation: report.thirdPartyRelation,
         reserveReason: report.reserveReason,
         otpVerified: report.otpVerified,
         previousHash: report.previousHash,
@@ -234,7 +252,10 @@ class CustodyRepository {
     return CustodyChain(pickup: pickup, handover: handover);
   }
 
-  CustodyReport _fromJson(Map<String, dynamic> json, Map<String, String> paths) {
+  CustodyReport _fromJson(
+    Map<String, dynamic> json,
+    Map<String, String> paths,
+  ) {
     final photos = (json['photos'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map((p) {
@@ -247,7 +268,8 @@ class CustodyRepository {
             // plutot que de les perdre.
             localPath: paths[digest] ?? paths[angle.wireName] ?? '',
             takenAt:
-                DateTime.tryParse('${p['takenAt']}')?.toLocal() ?? DateTime.now(),
+                DateTime.tryParse('${p['takenAt']}')?.toLocal() ??
+                DateTime.now(),
             sizeBytes: (p['sizeBytes'] as num?)?.toInt() ?? 0,
             sha256: digest,
             point: GeoPoint.fromJson(p['point'] as Map<String, dynamic>?),
@@ -273,7 +295,8 @@ class CustodyRepository {
           .map(_signatureFromJson)
           .toList(),
       capturedAt:
-          DateTime.tryParse('${json['capturedAt']}')?.toLocal() ?? DateTime.now(),
+          DateTime.tryParse('${json['capturedAt']}')?.toLocal() ??
+          DateTime.now(),
       point:
           GeoPoint.fromJson(json['point'] as Map<String, dynamic>?) ??
           GeoPoint.antananarivo,

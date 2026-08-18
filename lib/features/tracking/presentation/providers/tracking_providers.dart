@@ -30,8 +30,10 @@ final tileProviderProvider = FutureProvider<CachedTileProvider>((ref) async {
 /// une information qui, a cette vitesse, n'a pas eu le temps de changer. La
 /// cadence est donc derivee du **profil reseau mesure par la sonde**, pas d'une
 /// constante.
-final trackingProvider =
-    StreamProvider.family<TrackingSnapshot, String>((ref, deliveryId) {
+final trackingProvider = StreamProvider.family<TrackingSnapshot, String>((
+  ref,
+  deliveryId,
+) {
   final client = ref.watch(apiClientProvider);
   final controller = StreamController<TrackingSnapshot>();
   Timer? timer;
@@ -73,9 +75,13 @@ final trackingProvider =
 });
 
 /// Suivi public, sans session (EXI-C24, D9).
-final publicTrackingProvider =
-    FutureProvider.family<PublicTracking?, String>((ref, token) async {
-  final json = await ref.watch(apiClientProvider).get<Map<String, dynamic>>(
+final publicTrackingProvider = FutureProvider.family<PublicTracking?, String>((
+  ref,
+  token,
+) async {
+  final json = await ref
+      .watch(apiClientProvider)
+      .get<Map<String, dynamic>>(
         ApiEndpoints.publicTrack(token),
         category: DataCategory.tracking,
       );

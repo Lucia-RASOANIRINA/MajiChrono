@@ -23,7 +23,8 @@ class IdempotencyInterceptor extends Interceptor {
     if (_writeMethods.contains(options.method.toUpperCase())) {
       // Une cle deja posee (reprise depuis la file de synchronisation) prime.
       final existing =
-          options.extra[extraKey] as String? ?? options.headers[header] as String?;
+          options.extra[extraKey] as String? ??
+          options.headers[header] as String?;
       final key = existing ?? _uuid.v4();
       options.headers[header] = key;
       options.extra[extraKey] = key;

@@ -22,10 +22,7 @@ class PaymentMockModule extends MockModule {
 
   /// Soldes MajiPay, par utilisateur. Le client demarre avec de quoi payer
   /// quelques courses, le livreur avec ses recettes du jour.
-  final Map<String, int> _balances = {
-    'client': 42000,
-    'driver': 18500,
-  };
+  final Map<String, int> _balances = {'client': 42000, 'driver': 18500};
 
   final Map<String, Map<String, dynamic>> _intents = {};
 
@@ -76,7 +73,10 @@ class PaymentMockModule extends MockModule {
     });
   }
 
-  Future<MockResponse> _createIntent(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _createIntent(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final body = req.json;
     final amount = (body['amount'] as num?)?.toInt() ?? 0;
     final deliveryId = '${body['deliveryId'] ?? ''}';
@@ -139,7 +139,10 @@ class PaymentMockModule extends MockModule {
     return MockResponse.created({..._public(intent), 'token': token});
   }
 
-  Future<MockResponse> _read(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _read(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final intent = _intents[params['id']];
     if (intent == null) {
       return MockResponse.error(404, 'not_found', 'Intention inconnue');
@@ -154,7 +157,10 @@ class PaymentMockModule extends MockModule {
   /// l'appariement se contente de reveler le montant au payeur, qui devra
   /// confirmer. Pour une offre, le payeur ayant deja donne son accord, la
   /// capture suit immediatement.
-  Future<MockResponse> _claim(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _claim(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final intent = _intents[params['id']];
     if (intent == null) {
       return MockResponse.error(404, 'not_found', 'Intention inconnue');
@@ -196,7 +202,10 @@ class PaymentMockModule extends MockModule {
   /// C'est ici, et nulle part ailleurs, que l'argent bouge pour une demande
   /// d'encaissement. Le role est verifie : une confirmation qui ne vient pas du
   /// payeur est refusee, sans quoi le beneficiaire pourrait se payer lui-meme.
-  Future<MockResponse> _confirm(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _confirm(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final intent = _intents[params['id']];
     if (intent == null) {
       return MockResponse.error(404, 'not_found', 'Intention inconnue');
@@ -226,7 +235,10 @@ class PaymentMockModule extends MockModule {
   ///
   /// Toujours accepte, y compris apres un echec MajiPay : la course ne doit
   /// jamais rester bloquee sur un probleme de paiement.
-  Future<MockResponse> _cash(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _cash(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final intent = _intents[params['id']];
     if (intent == null) {
       return MockResponse.error(404, 'not_found', 'Intention inconnue');

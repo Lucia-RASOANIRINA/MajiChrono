@@ -180,11 +180,7 @@ class _SignaturePainter extends CustomPainter {
           ..color = color
           ..strokeCap = StrokeCap.round
           ..strokeWidth = 1.5 + to.pressure * 2.5;
-        canvas.drawLine(
-          Offset(from.x, from.y),
-          Offset(to.x, to.y),
-          paint,
-        );
+        canvas.drawLine(Offset(from.x, from.y), Offset(to.x, to.y), paint);
       }
     }
   }

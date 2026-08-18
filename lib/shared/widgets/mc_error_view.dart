@@ -25,7 +25,9 @@ class McErrorView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(
-              failure is NetworkFailure ? Icons.cloud_off_outlined : Icons.error_outline,
+              failure is NetworkFailure
+                  ? Icons.cloud_off_outlined
+                  : Icons.error_outline,
               size: 40,
               color: theme.colorScheme.error,
             ),

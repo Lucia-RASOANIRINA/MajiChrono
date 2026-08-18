@@ -58,9 +58,10 @@ class PaymentRepository {
     final intent = PaymentIntent.fromJson(json);
     if (intent == null) throw const ServerFailure(statusCode: 500);
 
-    AppLogger.instance.info('payment_intent_created', data: {
-      'direction': direction.wireName,
-    });
+    AppLogger.instance.info(
+      'payment_intent_created',
+      data: {'direction': direction.wireName},
+    );
     return intent;
   }
 
@@ -102,9 +103,10 @@ class PaymentRepository {
     final intent = PaymentIntent.fromJson(json);
     if (intent == null) throw const ServerFailure(statusCode: 500);
 
-    AppLogger.instance.info('payment_settled', data: {
-      'status': intent.status.wireName,
-    });
+    AppLogger.instance.info(
+      'payment_settled',
+      data: {'status': intent.status.wireName},
+    );
     return intent;
   }
 

@@ -65,11 +65,15 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
 
     final l10n = AppLocalizations.of(context);
     try {
-      final verification = await ref.read(authRepositoryProvider).verifyOtp(
+      final verification = await ref
+          .read(authRepositoryProvider)
+          .verifyOtp(
             challengeId: _challenge.challengeId,
             code: _controller.text,
           );
-      await ref.read(authControllerProvider.notifier).onOtpVerified(verification);
+      await ref
+          .read(authControllerProvider.notifier)
+          .onOtpVerified(verification);
       // La redirection est faite par le routeur, qui observe l'etat de session :
       // aucun `pop` ni `go` ici, sans quoi deux sources decideraient de la
       // navigation et finiraient par se contredire.
@@ -96,8 +100,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       _error = null;
     });
     try {
-      final fresh =
-          await ref.read(authRepositoryProvider).requestOtp(_challenge.phone);
+      final fresh = await ref
+          .read(authRepositoryProvider)
+          .requestOtp(_challenge.phone);
       if (!mounted) return;
       setState(() {
         _challenge = fresh;
@@ -106,8 +111,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       _startTicker();
     } on Failure catch (failure) {
       if (!mounted) return;
-      setState(() =>
-          _error = failure.localizedMessage(AppLocalizations.of(context)));
+      setState(
+        () => _error = failure.localizedMessage(AppLocalizations.of(context)),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -124,7 +130,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final expired = _remaining == Duration.zero;
-    final showDebugCode = ref.watch(appConfigProvider).enableDevPanel &&
+    final showDebugCode =
+        ref.watch(appConfigProvider).enableDevPanel &&
         _challenge.debugCode != null;
 
     return Scaffold(
@@ -182,7 +189,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                   keyboardType: TextInputType.number,
                   textAlign: TextAlign.center,
                   maxLength: 6,
-                  style: theme.textTheme.displaySmall?.copyWith(letterSpacing: 12),
+                  style: theme.textTheme.displaySmall?.copyWith(
+                    letterSpacing: 12,
+                  ),
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                   decoration: const InputDecoration(counterText: ''),
                   onChanged: (value) {
@@ -197,8 +206,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                   Text(
                     _error!,
                     textAlign: TextAlign.center,
-                    style: theme.textTheme.bodyLarge
-                        ?.copyWith(color: theme.colorScheme.error),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
                   ),
                 ],
                 const SizedBox(height: AppSpacing.lg),

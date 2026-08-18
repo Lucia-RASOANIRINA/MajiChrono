@@ -29,10 +29,8 @@ class CustodyProofAction extends ConsumerWidget {
       tooltip: l10n.custodyComparatorTitle,
       onPressed: () => Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => CustodyComparatorScreen(
-            chain: chain!,
-            delivery: delivery,
-          ),
+          builder: (_) =>
+              CustodyComparatorScreen(chain: chain!, delivery: delivery),
         ),
       ),
     );

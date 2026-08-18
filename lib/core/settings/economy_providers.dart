@@ -16,7 +16,9 @@ final economySettingsProvider =
 class EconomyController extends Notifier<EconomySettings> {
   @override
   EconomySettings build() {
-    final raw = ref.watch(prefsStoreProvider).getString(PrefsStore.keySavingMode);
+    final raw = ref
+        .watch(prefsStoreProvider)
+        .getString(PrefsStore.keySavingMode);
     if (raw == null || raw.isEmpty) return const EconomySettings();
 
     try {

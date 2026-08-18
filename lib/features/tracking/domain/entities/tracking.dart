@@ -43,11 +43,7 @@ class DriverInfo {
 
 /// Une etape de la frise chronologique (EXI-C21).
 class TimelineEntry {
-  const TimelineEntry({
-    required this.status,
-    required this.at,
-    this.note,
-  });
+  const TimelineEntry({required this.status, required this.at, this.note});
 
   final DeliveryStatus status;
 
@@ -111,8 +107,9 @@ class TrackingSnapshot {
           .whereType<TimelineEntry>()
           .toList(),
       driver: DriverInfo.fromJson(json['driver'] as Map<String, dynamic>?),
-      driverPosition:
-          GeoPoint.fromJson(json['driverPosition'] as Map<String, dynamic>?),
+      driverPosition: GeoPoint.fromJson(
+        json['driverPosition'] as Map<String, dynamic>?,
+      ),
       trace: (json['trace'] as List<dynamic>? ?? [])
           .whereType<Map<String, dynamic>>()
           .map(GeoPoint.fromJson)
@@ -156,8 +153,9 @@ class PublicTracking {
       status: DeliveryStatus.fromWire(status),
       destinationLandmark: '${json['destinationLandmark'] ?? ''}',
       driverFirstName: json['driverFirstName'] as String?,
-      driverPosition:
-          GeoPoint.fromJson(json['driverPosition'] as Map<String, dynamic>?),
+      driverPosition: GeoPoint.fromJson(
+        json['driverPosition'] as Map<String, dynamic>?,
+      ),
       etaMinutes: (json['etaMinutes'] as num?)?.toInt(),
       expiresAt: DateTime.tryParse('${json['expiresAt']}')?.toLocal(),
     );

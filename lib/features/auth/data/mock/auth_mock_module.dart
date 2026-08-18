@@ -29,6 +29,16 @@ class AuthMockModule extends MockModule {
   /// vit cinq minutes, il n'a pas a survivre au processus.
   final Map<String, _Challenge> _challenges = {};
 
+  /// Defis envoyes par e-mail, memes regles de duree et de tentatives.
+  final Map<String, _EmailChallenge> _emailChallenges = {};
+
+  /// Rattachements adresse -> numero.
+  ///
+  /// Le numero reste la cle du compte : l'adresse n'est qu'une seconde porte
+  /// vers la meme identite. Une adresse absente de cette table designe donc un
+  /// visiteur, pas un compte a creer.
+  final Map<String, String> _emailLinks = {...seededEmails};
+
   static const Duration otpValidity = Duration(minutes: 5);
   static const int maxAttempts = 3;
   static const Duration accessTtl = Duration(minutes: 15);
@@ -45,8 +55,21 @@ class AuthMockModule extends MockModule {
     '+261320000003': (role: 'admin', name: 'Miora Rasoa'),
   };
 
+  /// Adresses deja rattachees a un compte pre-inscrit.
+  ///
+  /// La troisieme adresse proposee par la detection simulee est volontairement
+  /// absente : c'est elle qui deroule le cas « adresse verifiee, compte
+  /// inconnu », ou le parcours bascule sur le numero de telephone.
+  static const Map<String, String> seededEmails = {
+    'hery.rakoto@gmail.com': '+261340000001',
+    'naina.andria@gmail.com': '+261330000002',
+  };
+
   @override
   void register(MockBackend backend) {
+    backend.post(ApiEndpoints.emailRequest, _requestEmailCode);
+    backend.post(ApiEndpoints.emailVerify, _verifyEmailCode);
+    backend.post(ApiEndpoints.emailLink, _linkEmail);
     backend.post(ApiEndpoints.otpRequest, _requestOtp);
     backend.post(ApiEndpoints.otpVerify, _verifyOtp);
     backend.post(ApiEndpoints.refresh, _refresh);
@@ -56,11 +79,156 @@ class AuthMockModule extends MockModule {
   }
 
   @override
-  Future<void> reset() async => _challenges.clear();
+  Future<void> reset() async {
+    _challenges.clear();
+    _emailChallenges.clear();
+    _emailLinks
+      ..clear()
+      ..addAll(seededEmails);
+  }
+
+  // --- POST /auth/email/request -----------------------------------------
+
+  Future<MockResponse> _requestEmailCode(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final email = (req.json['email'] as String?)?.trim().toLowerCase();
+    if (email == null || !_looksLikeEmail(email)) {
+      return MockResponse.error(
+        422,
+        'invalid_email',
+        'Adresse e-mail invalide',
+        details: {
+          'fields': {'email': 'format_invalide'},
+        },
+      );
+    }
+
+    final challengeId = 'eml_${_random.nextInt(1 << 32)}';
+    final code = (_random.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(otpValidity);
+
+    _emailChallenges[challengeId] = _EmailChallenge(
+      email: email,
+      code: code,
+      expiresAt: expiresAt,
+      attemptsLeft: maxAttempts,
+    );
+
+    // Le serveur ne dit pas si l'adresse est connue : repondre « compte
+    // inconnu » avant meme la saisie du code transformerait ce point d'entree en
+    // oracle permettant d'enumerer les comptes. La distinction n'apparait qu'a
+    // la verification, une fois la possession de la boite prouvee.
+    return MockResponse.ok({
+      'challengeId': challengeId,
+      'email': email,
+      'expiresAt': expiresAt.toUtc().toIso8601String(),
+      'attemptsLeft': maxAttempts,
+      'debugCode': code,
+    });
+  }
+
+  // --- POST /auth/email/verify ------------------------------------------
+
+  Future<MockResponse> _verifyEmailCode(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final challengeId = req.json['challengeId'] as String?;
+    final code = req.json['code'] as String?;
+    final challenge = _emailChallenges[challengeId];
+
+    if (challenge == null) {
+      return MockResponse.error(
+        422,
+        'unknown_challenge',
+        'Defi inconnu ou deja utilise',
+      );
+    }
+    if (DateTime.now().isAfter(challenge.expiresAt)) {
+      _emailChallenges.remove(challengeId);
+      return MockResponse.error(422, 'otp_expired', 'Code expire');
+    }
+    if (code != challenge.code) {
+      final left = challenge.attemptsLeft - 1;
+      if (left <= 0) {
+        _emailChallenges.remove(challengeId);
+        return MockResponse.error(422, 'otp_locked', 'Trop de tentatives');
+      }
+      _emailChallenges[challengeId!] = challenge.copyWith(attemptsLeft: left);
+      return MockResponse.error(
+        422,
+        'otp_invalid',
+        'Code incorrect',
+        details: {'attemptsLeft': left},
+      );
+    }
+
+    _emailChallenges.remove(challengeId);
+
+    final phone = _emailLinks[challenge.email];
+    if (phone == null) {
+      // Adresse prouvee, compte inconnu. Aucune session n'est ouverte : un
+      // compte sans numero ne pourrait ni etre appele par un livreur, ni
+      // recevoir le SMS de suivi (EXI-C24).
+      return MockResponse.ok({'linked': false, 'email': challenge.email});
+    }
+
+    final seeded = seededAccounts[phone];
+    final account = _Account(
+      id: 'usr_${phone.substring(4)}',
+      phone: phone,
+      role: seeded?.role,
+      name: seeded?.name ?? '',
+      createdAt: DateTime.now(),
+    );
+
+    return MockResponse.ok({
+      'linked': true,
+      'session': _issueSession(account),
+      'account': account.toJson(),
+    });
+  }
+
+  // --- POST /auth/email/link --------------------------------------------
+
+  Future<MockResponse> _linkEmail(MockRequest req, Map<String, String> _) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+
+    final email = (req.json['email'] as String?)?.trim().toLowerCase();
+    if (email == null || !_looksLikeEmail(email)) {
+      return MockResponse.error(422, 'invalid_email', 'Adresse e-mail invalide');
+    }
+
+    // Une adresse ne vaut que pour un compte : la rattacher a un second en
+    // ferait une porte vers deux identites, et le prochain code recu ne dirait
+    // plus laquelle ouvrir.
+    final existing = _emailLinks[email];
+    if (existing != null && existing != account.phone) {
+      return MockResponse.error(
+        409,
+        'email_already_linked',
+        'Cette adresse est deja rattachee a un autre compte',
+      );
+    }
+
+    _emailLinks[email] = account.phone;
+    return MockResponse.noContent();
+  }
+
+  static bool _looksLikeEmail(String value) =>
+      RegExp(r'^[^@\s]+@[^@\s.]+\.[^@\s]+$').hasMatch(value);
 
   // --- POST /auth/otp/request ------------------------------------------
 
-  Future<MockResponse> _requestOtp(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _requestOtp(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final phone = req.json['phone'] as String?;
     if (phone == null || !RegExp(r'^\+2613\d{8}$').hasMatch(phone)) {
       return MockResponse.error(
@@ -94,13 +262,20 @@ class AuthMockModule extends MockModule {
 
   // --- POST /auth/otp/verify -------------------------------------------
 
-  Future<MockResponse> _verifyOtp(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _verifyOtp(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final challengeId = req.json['challengeId'] as String?;
     final code = req.json['code'] as String?;
     final challenge = _challenges[challengeId];
 
     if (challenge == null) {
-      return MockResponse.error(422, 'unknown_challenge', 'Defi inconnu ou deja utilise');
+      return MockResponse.error(
+        422,
+        'unknown_challenge',
+        'Defi inconnu ou deja utilise',
+      );
     }
     if (DateTime.now().isAfter(challenge.expiresAt)) {
       _challenges.remove(challengeId);
@@ -145,13 +320,19 @@ class AuthMockModule extends MockModule {
     final token = req.json['refreshToken'] as String?;
     final claims = _decode(token);
     if (claims == null || claims['typ'] != 'refresh') {
-      return MockResponse.error(401, 'invalid_refresh', 'Jeton de rafraichissement invalide');
+      return MockResponse.error(
+        401,
+        'invalid_refresh',
+        'Jeton de rafraichissement invalide',
+      );
     }
     if (_isExpired(claims)) {
       return MockResponse.error(401, 'refresh_expired', 'Session expiree');
     }
     // Rotation : le couple precedent n'est plus valable (EXI-T03).
-    return MockResponse.ok({'session': _issueSession(_Account.fromClaims(claims))});
+    return MockResponse.ok({
+      'session': _issueSession(_Account.fromClaims(claims)),
+    });
   }
 
   // --- POST /auth/logout -----------------------------------------------
@@ -164,7 +345,11 @@ class AuthMockModule extends MockModule {
   Future<MockResponse> _me(MockRequest req, Map<String, String> _) async {
     final account = _authenticate(req);
     if (account == null) {
-      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+      return MockResponse.error(
+        401,
+        'unauthorized',
+        'Jeton absent ou invalide',
+      );
     }
     return MockResponse.ok(account.toJson());
   }
@@ -174,7 +359,11 @@ class AuthMockModule extends MockModule {
   Future<MockResponse> _patchMe(MockRequest req, Map<String, String> _) async {
     final account = _authenticate(req);
     if (account == null) {
-      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+      return MockResponse.error(
+        401,
+        'unauthorized',
+        'Jeton absent ou invalide',
+      );
     }
 
     final role = req.json['role'] as String?;
@@ -231,7 +420,9 @@ class AuthMockModule extends MockModule {
 
   _Account? _authenticate(MockRequest req) {
     final claims = _decode(req.bearer);
-    if (claims == null || claims['typ'] != 'access' || _isExpired(claims)) return null;
+    if (claims == null || claims['typ'] != 'access' || _isExpired(claims)) {
+      return null;
+    }
     return _Account.fromClaims(claims);
   }
 
@@ -246,7 +437,8 @@ class AuthMockModule extends MockModule {
   Map<String, dynamic>? _decode(String? token) {
     if (token == null || token.isEmpty) return null;
     try {
-      return jsonDecode(utf8.decode(base64Url.decode(token))) as Map<String, dynamic>;
+      return jsonDecode(utf8.decode(base64Url.decode(token)))
+          as Map<String, dynamic>;
     } catch (_) {
       return null;
     }
@@ -267,11 +459,32 @@ class _Challenge {
   final int attemptsLeft;
 
   _Challenge copyWith({int? attemptsLeft}) => _Challenge(
-        phone: phone,
-        code: code,
-        expiresAt: expiresAt,
-        attemptsLeft: attemptsLeft ?? this.attemptsLeft,
-      );
+    phone: phone,
+    code: code,
+    expiresAt: expiresAt,
+    attemptsLeft: attemptsLeft ?? this.attemptsLeft,
+  );
+}
+
+class _EmailChallenge {
+  const _EmailChallenge({
+    required this.email,
+    required this.code,
+    required this.expiresAt,
+    required this.attemptsLeft,
+  });
+
+  final String email;
+  final String code;
+  final DateTime expiresAt;
+  final int attemptsLeft;
+
+  _EmailChallenge copyWith({int? attemptsLeft}) => _EmailChallenge(
+    email: email,
+    code: code,
+    expiresAt: expiresAt,
+    attemptsLeft: attemptsLeft ?? this.attemptsLeft,
+  );
 }
 
 class _Account {
@@ -285,13 +498,13 @@ class _Account {
   });
 
   factory _Account.fromClaims(Map<String, dynamic> claims) => _Account(
-        id: '${claims['sub']}',
-        phone: '${claims['phone']}',
-        role: claims['role'] as String?,
-        name: '${claims['name'] ?? ''}',
-        createdAt: DateTime.tryParse('${claims['iat']}') ?? DateTime.now(),
-        kycStatus: claims['kyc'] as String?,
-      );
+    id: '${claims['sub']}',
+    phone: '${claims['phone']}',
+    role: claims['role'] as String?,
+    name: '${claims['name'] ?? ''}',
+    createdAt: DateTime.tryParse('${claims['iat']}') ?? DateTime.now(),
+    kycStatus: claims['kyc'] as String?,
+  );
 
   final String id;
   final String phone;
@@ -300,7 +513,8 @@ class _Account {
   final DateTime createdAt;
   final String? kycStatus;
 
-  _Account copyWith({String? role, String? name, String? kycStatus}) => _Account(
+  _Account copyWith({String? role, String? name, String? kycStatus}) =>
+      _Account(
         id: id,
         phone: phone,
         role: role ?? this.role,
@@ -310,23 +524,23 @@ class _Account {
       );
 
   Map<String, dynamic> claims(String type, DateTime expiresAt) => {
-        'typ': type,
-        'sub': id,
-        'phone': phone,
-        'role': role,
-        'name': name,
-        'kyc': kycStatus,
-        'iat': createdAt.toUtc().toIso8601String(),
-        'exp': expiresAt.toUtc().toIso8601String(),
-      };
+    'typ': type,
+    'sub': id,
+    'phone': phone,
+    'role': role,
+    'name': name,
+    'kyc': kycStatus,
+    'iat': createdAt.toUtc().toIso8601String(),
+    'exp': expiresAt.toUtc().toIso8601String(),
+  };
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'phone': phone,
-        'role': role,
-        'displayName': name,
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        'kycStatus': kycStatus,
-        'rating': role == 'driver' ? 4.6 : null,
-      };
+    'id': id,
+    'phone': phone,
+    'role': role,
+    'displayName': name,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    'kycStatus': kycStatus,
+    'rating': role == 'driver' ? 4.6 : null,
+  };
 }

@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/admin/domain/entities/admin_entities.dart';
@@ -77,7 +78,7 @@ class FleetMap extends ConsumerWidget {
         child: tiles.when(
           loading: () => const ColoredBox(
             color: AppColors.lightSurfaceAlt,
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: McLoader()),
           ),
           error: (_, _) => _MapNotice(message: l10n.adminFleetMapUnavailable),
           data: (tileProvider) => FlutterMap(

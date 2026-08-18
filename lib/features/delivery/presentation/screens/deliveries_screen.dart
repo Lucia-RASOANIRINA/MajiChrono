@@ -47,7 +47,8 @@ class DeliveriesScreen extends ConsumerWidget {
                 child: ListView.separated(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   itemCount: items.length,
-                  separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.md),
+                  separatorBuilder: (_, _) =>
+                      const SizedBox(height: AppSpacing.md),
                   itemBuilder: (context, index) =>
                       DeliveryCard(delivery: items[index]),
                 ),
@@ -76,68 +77,72 @@ class DeliveryCard extends StatelessWidget {
             ? null
             : () => context.push(AppRoutes.clientTracking(delivery.id)),
         child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(child: StatusBadge(status: delivery.status)),
-                if (delivery.priceAriary != null)
+          padding: AppSpacing.card,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(child: StatusBadge(status: delivery.status)),
+                  if (delivery.priceAriary != null)
+                    Text(
+                      formatAriary(delivery.priceAriary!),
+                      style: theme.textTheme.titleMedium,
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _AddressLine(
+                icon: Icons.trip_origin,
+                text: delivery.pickup.summary,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _AddressLine(
+                icon: Icons.place_outlined,
+                text: delivery.dropoff.summary,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Icon(
+                    Icons.straighten,
+                    size: 16,
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
                   Text(
-                    formatAriary(delivery.priceAriary!),
-                    style: theme.textTheme.titleMedium,
+                    l10n.deliveryDistance(
+                      delivery.distanceKm.toStringAsFixed(1),
+                    ),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _AddressLine(
-              icon: Icons.trip_origin,
-              text: delivery.pickup.summary,
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            _AddressLine(
-              icon: Icons.place_outlined,
-              text: delivery.dropoff.summary,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                Icon(
-                  Icons.straighten,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  l10n.deliveryDistance(delivery.distanceKm.toStringAsFixed(1)),
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
-                ),
-                const Spacer(),
-                if (delivery.pendingSync)
-                  // Une course non transmise est signalee explicitement : elle
-                  // existe pour l'utilisateur, mais aucun livreur ne l'a encore
-                  // vue (EXI-C13).
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.cloud_upload_outlined,
-                        size: 16,
-                        color: AppColors.offline,
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
-                      Text(
-                        l10n.deliveryPendingSync,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: AppColors.offline),
-                      ),
-                    ],
-                  ),
-              ],
-            ),
-          ],
-        ),
+                  const Spacer(),
+                  if (delivery.pendingSync)
+                    // Une course non transmise est signalee explicitement : elle
+                    // existe pour l'utilisateur, mais aucun livreur ne l'a encore
+                    // vue (EXI-C13).
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.cloud_upload_outlined,
+                          size: 16,
+                          color: AppColors.offline,
+                        ),
+                        const SizedBox(width: AppSpacing.xs),
+                        Text(
+                          l10n.deliveryPendingSync,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: AppColors.offline,
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -193,7 +198,9 @@ class StatusBadge extends StatelessWidget {
         Flexible(
           child: Text(
             label,
-            style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

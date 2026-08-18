@@ -1,4 +1,3 @@
-
 import 'package:majichrono/core/network/mock/mock_backend.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
@@ -16,7 +15,6 @@ class TrackingMockModule extends MockModule {
   /// Acces aux courses tenues par le module de livraison : le suivi porte sur
   /// elles, il ne tient pas son propre registre.
   final Map<String, Map<String, dynamic>> Function() deliveries;
-
 
   /// Instant d'acceptation par course, qui sert d'origine des temps.
   final Map<String, DateTime> _acceptedAt = {};
@@ -42,20 +40,23 @@ class TrackingMockModule extends MockModule {
 
   /// Statut deduit de la progression, selon la machine a etats du §8.3.
   DeliveryStatus _statusFor(double progress) => switch (progress) {
-        < 0.1 => DeliveryStatus.accepted,
-        < 0.25 => DeliveryStatus.atPickup,
-        < 0.35 => DeliveryStatus.pickedUp,
-        < 0.85 => DeliveryStatus.inTransit,
-        < 1 => DeliveryStatus.atDestination,
-        _ => DeliveryStatus.delivered,
-      };
+    < 0.1 => DeliveryStatus.accepted,
+    < 0.25 => DeliveryStatus.atPickup,
+    < 0.35 => DeliveryStatus.pickedUp,
+    < 0.85 => DeliveryStatus.inTransit,
+    < 1 => DeliveryStatus.atDestination,
+    _ => DeliveryStatus.delivered,
+  };
 
   GeoPoint _interpolate(GeoPoint from, GeoPoint to, double t) => GeoPoint(
-        from.latitude + (to.latitude - from.latitude) * t,
-        from.longitude + (to.longitude - from.longitude) * t,
-      );
+    from.latitude + (to.latitude - from.latitude) * t,
+    from.longitude + (to.longitude - from.longitude) * t,
+  );
 
-  Future<MockResponse> _trace(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _trace(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final id = params['id']!;
     final delivery = deliveries()[id];
     if (delivery == null) {
@@ -63,7 +64,8 @@ class TrackingMockModule extends MockModule {
     }
 
     final pickup = GeoPoint.fromJson(
-      (delivery['pickup'] as Map<String, dynamic>?)?['point'] as Map<String, dynamic>?,
+      (delivery['pickup'] as Map<String, dynamic>?)?['point']
+          as Map<String, dynamic>?,
     )!;
     final dropoff = GeoPoint.fromJson(
       (delivery['dropoff'] as Map<String, dynamic>?)?['point']
@@ -147,8 +149,8 @@ class TrackingMockModule extends MockModule {
   ) async {
     final token = params['token'];
     final entry = deliveries().entries.where(
-          (e) => e.value['trackingToken'] == token,
-        );
+      (e) => e.value['trackingToken'] == token,
+    );
     if (entry.isEmpty) {
       return MockResponse.error(404, 'not_found', 'Lien de suivi inconnu');
     }
@@ -159,7 +161,8 @@ class TrackingMockModule extends MockModule {
     final status = _statusFor(progress);
 
     final pickup = GeoPoint.fromJson(
-      (delivery['pickup'] as Map<String, dynamic>?)?['point'] as Map<String, dynamic>?,
+      (delivery['pickup'] as Map<String, dynamic>?)?['point']
+          as Map<String, dynamic>?,
     )!;
     final dropoff = GeoPoint.fromJson(
       (delivery['dropoff'] as Map<String, dynamic>?)?['point']
@@ -173,9 +176,11 @@ class TrackingMockModule extends MockModule {
       // Prenom seul : le destinataire n'a pas besoin de l'identite complete du
       // livreur pour l'attendre.
       'driverFirstName': 'Naina',
-      'driverPosition':
-          _interpolate(pickup, dropoff, ((progress - 0.25) / 0.75).clamp(0, 1))
-              .toJson(),
+      'driverPosition': _interpolate(
+        pickup,
+        dropoff,
+        ((progress - 0.25) / 0.75).clamp(0, 1),
+      ).toJson(),
       'etaMinutes': (courseDuration.inMinutes * (1 - progress)).ceil(),
       'expiresAt': DateTime.now()
           .add(const Duration(hours: 24))

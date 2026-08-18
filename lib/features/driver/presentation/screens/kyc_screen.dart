@@ -48,7 +48,10 @@ class KycScreen extends ConsumerWidget {
           final (color, label) = switch (kyc) {
             KycStatus.draft => (AppColors.warning, l10n.kycStatusDraft),
             KycStatus.submitted => (AppColors.info, l10n.kycStatusSubmitted),
-            KycStatus.underReview => (AppColors.info, l10n.kycStatusUnderReview),
+            KycStatus.underReview => (
+              AppColors.info,
+              l10n.kycStatusUnderReview,
+            ),
             KycStatus.approved => (AppColors.success, l10n.kycStatusApproved),
             KycStatus.rejected => (AppColors.danger, l10n.kycStatusRejected),
           };
@@ -102,8 +105,9 @@ class KycScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 l10n.kycCaptureLater,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           );

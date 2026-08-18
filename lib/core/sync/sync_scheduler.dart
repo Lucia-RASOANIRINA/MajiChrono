@@ -147,11 +147,10 @@ class SyncScheduler {
       conflicts: conflicts,
     );
     if (run.didSomething) {
-      _logger.info('sync_drain', data: {
-        'sent': sent,
-        'failed': failed,
-        'abandoned': abandoned,
-      });
+      _logger.info(
+        'sync_drain',
+        data: {'sent': sent, 'failed': failed, 'abandoned': abandoned},
+      );
       _runs.add(run);
     }
     return run;
@@ -185,10 +184,10 @@ class SyncScheduler {
 
       if (failure is ConflictFailure) {
         // EXI-S04 : le serveur fait foi. On ne rejoue pas, on informe.
-        _logger.warn('sync_conflict', data: {
-          'path': item.path,
-          'state': failure.currentState,
-        });
+        _logger.warn(
+          'sync_conflict',
+          data: {'path': item.path, 'state': failure.currentState},
+        );
         return _Outcome.conflict;
       }
 
@@ -196,12 +195,15 @@ class SyncScheduler {
         return _Outcome.offline;
       }
 
-      final stopped = !failure.isRetryable ||
+      final stopped =
+          !failure.isRetryable ||
           SyncBackoff.isExhausted(
             attempts: item.attempts + 1,
             neverAbandon: item.neverAbandon,
           );
-      return stopped && !item.neverAbandon ? _Outcome.abandoned : _Outcome.failed;
+      return stopped && !item.neverAbandon
+          ? _Outcome.abandoned
+          : _Outcome.failed;
     }
   }
 
@@ -217,8 +219,9 @@ class SyncScheduler {
   SyncFailureCause _causeOf(Failure failure) => switch (failure) {
     NetworkFailure() || TimeoutFailure() => SyncFailureCause.network,
     ConflictFailure() => SyncFailureCause.conflict,
-    ValidationFailure() || UnauthorizedFailure() || UpdateRequiredFailure() =>
-      SyncFailureCause.rejected,
+    ValidationFailure() ||
+    UnauthorizedFailure() ||
+    UpdateRequiredFailure() => SyncFailureCause.rejected,
     _ => SyncFailureCause.server,
   };
 

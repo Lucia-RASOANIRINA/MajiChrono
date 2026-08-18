@@ -161,10 +161,7 @@ class _PendingCard extends StatelessWidget {
                 Icon(icon, color: tone),
                 const SizedBox(width: AppSpacing.md),
                 Expanded(
-                  child: Text(
-                    label,
-                    style: theme.textTheme.titleMedium,
-                  ),
+                  child: Text(label, style: theme.textTheme.titleMedium),
                 ),
                 Text(
                   _age(l10n, item.ageAt(now)),
@@ -175,7 +172,10 @@ class _PendingCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: AppSpacing.sm),
-            Text(cause, style: theme.textTheme.bodyLarge?.copyWith(color: tone)),
+            Text(
+              cause,
+              style: theme.textTheme.bodyLarge?.copyWith(color: tone),
+            ),
             if (item.attempts > 0) ...[
               const SizedBox(height: AppSpacing.xs),
               Text(

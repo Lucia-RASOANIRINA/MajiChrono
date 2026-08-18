@@ -14,12 +14,16 @@ class DataMeterInterceptor extends Interceptor {
 
   @override
   void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    options.extra['_sentBytes'] = _sizeOf(options.data) + _headersSize(options.headers);
+    options.extra['_sentBytes'] =
+        _sizeOf(options.data) + _headersSize(options.headers);
     handler.next(options);
   }
 
   @override
-  void onResponse(Response<dynamic> response, ResponseInterceptorHandler handler) {
+  void onResponse(
+    Response<dynamic> response,
+    ResponseInterceptorHandler handler,
+  ) {
     _record(response.requestOptions, response);
     handler.next(response);
   }
@@ -31,15 +35,19 @@ class DataMeterInterceptor extends Interceptor {
   }
 
   void _record(RequestOptions options, Response<dynamic>? response) {
-    final category = options.extra[extraKey] as DataCategory? ?? DataCategory.api;
+    final category =
+        options.extra[extraKey] as DataCategory? ?? DataCategory.api;
     final sent = options.extra['_sentBytes'] as int? ?? 0;
     final receivedHeader = response?.headers.value(Headers.contentLengthHeader);
-    final received = int.tryParse(receivedHeader ?? '') ?? _sizeOf(response?.data);
+    final received =
+        int.tryParse(receivedHeader ?? '') ?? _sizeOf(response?.data);
     _meter.record(category, sent: sent, received: received);
   }
 
-  int _headersSize(Map<String, dynamic> headers) =>
-      headers.entries.fold(0, (sum, e) => sum + e.key.length + '${e.value}'.length + 4);
+  int _headersSize(Map<String, dynamic> headers) => headers.entries.fold(
+    0,
+    (sum, e) => sum + e.key.length + '${e.value}'.length + 4,
+  );
 
   int _sizeOf(Object? data) {
     if (data == null) return 0;

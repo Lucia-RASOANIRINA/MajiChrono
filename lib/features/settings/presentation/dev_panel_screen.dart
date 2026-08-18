@@ -150,7 +150,9 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                 ListTile(
                   leading: const Icon(Icons.route_outlined),
                   title: const Text('Routes simulees enregistrees'),
-                  trailing: Text('${client.mockBackend.registeredRoutes.length}'),
+                  trailing: Text(
+                    '${client.mockBackend.registeredRoutes.length}',
+                  ),
                   onTap: () => showModalBottomSheet<void>(
                     context: context,
                     showDragHandle: true,
@@ -159,8 +161,13 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                       children: [
                         for (final route in client.mockBackend.registeredRoutes)
                           Padding(
-                            padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-                            child: Text(route, style: theme.textTheme.bodyMedium),
+                            padding: const EdgeInsets.symmetric(
+                              vertical: AppSpacing.xs,
+                            ),
+                            child: Text(
+                              route,
+                              style: theme.textTheme.bodyMedium,
+                            ),
                           ),
                       ],
                     ),
@@ -187,9 +194,9 @@ class _DevPanelScreenState extends ConsumerState<DevPanelScreen> {
                       ClipboardData(text: AppLogger.instance.exportBuffer()),
                     );
                     if (!context.mounted) return;
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('Journal copie')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Journal copie')),
+                    );
                   },
                 ),
               ],

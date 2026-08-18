@@ -31,7 +31,10 @@ class AppRadii {
 
   static const BorderRadius componentAll = BorderRadius.all(component);
   static const BorderRadius sheetAll = BorderRadius.all(sheet);
-  static const BorderRadius sheetTop = BorderRadius.only(topLeft: sheet, topRight: sheet);
+  static const BorderRadius sheetTop = BorderRadius.only(
+    topLeft: sheet,
+    topRight: sheet,
+  );
 }
 
 /// Trois niveaux d'elevation au maximum (§15.1).

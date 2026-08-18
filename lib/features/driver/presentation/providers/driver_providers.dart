@@ -19,8 +19,9 @@ import 'package:majichrono/features/driver/domain/entities/driver_entities.dart'
 /// telephone. Le motif est concret — un livreur dont la batterie lache en pleine
 /// journee et qui redemarre ne doit pas se retrouver invisible sans s'en
 /// apercevoir, ni recevoir des courses alors qu'il avait fini son service.
-final driverOnlineProvider =
-    NotifierProvider<DriverOnlineController, bool>(DriverOnlineController.new);
+final driverOnlineProvider = NotifierProvider<DriverOnlineController, bool>(
+  DriverOnlineController.new,
+);
 
 class DriverOnlineController extends Notifier<bool> {
   @override
@@ -43,19 +44,21 @@ class DriverOnlineController extends Notifier<bool> {
 /// hors service consommerait du forfait pour rien (§4.4).
 final availableDeliveriesProvider =
     FutureProvider.autoDispose<List<AvailableDelivery>>((ref) async {
-  if (!ref.watch(driverOnlineProvider)) return const [];
+      if (!ref.watch(driverOnlineProvider)) return const [];
 
-  final json = await ref.watch(apiClientProvider).get<Map<String, dynamic>>(
-        ApiEndpoints.deliveriesAvailable,
-        category: DataCategory.api,
-      );
+      final json = await ref
+          .watch(apiClientProvider)
+          .get<Map<String, dynamic>>(
+            ApiEndpoints.deliveriesAvailable,
+            category: DataCategory.api,
+          );
 
-  return (json['items'] as List<dynamic>? ?? [])
-      .whereType<Map<String, dynamic>>()
-      .map(AvailableDelivery.fromJson)
-      .whereType<AvailableDelivery>()
-      .toList();
-});
+      return (json['items'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(AvailableDelivery.fromJson)
+          .whereType<AvailableDelivery>()
+          .toList();
+    });
 
 /// Course en cours du livreur, s'il y en a une.
 ///
@@ -87,12 +90,12 @@ final activeDriverDeliveryProvider = Provider<Delivery?>((ref) {
 final activeGroupProvider = Provider<DeliveryGroup?>((ref) {
   final active = ref.watch(activeDriverDeliveriesProvider);
   if (active.length < DeliveryGroup.minSize) return null;
-  return DeliveryGroup(
-    deliveries: active.take(DeliveryGroup.maxSize).toList(),
-  );
+  return DeliveryGroup(deliveries: active.take(DeliveryGroup.maxSize).toList());
 });
 
-final earningsProvider = FutureProvider.autoDispose<EarningsSummary>((ref) async {
+final earningsProvider = FutureProvider.autoDispose<EarningsSummary>((
+  ref,
+) async {
   final json = await ref
       .watch(apiClientProvider)
       .get<Map<String, dynamic>>('/drivers/earnings');
@@ -122,9 +125,9 @@ class DriverActions {
   /// c'est un cas normal de la course a l'acceptation, pas une panne, et
   /// l'interface doit le dire sans dramatiser.
   Future<void> accept(String deliveryId) async {
-    final json = await _ref.read(apiClientProvider).post<Map<String, dynamic>>(
-          '/deliveries/$deliveryId/accept',
-        );
+    final json = await _ref
+        .read(apiClientProvider)
+        .post<Map<String, dynamic>>('/deliveries/$deliveryId/accept');
     final delivery = Delivery.fromJson(json);
     if (delivery != null) {
       await _ref
@@ -170,19 +173,24 @@ class DriverActions {
       // poursuivre localement.
       if (!failure.isRetryable) rethrow;
 
-      await _ref.read(syncQueueProvider).enqueue(
-        method: 'POST',
-        path: path,
-        idempotencyKey: key,
-        body: body,
-        priority: SyncPriority.transition,
-      );
+      await _ref
+          .read(syncQueueProvider)
+          .enqueue(
+            method: 'POST',
+            path: path,
+            idempotencyKey: key,
+            body: body,
+            priority: SyncPriority.transition,
+          );
 
       // L'etape est appliquee localement, marquee non transmise : l'interface
       // avance, et le bandeau dit qu'il reste quelque chose a envoyer.
       await _ref
           .read(deliveryLocalDataSourceProvider)
-          .upsertDelivery(delivery.copyWith(status: action.to), pendingSync: true);
+          .upsertDelivery(
+            delivery.copyWith(status: action.to),
+            pendingSync: true,
+          );
     }
 
     _ref.invalidate(earningsProvider);
@@ -204,13 +212,15 @@ class DriverActions {
     } on Failure catch (failure) {
       if (!failure.isRetryable) rethrow;
 
-      await _ref.read(syncQueueProvider).enqueue(
-        method: 'POST',
-        path: path,
-        idempotencyKey: key,
-        body: body,
-        priority: SyncPriority.transition,
-      );
+      await _ref
+          .read(syncQueueProvider)
+          .enqueue(
+            method: 'POST',
+            path: path,
+            idempotencyKey: key,
+            body: body,
+            priority: SyncPriority.transition,
+          );
     }
   }
 }

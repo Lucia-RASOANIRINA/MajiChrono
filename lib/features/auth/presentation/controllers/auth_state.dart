@@ -12,9 +12,9 @@ sealed class AuthState {
 
   /// Vrai des que des jetons valides existent, verrouille ou non.
   bool get hasSession => switch (this) {
-        AuthAuthenticated() || AuthProfilePending() || AuthLocked() => true,
-        AuthUnknown() || AuthUnauthenticated() => false,
-      };
+    AuthAuthenticated() || AuthProfilePending() || AuthLocked() => true,
+    AuthUnknown() || AuthUnauthenticated() => false,
+  };
 }
 
 /// Etat initial, le temps de relire la session persistee.

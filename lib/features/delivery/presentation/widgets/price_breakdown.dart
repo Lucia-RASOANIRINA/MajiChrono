@@ -19,13 +19,13 @@ class PriceBreakdown extends StatelessWidget {
     final theme = Theme.of(context);
 
     String label(PriceLineKind kind) => switch (kind) {
-          PriceLineKind.base => l10n.priceBase,
-          PriceLineKind.distance => l10n.priceDistance,
-          PriceLineKind.weight => l10n.priceWeight,
-          PriceLineKind.kindSurcharge => l10n.priceKind,
-          PriceLineKind.schedule => l10n.priceSchedule,
-          PriceLineKind.insurance => l10n.priceInsurance,
-        };
+      PriceLineKind.base => l10n.priceBase,
+      PriceLineKind.distance => l10n.priceDistance,
+      PriceLineKind.weight => l10n.priceWeight,
+      PriceLineKind.kindSurcharge => l10n.priceKind,
+      PriceLineKind.schedule => l10n.priceSchedule,
+      PriceLineKind.insurance => l10n.priceInsurance,
+    };
 
     return Card(
       child: Padding(
@@ -57,12 +57,16 @@ class PriceBreakdown extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(l10n.estimateTotal, style: theme.textTheme.titleMedium),
+                  child: Text(
+                    l10n.estimateTotal,
+                    style: theme.textTheme.titleMedium,
+                  ),
                 ),
                 Text(
                   formatAriary(estimate.totalAriary),
-                  style: theme.textTheme.titleLarge
-                      ?.copyWith(color: theme.colorScheme.primary),
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    color: theme.colorScheme.primary,
+                  ),
                 ),
               ],
             ),
@@ -83,8 +87,9 @@ class PriceBreakdown extends StatelessWidget {
                       // (DO-3) serait promettre un montant que l'exploitation ne
                       // tiendra pas. On le dit plutot que de le taire.
                       l10n.estimateProvisional,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
                 ],

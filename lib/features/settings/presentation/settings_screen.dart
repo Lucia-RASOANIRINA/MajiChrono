@@ -56,7 +56,10 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
-          Text(l10n.settingsLanguage, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.settingsLanguage,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.sm),
           // Bascule a chaud : aucun redemarrage, l'ecran se retraduit sous les
           // doigts de l'utilisateur (EXI-T05).
@@ -79,12 +82,21 @@ class SettingsScreen extends ConsumerWidget {
                 .set(AppLocales.fromCode(selection.first)),
           ),
           const SizedBox(height: AppSpacing.xl),
-          Text(l10n.settingsTheme, style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.settingsTheme,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.sm),
           SegmentedButton<ThemeMode>(
             segments: [
-              ButtonSegment(value: ThemeMode.system, label: Text(l10n.themeSystem)),
-              ButtonSegment(value: ThemeMode.light, label: Text(l10n.themeLight)),
+              ButtonSegment(
+                value: ThemeMode.system,
+                label: Text(l10n.themeSystem),
+              ),
+              ButtonSegment(
+                value: ThemeMode.light,
+                label: Text(l10n.themeLight),
+              ),
               ButtonSegment(value: ThemeMode.dark, label: Text(l10n.themeDark)),
             ],
             selected: {themeMode},
@@ -138,10 +150,13 @@ class SettingsScreen extends ConsumerWidget {
                       Consumer(
                         builder: (context, ref, _) {
                           final count =
-                              ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
+                              ref.watch(pendingSyncCountProvider).valueOrNull ??
+                              0;
                           if (count == 0) return const SizedBox.shrink();
                           return Padding(
-                            padding: const EdgeInsets.only(right: AppSpacing.sm),
+                            padding: const EdgeInsets.only(
+                              right: AppSpacing.sm,
+                            ),
                             child: Badge(label: Text('$count')),
                           );
                         },

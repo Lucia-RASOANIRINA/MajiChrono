@@ -19,17 +19,17 @@ enum DeliveryKind {
   final String wireName;
 
   static DeliveryKind fromWire(String? value) => DeliveryKind.values.firstWhere(
-        (k) => k.wireName == value,
-        orElse: () => DeliveryKind.standard,
-      );
+    (k) => k.wireName == value,
+    orElse: () => DeliveryKind.standard,
+  );
 
   /// Une course fragile ou alimentaire majore le prix : elle impose au livreur
   /// une conduite plus lente et un soin particulier.
   double get priceMultiplier => switch (this) {
-        DeliveryKind.fragile => 1.20,
-        DeliveryKind.food => 1.10,
-        _ => 1,
-      };
+    DeliveryKind.fragile => 1.20,
+    DeliveryKind.food => 1.10,
+    _ => 1,
+  };
 }
 
 /// Categorie de poids declaree (EXI-C08).
@@ -57,11 +57,11 @@ enum WeightCategory {
 
   /// Supplement lie a la manutention et a l'encombrement sur une moto.
   int get surchargeAriary => switch (this) {
-        WeightCategory.upTo2 => 0,
-        WeightCategory.from2to5 => 1000,
-        WeightCategory.from5to15 => 3000,
-        WeightCategory.over15 => 8000,
-      };
+    WeightCategory.upTo2 => 0,
+    WeightCategory.from2to5 => 1000,
+    WeightCategory.from5to15 => 3000,
+    WeightCategory.over15 => 8000,
+  };
 }
 
 /// Declaration du colis (EXI-C08).
@@ -90,14 +90,14 @@ class PackageDeclaration {
   final String? photoId;
 
   Map<String, dynamic> toJson() => {
-        'weight': weight.wireName,
-        if (lengthCm != null) 'lengthCm': lengthCm,
-        if (widthCm != null) 'widthCm': widthCm,
-        if (heightCm != null) 'heightCm': heightCm,
-        if (declaredValueAriary != null) 'declaredValue': declaredValueAriary,
-        if (description != null) 'description': description,
-        if (photoId != null) 'photoId': photoId,
-      };
+    'weight': weight.wireName,
+    if (lengthCm != null) 'lengthCm': lengthCm,
+    if (widthCm != null) 'widthCm': widthCm,
+    if (heightCm != null) 'heightCm': heightCm,
+    if (declaredValueAriary != null) 'declaredValue': declaredValueAriary,
+    if (description != null) 'description': description,
+    if (photoId != null) 'photoId': photoId,
+  };
 
   static PackageDeclaration fromJson(Map<String, dynamic> json) =>
       PackageDeclaration(
@@ -113,15 +113,11 @@ class PackageDeclaration {
 
 /// Creneau de retrait (EXI-C11) : immediat, ou date avec tranche de deux heures.
 class PickupSlot {
-  const PickupSlot.immediate()
-      : scheduledDate = null,
-        startHour = null;
+  const PickupSlot.immediate() : scheduledDate = null, startHour = null;
 
-  const PickupSlot.scheduled({
-    required DateTime date,
-    required int hour,
-  })  : scheduledDate = date,
-        startHour = hour;
+  const PickupSlot.scheduled({required DateTime date, required int hour})
+    : scheduledDate = date,
+      startHour = hour;
 
   final DateTime? scheduledDate;
   final int? startHour;
@@ -132,11 +128,11 @@ class PickupSlot {
   int? get endHour => startHour == null ? null : startHour! + 2;
 
   Map<String, dynamic> toJson() => {
-        'immediate': isImmediate,
-        if (scheduledDate != null)
-          'date': scheduledDate!.toIso8601String().split('T').first,
-        if (startHour != null) 'startHour': startHour,
-      };
+    'immediate': isImmediate,
+    if (scheduledDate != null)
+      'date': scheduledDate!.toIso8601String().split('T').first,
+    if (startHour != null) 'startHour': startHour,
+  };
 
   static PickupSlot fromJson(Map<String, dynamic>? json) {
     if (json == null || json['immediate'] == true) {
@@ -162,11 +158,8 @@ enum PaymentMethod {
 
   final String wireName;
 
-  static PaymentMethod fromWire(String? value) =>
-      PaymentMethod.values.firstWhere(
-        (p) => p.wireName == value,
-        orElse: () => PaymentMethod.cash,
-      );
+  static PaymentMethod fromWire(String? value) => PaymentMethod.values
+      .firstWhere((p) => p.wireName == value, orElse: () => PaymentMethod.cash);
 }
 
 /// Machine a etats d'une course (§8.3).
@@ -276,45 +269,44 @@ class Delivery {
     String? trackingToken,
     bool? pendingSync,
     ShoppingOrder? shopping,
-  }) =>
-      Delivery(
-        id: id,
-        status: status ?? this.status,
-        kind: kind,
-        pickup: pickup,
-        dropoff: dropoff,
-        package: package,
-        slot: slot,
-        paymentMethod: paymentMethod,
-        createdAt: createdAt,
-        priceAriary: priceAriary ?? this.priceAriary,
-        driverId: driverId ?? this.driverId,
-        driverName: driverName ?? this.driverName,
-        trackingToken: trackingToken ?? this.trackingToken,
-        pendingSync: pendingSync ?? this.pendingSync,
-        payer: payer,
-        shopping: shopping ?? this.shopping,
-        relayPointId: relayPointId,
-      );
+  }) => Delivery(
+    id: id,
+    status: status ?? this.status,
+    kind: kind,
+    pickup: pickup,
+    dropoff: dropoff,
+    package: package,
+    slot: slot,
+    paymentMethod: paymentMethod,
+    createdAt: createdAt,
+    priceAriary: priceAriary ?? this.priceAriary,
+    driverId: driverId ?? this.driverId,
+    driverName: driverName ?? this.driverName,
+    trackingToken: trackingToken ?? this.trackingToken,
+    pendingSync: pendingSync ?? this.pendingSync,
+    payer: payer,
+    shopping: shopping ?? this.shopping,
+    relayPointId: relayPointId,
+  );
 
   Map<String, dynamic> toJson() => {
-        'id': id,
-        'status': status.wireName,
-        'kind': kind.wireName,
-        'pickup': pickup.toJson(),
-        'dropoff': dropoff.toJson(),
-        'package': package.toJson(),
-        'slot': slot.toJson(),
-        'paymentMethod': paymentMethod.wireName,
-        'createdAt': createdAt.toUtc().toIso8601String(),
-        if (priceAriary != null) 'price': priceAriary,
-        if (driverId != null) 'driverId': driverId,
-        if (driverName != null) 'driverName': driverName,
-        if (trackingToken != null) 'trackingToken': trackingToken,
-        'payer': payer.wireName,
-        if (shopping != null) 'shopping': shopping!.toJson(),
-        if (relayPointId != null) 'relayPointId': relayPointId,
-      };
+    'id': id,
+    'status': status.wireName,
+    'kind': kind.wireName,
+    'pickup': pickup.toJson(),
+    'dropoff': dropoff.toJson(),
+    'package': package.toJson(),
+    'slot': slot.toJson(),
+    'paymentMethod': paymentMethod.wireName,
+    'createdAt': createdAt.toUtc().toIso8601String(),
+    if (priceAriary != null) 'price': priceAriary,
+    if (driverId != null) 'driverId': driverId,
+    if (driverName != null) 'driverName': driverName,
+    if (trackingToken != null) 'trackingToken': trackingToken,
+    'payer': payer.wireName,
+    if (shopping != null) 'shopping': shopping!.toJson(),
+    if (relayPointId != null) 'relayPointId': relayPointId,
+  };
 
   static Delivery? fromJson(Map<String, dynamic> json) {
     final pickup = Address.fromJson(json['pickup'] as Map<String, dynamic>?);
@@ -327,18 +319,22 @@ class Delivery {
       kind: DeliveryKind.fromWire(json['kind'] as String?),
       pickup: pickup,
       dropoff: dropoff,
-      package:
-          PackageDeclaration.fromJson((json['package'] as Map<String, dynamic>?) ?? {}),
+      package: PackageDeclaration.fromJson(
+        (json['package'] as Map<String, dynamic>?) ?? {},
+      ),
       slot: PickupSlot.fromJson(json['slot'] as Map<String, dynamic>?),
       paymentMethod: PaymentMethod.fromWire(json['paymentMethod'] as String?),
       createdAt:
-          DateTime.tryParse('${json['createdAt']}')?.toLocal() ?? DateTime.now(),
+          DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+          DateTime.now(),
       priceAriary: (json['price'] as num?)?.toInt(),
       driverId: json['driverId'] as String?,
       driverName: json['driverName'] as String?,
       trackingToken: json['trackingToken'] as String?,
       payer: Payer.fromWire(json['payer'] as String?),
-      shopping: ShoppingOrder.fromJson(json['shopping'] as Map<String, dynamic>?),
+      shopping: ShoppingOrder.fromJson(
+        json['shopping'] as Map<String, dynamic>?,
+      ),
       relayPointId: json['relayPointId'] as String?,
     );
   }

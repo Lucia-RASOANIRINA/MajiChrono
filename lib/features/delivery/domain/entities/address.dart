@@ -51,7 +51,8 @@ class Address {
   final String? voiceNoteId;
 
   /// Une adresse est utilisable des lors que ses champs obligatoires sont la.
-  bool get isComplete => district.trim().isNotEmpty && landmark.trim().isNotEmpty;
+  bool get isComplete =>
+      district.trim().isNotEmpty && landmark.trim().isNotEmpty;
 
   /// Resume affiche dans une liste : le repere d'abord, car c'est l'information
   /// qui identifie le lieu pour un Malgache.
@@ -67,28 +68,27 @@ class Address {
     MalagasyPhone? contactPhone,
     String? contactName,
     String? street,
-  }) =>
-      Address(
-        point: point ?? this.point,
-        district: district ?? this.district,
-        landmark: landmark ?? this.landmark,
-        contactPhone: contactPhone ?? this.contactPhone,
-        contactName: contactName ?? this.contactName,
-        street: street ?? this.street,
-        facadePhotoId: facadePhotoId,
-        voiceNoteId: voiceNoteId,
-      );
+  }) => Address(
+    point: point ?? this.point,
+    district: district ?? this.district,
+    landmark: landmark ?? this.landmark,
+    contactPhone: contactPhone ?? this.contactPhone,
+    contactName: contactName ?? this.contactName,
+    street: street ?? this.street,
+    facadePhotoId: facadePhotoId,
+    voiceNoteId: voiceNoteId,
+  );
 
   Map<String, dynamic> toJson() => {
-        'point': point.toJson(),
-        'district': district,
-        'landmark': landmark,
-        'contactPhone': contactPhone.e164,
-        if (contactName != null) 'contactName': contactName,
-        if (street != null) 'street': street,
-        if (facadePhotoId != null) 'facadePhotoId': facadePhotoId,
-        if (voiceNoteId != null) 'voiceNoteId': voiceNoteId,
-      };
+    'point': point.toJson(),
+    'district': district,
+    'landmark': landmark,
+    'contactPhone': contactPhone.e164,
+    if (contactName != null) 'contactName': contactName,
+    if (street != null) 'street': street,
+    if (facadePhotoId != null) 'facadePhotoId': facadePhotoId,
+    if (voiceNoteId != null) 'voiceNoteId': voiceNoteId,
+  };
 
   static Address? fromJson(Map<String, dynamic>? json) {
     if (json == null) return null;
@@ -131,12 +131,16 @@ class SavedAddress {
   final int useCount;
   final DateTime? lastUsedAt;
 
-  SavedAddress copyWith({String? label, Address? address, int? useCount, DateTime? lastUsedAt}) =>
-      SavedAddress(
-        id: id,
-        label: label ?? this.label,
-        address: address ?? this.address,
-        useCount: useCount ?? this.useCount,
-        lastUsedAt: lastUsedAt ?? this.lastUsedAt,
-      );
+  SavedAddress copyWith({
+    String? label,
+    Address? address,
+    int? useCount,
+    DateTime? lastUsedAt,
+  }) => SavedAddress(
+    id: id,
+    label: label ?? this.label,
+    address: address ?? this.address,
+    useCount: useCount ?? this.useCount,
+    lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+  );
 }

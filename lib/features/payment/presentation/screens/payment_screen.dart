@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -25,11 +26,7 @@ import 'package:majichrono/shared/l10n/failure_messages.dart';
 /// Quel que soit le chemin, l'argent va du client au livreur et le payeur
 /// confirme sur son propre appareil.
 class PaymentScreen extends ConsumerStatefulWidget {
-  const PaymentScreen({
-    required this.delivery,
-    required this.role,
-    super.key,
-  });
+  const PaymentScreen({required this.delivery, required this.role, super.key});
 
   final Delivery delivery;
   final UserRole role;
@@ -67,10 +64,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
   /// Le livreur presente son code : demande d'encaissement.
   Future<void> _present() async {
     final intent = await _guard(
-      () => ref.read(paymentActionsProvider).requestCollection(
-        deliveryId: widget.delivery.id,
-        amountAriary: _amount,
-      ),
+      () => ref
+          .read(paymentActionsProvider)
+          .requestCollection(
+            deliveryId: widget.delivery.id,
+            amountAriary: _amount,
+          ),
     );
     if (intent == null || !mounted) return;
 
@@ -78,10 +77,12 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
       MaterialPageRoute(
         builder: (_) => PaymentQrScreen(
           intent: intent,
-          onRenew: () => ref.read(paymentActionsProvider).requestCollection(
-            deliveryId: widget.delivery.id,
-            amountAriary: _amount,
-          ),
+          onRenew: () => ref
+              .read(paymentActionsProvider)
+              .requestCollection(
+                deliveryId: widget.delivery.id,
+                amountAriary: _amount,
+              ),
         ),
       ),
     );
@@ -160,11 +161,7 @@ class _PaymentScreenState extends ConsumerState<PaymentScreen> {
               title: Text(l10n.payBalance),
               subtitle: Text(balance.valueOrNull?.accountRef ?? ''),
               trailing: balance.isLoading
-                  ? const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
+                  ? const McLoader.small()
                   : Text(
                       balance.valueOrNull == null
                           ? l10n.payBalanceUnavailable

@@ -157,8 +157,11 @@ class _ScannerError extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.no_photography_outlined,
-                color: Colors.white, size: 48),
+            const Icon(
+              Icons.no_photography_outlined,
+              color: Colors.white,
+              size: 48,
+            ),
             const SizedBox(height: AppSpacing.md),
             Text(
               message,

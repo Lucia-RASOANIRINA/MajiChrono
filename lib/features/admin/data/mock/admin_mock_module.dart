@@ -17,10 +17,8 @@ import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 ///  - aucune reaffectation vers un livreur indisponible (EXI-A07) ;
 ///  - aucune reouverture d'un litige deja tranche (EXI-A05).
 class AdminMockModule extends MockModule {
-  AdminMockModule({
-    required this._deliveries,
-    Random? random,
-  }) : _random = random ?? Random(2026);
+  AdminMockModule({required this._deliveries, Random? random})
+    : _random = random ?? Random(2026);
 
   final Map<String, Map<String, dynamic>> Function() _deliveries;
   final Random _random;
@@ -61,7 +59,10 @@ class AdminMockModule extends MockModule {
 
   // --- Tableau de bord (EXI-A01) ---------------------------------------
 
-  Future<MockResponse> _dashboard(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _dashboard(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final all = _deliveries().values.toList();
 
     final byStatus = <String, int>{};
@@ -83,19 +84,28 @@ class AdminMockModule extends MockModule {
     return MockResponse.ok({
       'activeDeliveries': active,
       'onlineDrivers': _fleet.values
-          .where((d) => d['status'] == FleetStatus.available.wireName ||
-              d['status'] == FleetStatus.busy.wireName)
+          .where(
+            (d) =>
+                d['status'] == FleetStatus.available.wireName ||
+                d['status'] == FleetStatus.busy.wireName,
+          )
           .length,
       'openIncidents': all
-          .where((d) =>
-              DeliveryStatus.fromWire(d['status'] as String?) ==
-              DeliveryStatus.refused)
+          .where(
+            (d) =>
+                DeliveryStatus.fromWire(d['status'] as String?) ==
+                DeliveryStatus.refused,
+          )
           .length,
       'openDisputes': _disputes.values
-          .where((d) => !DisputeStatus.fromWire(d['status'] as String?).isClosed)
+          .where(
+            (d) => !DisputeStatus.fromWire(d['status'] as String?).isClosed,
+          )
           .length,
       'pendingKyc': _kyc.values
-          .where((k) => k['status'] == 'submitted' || k['status'] == 'under_review')
+          .where(
+            (k) => k['status'] == 'submitted' || k['status'] == 'under_review',
+          )
           .length,
       'revenueToday': revenue,
       'byStatus': byStatus,
@@ -104,7 +114,10 @@ class AdminMockModule extends MockModule {
 
   // --- Flotte (EXI-A02) -------------------------------------------------
 
-  Future<MockResponse> _fleetList(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _fleetList(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final wanted = req.query['status'];
     final items = _fleet.values
         .where((d) => wanted == null || d['status'] == wanted)
@@ -116,17 +129,23 @@ class AdminMockModule extends MockModule {
 
   Future<MockResponse> _kycQueue(MockRequest req, Map<String, String> _) async {
     final wanted = req.query['status'];
-    final items = _kyc.values
-        .where((k) => wanted == null || k['status'] == wanted)
-        .toList()
-      // Le plus ancien depot d'abord : une file de validation qui servirait les
-      // derniers arrives laisserait un dossier attendre indefiniment.
-      ..sort((a, b) => '${a['submittedAt']}'.compareTo('${b['submittedAt']}'));
+    final items =
+        _kyc.values
+            .where((k) => wanted == null || k['status'] == wanted)
+            .toList()
+          // Le plus ancien depot d'abord : une file de validation qui servirait les
+          // derniers arrives laisserait un dossier attendre indefiniment.
+          ..sort(
+            (a, b) => '${a['submittedAt']}'.compareTo('${b['submittedAt']}'),
+          );
 
     return MockResponse.ok({'items': items});
   }
 
-  Future<MockResponse> _kycReview(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _kycReview(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final application = _kyc[params['id']];
     if (application == null) {
       return MockResponse.error(404, 'not_found', 'Dossier inconnu');
@@ -177,7 +196,10 @@ class AdminMockModule extends MockModule {
 
   // --- Suspension de compte (EXI-A06) -----------------------------------
 
-  Future<MockResponse> _suspension(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _suspension(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final driver = _fleet[params['id']];
     if (driver == null) {
       return MockResponse.error(404, 'not_found', 'Livreur inconnu');
@@ -206,8 +228,9 @@ class AdminMockModule extends MockModule {
       );
     }
 
-    driver['status'] =
-        suspend ? FleetStatus.suspended.wireName : FleetStatus.offline.wireName;
+    driver['status'] = suspend
+        ? FleetStatus.suspended.wireName
+        : FleetStatus.offline.wireName;
     driver['suspensionReason'] = suspend ? reason : null;
 
     return MockResponse.ok(driver);
@@ -215,7 +238,10 @@ class AdminMockModule extends MockModule {
 
   // --- Reaffectation d'une course (EXI-A07) -----------------------------
 
-  Future<MockResponse> _reassign(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _reassign(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final delivery = _deliveries()[params['id']];
     if (delivery == null) {
       return MockResponse.error(404, 'not_found', 'Course inconnue');
@@ -264,16 +290,23 @@ class AdminMockModule extends MockModule {
 
   // --- Litiges (EXI-A05) ------------------------------------------------
 
-  Future<MockResponse> _disputeList(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _disputeList(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final wanted = req.query['status'];
-    final items = _disputes.values
-        .where((d) => wanted == null || d['status'] == wanted)
-        .toList()
-      ..sort((a, b) => '${b['openedAt']}'.compareTo('${a['openedAt']}'));
+    final items =
+        _disputes.values
+            .where((d) => wanted == null || d['status'] == wanted)
+            .toList()
+          ..sort((a, b) => '${b['openedAt']}'.compareTo('${a['openedAt']}'));
     return MockResponse.ok({'items': items});
   }
 
-  Future<MockResponse> _disputeRead(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _disputeRead(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final dispute = _disputes[params['id']];
     if (dispute == null) {
       return MockResponse.error(404, 'not_found', 'Litige inconnu');
@@ -390,9 +423,9 @@ class AdminMockModule extends MockModule {
           'lastSeenAt': status == FleetStatus.offline
               ? null
               : now
-                  .subtract(Duration(minutes: _random.nextInt(14)))
-                  .toUtc()
-                  .toIso8601String(),
+                    .subtract(Duration(minutes: _random.nextInt(14)))
+                    .toUtc()
+                    .toIso8601String(),
           // Un livreur « occupe » porte la course qui l'occupe : sans cela le
           // jeu d'essai se contredirait lui-meme, et la regle qui interdit de
           // suspendre un livreur en course ne serait jamais exercee.
@@ -423,8 +456,10 @@ class AdminMockModule extends MockModule {
         'driverId': 'drv_6',
         'displayName': 'Miora Andrianasolo',
         'status': 'submitted',
-        'submittedAt':
-            now.subtract(const Duration(hours: 30)).toUtc().toIso8601String(),
+        'submittedAt': now
+            .subtract(const Duration(hours: 30))
+            .toUtc()
+            .toIso8601String(),
         'documents': [
           for (final code in documents)
             {'code': code, 'provided': true, 'uploadId': 'up_$code'},
@@ -435,8 +470,10 @@ class AdminMockModule extends MockModule {
         'driverId': 'drv_7',
         'displayName': 'Toky Rabemananjara',
         'status': 'submitted',
-        'submittedAt':
-            now.subtract(const Duration(hours: 5)).toUtc().toIso8601String(),
+        'submittedAt': now
+            .subtract(const Duration(hours: 5))
+            .toUtc()
+            .toIso8601String(),
         'documents': [
           for (final code in documents)
             {
@@ -457,8 +494,10 @@ class AdminMockModule extends MockModule {
         'id': 'dsp_1',
         'deliveryId': 'dlv_1',
         'status': DisputeStatus.open.wireName,
-        'openedAt':
-            now.subtract(const Duration(hours: 6)).toUtc().toIso8601String(),
+        'openedAt': now
+            .subtract(const Duration(hours: 6))
+            .toUtc()
+            .toIso8601String(),
         // Un litige ne dit jamais « probleme » : il reprend le motif du constat,
         // mot pour mot, parce que c'est ce motif qui sera relu en cas de
         // contestation.

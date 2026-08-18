@@ -52,7 +52,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
     if (!online) return;
 
     final profile =
-        ref.read(networkStatusProvider).valueOrNull?.profile ?? NetworkProfile.threeG;
+        ref.read(networkStatusProvider).valueOrNull?.profile ??
+        NetworkProfile.threeG;
     final interval = profile.trackingRefreshInterval > _acceptanceWindow
         ? profile.trackingRefreshInterval
         : _acceptanceWindow;
@@ -114,8 +115,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             const _OnlineSwitch(),
             const SizedBox(height: AppSpacing.lg),
             if (active != null) ...[
-              Text(l10n.driverActiveDelivery,
-                  style: Theme.of(context).textTheme.titleMedium),
+              Text(
+                l10n.driverActiveDelivery,
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
               const SizedBox(height: AppSpacing.sm),
               Card(
                 child: InkWell(
@@ -127,8 +130,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                       children: [
                         StatusBadge(status: active.status),
                         const SizedBox(height: AppSpacing.sm),
-                        Text(active.dropoff.summary,
-                            style: Theme.of(context).textTheme.bodyLarge),
+                        Text(
+                          active.dropoff.summary,
+                          style: Theme.of(context).textTheme.bodyLarge,
+                        ),
                       ],
                     ),
                   ),
@@ -136,8 +141,10 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
               ),
               const SizedBox(height: AppSpacing.lg),
             ],
-            Text(l10n.driverAvailable,
-                style: Theme.of(context).textTheme.titleMedium),
+            Text(
+              l10n.driverAvailable,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
             const SizedBox(height: AppSpacing.sm),
             if (!online)
               SizedBox(
@@ -211,15 +218,15 @@ class _OnlineSwitch extends ConsumerWidget {
             ref.read(driverOnlineProvider.notifier).set(online: value),
         secondary: Icon(
           online ? Icons.wifi_tethering : Icons.wifi_tethering_off,
-          color: online ? AppColors.success : theme.colorScheme.onSurfaceVariant,
+          color: online
+              ? AppColors.success
+              : theme.colorScheme.onSurfaceVariant,
         ),
         title: Text(
           online ? l10n.driverOnline : l10n.driverOffline,
           style: theme.textTheme.titleMedium,
         ),
-        subtitle: Text(
-          online ? l10n.driverOnlineHelp : l10n.driverOfflineHelp,
-        ),
+        subtitle: Text(online ? l10n.driverOnlineHelp : l10n.driverOfflineHelp),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.sm,

@@ -45,21 +45,25 @@ class EmergencyActions {
     AppLogger.instance.warn('emergency_raised', data: {'kind': kind.wireName});
 
     try {
-      await _ref.read(apiClientProvider).post<Map<String, dynamic>>(
-        ApiEndpoints.emergency,
-        body: alert.toJson(),
-        idempotencyKey: alert.id,
-      );
+      await _ref
+          .read(apiClientProvider)
+          .post<Map<String, dynamic>>(
+            ApiEndpoints.emergency,
+            body: alert.toJson(),
+            idempotencyKey: alert.id,
+          );
       return alert;
     } on Failure {
       // Le reseau a lache : l'alerte part en file, au rang des preuves.
-      await _ref.read(syncQueueProvider).enqueue(
-        method: 'POST',
-        path: ApiEndpoints.emergency,
-        idempotencyKey: alert.id,
-        body: alert.toJson(),
-        priority: SyncPriority.custody,
-      );
+      await _ref
+          .read(syncQueueProvider)
+          .enqueue(
+            method: 'POST',
+            path: ApiEndpoints.emergency,
+            idempotencyKey: alert.id,
+            body: alert.toJson(),
+            priority: SyncPriority.custody,
+          );
       return alert;
     }
   }

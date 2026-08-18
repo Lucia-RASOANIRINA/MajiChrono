@@ -242,6 +242,48 @@ abstract class AppLocalizations {
   /// **'Synchronisation en cours...'**
   String get networkSyncing;
 
+  /// No description provided for @welcomeTagline.
+  ///
+  /// In fr, this message translates to:
+  /// **'Delivrer la confiance, partout, instantanement.'**
+  String get welcomeTagline;
+
+  /// No description provided for @welcomeStart.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commencer'**
+  String get welcomeStart;
+
+  /// No description provided for @welcomeTrustNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque etape, securisee.'**
+  String get welcomeTrustNote;
+
+  /// No description provided for @welcomePillarSpeed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapidite'**
+  String get welcomePillarSpeed;
+
+  /// No description provided for @welcomePillarSender.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expediteur'**
+  String get welcomePillarSender;
+
+  /// No description provided for @welcomePillarDriver.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur'**
+  String get welcomePillarDriver;
+
+  /// No description provided for @welcomePillarTrust.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiance'**
+  String get welcomePillarTrust;
+
   /// No description provided for @authPhoneTitle.
   ///
   /// In fr, this message translates to:
@@ -325,6 +367,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Code simule : {code}'**
   String authOtpSimulated(String code);
+
+  /// No description provided for @authOrSeparator.
+  ///
+  /// In fr, this message translates to:
+  /// **'ou'**
+  String get authOrSeparator;
+
+  /// No description provided for @authGoogleContinue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer avec Google'**
+  String get authGoogleContinue;
+
+  /// No description provided for @authGoogleSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un compte'**
+  String get authGoogleSheetTitle;
+
+  /// No description provided for @authGoogleSheetSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nous envoyons un code de verification dans cette boite mail.'**
+  String get authGoogleSheetSubtitle;
+
+  /// No description provided for @authGoogleOtherAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une autre adresse'**
+  String get authGoogleOtherAccount;
+
+  /// No description provided for @authGoogleOtherAccountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get authGoogleOtherAccountLabel;
+
+  /// No description provided for @authGoogleEmailInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail invalide'**
+  String get authGoogleEmailInvalid;
+
+  /// No description provided for @authEmailCodeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code par e-mail'**
+  String get authEmailCodeTitle;
+
+  /// No description provided for @authEmailCodeSentTo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code envoye a {email}'**
+  String authEmailCodeSentTo(String email);
+
+  /// No description provided for @authEmailCodeHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regardez aussi le dossier indesirables.'**
+  String get authEmailCodeHint;
+
+  /// No description provided for @authEmailUnlinkedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse verifiee'**
+  String get authEmailUnlinkedTitle;
+
+  /// No description provided for @authEmailUnlinkedBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun compte MajiChrono n\'est encore rattache a {email}. Confirmez votre numero de telephone : il reste la cle de votre compte, et nous rattacherons cette adresse ensuite.'**
+  String authEmailUnlinkedBody(String email);
+
+  /// No description provided for @authEmailUnlinkedAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer avec mon numero'**
+  String get authEmailUnlinkedAction;
+
+  /// No description provided for @authEmailLinked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse rattachee a votre compte'**
+  String get authEmailLinked;
 
   /// No description provided for @authProfileTitle.
   ///
@@ -1154,11 +1280,17 @@ abstract class AppLocalizations {
   /// **'SC-4821'**
   String get custodySealHint;
 
-  /// No description provided for @custodySealScanLater.
+  /// No description provided for @custodySealScan.
   ///
   /// In fr, this message translates to:
-  /// **'Le scan de code arrive au module 10.'**
-  String get custodySealScanLater;
+  /// **'Scanner le scelle'**
+  String get custodySealScan;
+
+  /// No description provided for @custodySealScanHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cadrez le code-barres du scelle. Vous pourrez corriger le numero.'**
+  String get custodySealScanHelp;
 
   /// No description provided for @custodySealCheck.
   ///
@@ -2533,6 +2665,42 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Relance demandee'**
   String get syncRetryQueued;
+
+  /// No description provided for @traitFragile.
+  ///
+  /// In fr, this message translates to:
+  /// **'Fragile'**
+  String get traitFragile;
+
+  /// No description provided for @traitHeavy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lourd'**
+  String get traitHeavy;
+
+  /// No description provided for @traitValuable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Precieux'**
+  String get traitValuable;
+
+  /// No description provided for @traitFood.
+  ///
+  /// In fr, this message translates to:
+  /// **'Alimentaire'**
+  String get traitFood;
+
+  /// No description provided for @traitDocument.
+  ///
+  /// In fr, this message translates to:
+  /// **'Document'**
+  String get traitDocument;
+
+  /// No description provided for @traitShopping.
+  ///
+  /// In fr, this message translates to:
+  /// **'Achat'**
+  String get traitShopping;
 
   /// No description provided for @driverOnline.
   ///

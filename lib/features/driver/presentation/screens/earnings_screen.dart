@@ -53,8 +53,9 @@ class EarningsScreen extends ConsumerWidget {
                       const SizedBox(height: AppSpacing.xs),
                       Text(
                         formatAriary(summary.todayAriary),
-                        style: theme.textTheme.displaySmall
-                            ?.copyWith(color: AppColors.success),
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          color: AppColors.success,
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
                       Text(
@@ -88,8 +89,9 @@ class EarningsScreen extends ConsumerWidget {
               const SizedBox(height: AppSpacing.md),
               Text(
                 l10n.earningsCommission,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
               const SizedBox(height: AppSpacing.lg),
               if (summary.entries.isEmpty)
@@ -109,8 +111,10 @@ class EarningsScreen extends ConsumerWidget {
                     children: [
                       for (final entry in summary.entries) ...[
                         ListTile(
-                          leading: const Icon(Icons.check_circle_outline,
-                              color: AppColors.success),
+                          leading: const Icon(
+                            Icons.check_circle_outline,
+                            color: AppColors.success,
+                          ),
                           title: Text(entry.label),
                           subtitle: Text(
                             '${entry.at.hour.toString().padLeft(2, '0')}:'
@@ -118,8 +122,9 @@ class EarningsScreen extends ConsumerWidget {
                           ),
                           trailing: Text(
                             formatAriary(entry.amountAriary),
-                            style: theme.textTheme.bodyLarge
-                                ?.copyWith(fontWeight: FontWeight.w600),
+                            style: theme.textTheme.bodyLarge?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                         if (entry != summary.entries.last)
@@ -153,8 +158,9 @@ class _Tile extends StatelessWidget {
           children: [
             Text(
               label,
-              style: theme.textTheme.bodyMedium
-                  ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
             ),
             const SizedBox(height: AppSpacing.xs),
             Text(formatAriary(amount), style: theme.textTheme.titleLarge),

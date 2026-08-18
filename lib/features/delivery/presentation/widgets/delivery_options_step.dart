@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
@@ -65,7 +66,12 @@ class DeliveryOptionsStep extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: AppSpacing.md),
-          _ShoppingSection(items: items, cap: cap, storeHint: storeHint, onItems: onItems),
+          _ShoppingSection(
+            items: items,
+            cap: cap,
+            storeHint: storeHint,
+            onItems: onItems,
+          ),
           const SizedBox(height: AppSpacing.xl),
         ],
 
@@ -97,7 +103,11 @@ class DeliveryOptionsStep extends ConsumerWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Icon(Icons.info_outline, size: 18, color: AppColors.warning),
+              const Icon(
+                Icons.info_outline,
+                size: 18,
+                color: AppColors.warning,
+              ),
               const SizedBox(width: AppSpacing.sm),
               Expanded(
                 child: Text(
@@ -189,8 +199,10 @@ class _ShoppingSectionState extends State<_ShoppingSection> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    final estimated =
-        widget.items.fold<int>(0, (sum, i) => sum + i.estimatedTotalAriary);
+    final estimated = widget.items.fold<int>(
+      0,
+      (sum, i) => sum + i.estimatedTotalAriary,
+    );
     final cap = int.tryParse(widget.cap.text.replaceAll(' ', '')) ?? 0;
     final capInRange =
         cap >= ShoppingOrder.minCapAriary && cap <= ShoppingOrder.maxCapAriary;
@@ -216,7 +228,9 @@ class _ShoppingSectionState extends State<_ShoppingSection> {
               margin: const EdgeInsets.only(bottom: AppSpacing.sm),
               child: ListTile(
                 dense: true,
-                title: Text('${widget.items[i].quantity} × ${widget.items[i].label}'),
+                title: Text(
+                  '${widget.items[i].quantity} × ${widget.items[i].label}',
+                ),
                 subtitle: widget.items[i].substitutable
                     ? Text(l10n.shoppingSubstitutable)
                     : null,
@@ -227,9 +241,8 @@ class _ShoppingSectionState extends State<_ShoppingSection> {
                       Text(formatAriary(widget.items[i].estimatedTotalAriary)),
                     IconButton(
                       icon: const Icon(Icons.close),
-                      onPressed: () => widget.onItems(
-                        [...widget.items]..removeAt(i),
-                      ),
+                      onPressed: () =>
+                          widget.onItems([...widget.items]..removeAt(i)),
                     ),
                   ],
                 ),
@@ -320,8 +333,11 @@ class _ShoppingSectionState extends State<_ShoppingSection> {
             padding: const EdgeInsets.only(top: AppSpacing.sm),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber_outlined,
-                    size: 18, color: AppColors.warning),
+                const Icon(
+                  Icons.warning_amber_outlined,
+                  size: 18,
+                  color: AppColors.warning,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
@@ -369,7 +385,7 @@ class _RelaySection extends ConsumerWidget {
     final relays = ref.watch(relayPointsProvider(null));
 
     return relays.when(
-      loading: () => const Center(child: CircularProgressIndicator()),
+      loading: () => const Center(child: McLoader()),
       // Un reseau de relais indisponible n'empeche pas de commander : la
       // livraison a l'adresse reste le defaut.
       error: (_, _) => Text(l10n.relayNone),

@@ -14,11 +14,7 @@ import 'package:majichrono/l10n/app_localizations.dart';
 /// l'utilisateur a remplir le champ le moins utile et a bacler celui dont le
 /// livreur a reellement besoin (§4.3).
 class AddressForm extends StatefulWidget {
-  const AddressForm({
-    required this.onChanged,
-    this.initial,
-    super.key,
-  });
+  const AddressForm({required this.onChanged, this.initial, super.key});
 
   /// Emet l'adresse des qu'elle est complete, `null` sinon.
   final ValueChanged<Address?> onChanged;
@@ -29,17 +25,21 @@ class AddressForm extends StatefulWidget {
 }
 
 class _AddressFormState extends State<AddressForm> {
-  late final TextEditingController _district =
-      TextEditingController(text: widget.initial?.district);
-  late final TextEditingController _landmark =
-      TextEditingController(text: widget.initial?.landmark);
+  late final TextEditingController _district = TextEditingController(
+    text: widget.initial?.district,
+  );
+  late final TextEditingController _landmark = TextEditingController(
+    text: widget.initial?.landmark,
+  );
   late final TextEditingController _phone = TextEditingController(
     text: widget.initial?.contactPhone.displayNational,
   );
-  late final TextEditingController _name =
-      TextEditingController(text: widget.initial?.contactName);
-  late final TextEditingController _street =
-      TextEditingController(text: widget.initial?.street);
+  late final TextEditingController _name = TextEditingController(
+    text: widget.initial?.contactName,
+  );
+  late final TextEditingController _street = TextEditingController(
+    text: widget.initial?.street,
+  );
 
   bool _showErrors = false;
 
@@ -50,9 +50,7 @@ class _AddressFormState extends State<AddressForm> {
 
   Future<void> _pickPoint() async {
     final picked = await Navigator.of(context).push<GeoPoint>(
-      MaterialPageRoute(
-        builder: (_) => PickLocationScreen(initial: _point),
-      ),
+      MaterialPageRoute(builder: (_) => PickLocationScreen(initial: _point)),
     );
     if (picked == null) return;
     setState(() {
@@ -102,14 +100,18 @@ class _AddressFormState extends State<AddressForm> {
         _phone.text.isNotEmpty && MalagasyPhone.tryParse(_phone.text) == null;
 
     String? requiredError(TextEditingController controller) =>
-        _showErrors && controller.text.trim().isEmpty ? l10n.addrRequired : null;
+        _showErrors && controller.text.trim().isEmpty
+        ? l10n.addrRequired
+        : null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         OutlinedButton.icon(
           onPressed: _pickPoint,
-          icon: Icon(_pointPicked ? Icons.check_circle_outline : Icons.map_outlined),
+          icon: Icon(
+            _pointPicked ? Icons.check_circle_outline : Icons.map_outlined,
+          ),
           label: Text(
             _pointPicked ? l10n.pickLocationSet : l10n.pickLocationAction,
           ),
@@ -118,8 +120,8 @@ class _AddressFormState extends State<AddressForm> {
         Text(
           l10n.pickLocationHelp,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Theme.of(context).colorScheme.onSurfaceVariant,
-              ),
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
         ),
         const SizedBox(height: AppSpacing.lg),
         TextField(
@@ -158,7 +160,9 @@ class _AddressFormState extends State<AddressForm> {
             prefixIcon: const Icon(Icons.phone_outlined),
             errorText: phoneInvalid
                 ? l10n.authPhoneInvalid
-                : (_showErrors && _phone.text.isEmpty ? l10n.addrRequired : null),
+                : (_showErrors && _phone.text.isEmpty
+                      ? l10n.addrRequired
+                      : null),
           ),
           onChanged: (_) => _notify(),
         ),

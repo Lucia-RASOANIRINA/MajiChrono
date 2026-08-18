@@ -18,8 +18,9 @@ class MockRequest {
   final Map<String, String> headers;
   final Object? body;
 
-  Map<String, dynamic> get json =>
-      body is Map<String, dynamic> ? body! as Map<String, dynamic> : <String, dynamic>{};
+  Map<String, dynamic> get json => body is Map<String, dynamic>
+      ? body! as Map<String, dynamic>
+      : <String, dynamic>{};
 
   String? get idempotencyKey => headers['idempotency-key'];
   String? get bearer {
@@ -53,11 +54,15 @@ class MockResponse {
   final Object? body;
   final Map<String, List<String>> headers;
 
-  List<int> get bytes => body == null ? const <int>[] : utf8.encode(jsonEncode(body));
+  List<int> get bytes =>
+      body == null ? const <int>[] : utf8.encode(jsonEncode(body));
 }
 
 typedef MockHandler =
-    Future<MockResponse> Function(MockRequest request, Map<String, String> pathParams);
+    Future<MockResponse> Function(
+      MockRequest request,
+      Map<String, String> pathParams,
+    );
 
 /// Une route simulee : methode + gabarit de chemin (`/deliveries/{id}/accept`).
 class MockRoute {

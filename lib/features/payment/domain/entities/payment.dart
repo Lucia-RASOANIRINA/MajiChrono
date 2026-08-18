@@ -85,7 +85,8 @@ enum PaymentStatus {
       this == PaymentStatus.cash;
 
   /// La course peut-elle etre reglee comme payee ?
-  bool get settles => this == PaymentStatus.captured || this == PaymentStatus.cash;
+  bool get settles =>
+      this == PaymentStatus.captured || this == PaymentStatus.cash;
 }
 
 /// Motif d'echec, montre tel quel a l'utilisateur.
@@ -141,7 +142,8 @@ class MajiPayBalance {
       availableAriary: (json['available'] as num?)?.toInt() ?? 0,
       accountRef: '${json['accountRef'] ?? ''}',
       fetchedAt:
-          DateTime.tryParse('${json['fetchedAt']}')?.toLocal() ?? DateTime.now(),
+          DateTime.tryParse('${json['fetchedAt']}')?.toLocal() ??
+          DateTime.now(),
     );
   }
 }
@@ -213,7 +215,8 @@ class PaymentIntent {
       direction: PaymentDirection.fromWire(json['direction'] as String?),
       status: PaymentStatus.fromWire(json['status'] as String?),
       createdAt:
-          DateTime.tryParse('${json['createdAt']}')?.toLocal() ?? DateTime.now(),
+          DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+          DateTime.now(),
       expiresAt:
           DateTime.tryParse('${json['expiresAt']}')?.toLocal() ??
           DateTime.now().add(PaymentQr.lifetime),

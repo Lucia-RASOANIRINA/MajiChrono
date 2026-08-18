@@ -21,7 +21,8 @@ class McSkeleton extends StatefulWidget {
   State<McSkeleton> createState() => _McSkeletonState();
 }
 
-class _McSkeletonState extends State<McSkeleton> with SingleTickerProviderStateMixin {
+class _McSkeletonState extends State<McSkeleton>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller = AnimationController(
     vsync: this,
     duration: const Duration(milliseconds: 1100),

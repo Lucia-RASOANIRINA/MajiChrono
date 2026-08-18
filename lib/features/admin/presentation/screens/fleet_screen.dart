@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -153,10 +154,9 @@ class _DriverTileState extends ConsumerState<_DriverTile> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      await ref.read(adminActionsProvider).setSuspension(
-        driverId: widget.driver.id,
-        decision: decision,
-      );
+      await ref
+          .read(adminActionsProvider)
+          .setSuspension(driverId: widget.driver.id, decision: decision);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminActionDone)));
     } on Failure catch (failure) {
       messenger.showSnackBar(
@@ -217,11 +217,7 @@ class _DriverTileState extends ConsumerState<_DriverTile> {
                   ),
                 ),
                 if (_busy)
-                  const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                  const McLoader.small()
                 else
                   IconButton(
                     tooltip: driver.status == FleetStatus.suspended
@@ -246,7 +242,11 @@ class _DriverTileState extends ConsumerState<_DriverTile> {
               const SizedBox(height: AppSpacing.sm),
               Row(
                 children: [
-                  const Icon(Icons.schedule, size: 16, color: AppColors.warning),
+                  const Icon(
+                    Icons.schedule,
+                    size: 16,
+                    color: AppColors.warning,
+                  ),
                   const SizedBox(width: AppSpacing.sm),
                   Text(l10n.adminFleetStale, style: theme.textTheme.bodyMedium),
                 ],

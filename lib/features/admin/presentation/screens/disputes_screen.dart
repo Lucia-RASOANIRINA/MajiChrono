@@ -146,10 +146,9 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
     if (body.isEmpty) return;
 
     await _run(() async {
-      await ref.read(adminActionsProvider).reply(
-        disputeId: widget.id,
-        body: body,
-      );
+      await ref
+          .read(adminActionsProvider)
+          .reply(disputeId: widget.id, body: body);
       _message.clear();
     });
   }
@@ -163,7 +162,9 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
           ? ModerationAction.resolveDispute
           : ModerationAction.rejectDispute,
       title: resolve ? l10n.adminDisputeResolve : l10n.adminDisputeDismiss,
-      actionLabel: resolve ? l10n.adminDisputeResolve : l10n.adminDisputeDismiss,
+      actionLabel: resolve
+          ? l10n.adminDisputeResolve
+          : l10n.adminDisputeDismiss,
       help: resolve
           ? l10n.adminDisputeResolveHelp
           : l10n.adminDisputeDismissHelp,
@@ -222,8 +223,10 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
                             ),
                           ),
                           const SizedBox(height: AppSpacing.sm),
-                          Text(l10n.adminDisputeReason,
-                              style: theme.textTheme.bodyMedium),
+                          Text(
+                            l10n.adminDisputeReason,
+                            style: theme.textTheme.bodyMedium,
+                          ),
                           Text(data.reason, style: theme.textTheme.bodyLarge),
                         ],
                       ),
@@ -328,16 +331,18 @@ class _DisputeDetailScreenState extends ConsumerState<DisputeDetailScreen> {
                             children: [
                               Expanded(
                                 child: OutlinedButton(
-                                  onPressed:
-                                      _busy ? null : () => _decide(resolve: false),
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _decide(resolve: false),
                                   child: Text(l10n.adminDisputeDismiss),
                                 ),
                               ),
                               const SizedBox(width: AppSpacing.md),
                               Expanded(
                                 child: FilledButton(
-                                  onPressed:
-                                      _busy ? null : () => _decide(resolve: true),
+                                  onPressed: _busy
+                                      ? null
+                                      : () => _decide(resolve: true),
                                   child: Text(l10n.adminDisputeResolve),
                                 ),
                               ),

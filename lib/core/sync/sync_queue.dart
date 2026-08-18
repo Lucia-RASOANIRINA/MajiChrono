@@ -48,7 +48,6 @@ class SyncQueue {
       attempts: 0,
       createdAt: now ?? DateTime.now(),
       neverAbandon: priority.neverAbandon,
-
     );
 
     await _db.into(_db.syncQueueItems).insert(_toCompanion(item));
@@ -64,12 +63,17 @@ class SyncQueue {
     final at = now ?? DateTime.now();
 
     final query = _db.select(_db.syncQueueItems)
-      ..where((t) => t.status.isNotIn([
-            SyncItemStatus.abandoned.wireName,
-            SyncItemStatus.inFlight.wireName,
-          ]))
-      ..where((t) =>
-          t.nextAttemptAt.isNull() | t.nextAttemptAt.isSmallerOrEqualValue(at))
+      ..where(
+        (t) => t.status.isNotIn([
+          SyncItemStatus.abandoned.wireName,
+          SyncItemStatus.inFlight.wireName,
+        ]),
+      )
+      ..where(
+        (t) =>
+            t.nextAttemptAt.isNull() |
+            t.nextAttemptAt.isSmallerOrEqualValue(at),
+      )
       ..orderBy([
         (t) => OrderingTerm(expression: t.priority),
         (t) => OrderingTerm(expression: t.createdAt),
@@ -90,10 +94,11 @@ class SyncQueue {
   }
 
   Future<SyncItem?> byIdempotencyKey(String key) async {
-    final row = await (_db.select(_db.syncQueueItems)
-          ..where((t) => t.idempotencyKey.equals(key))
-          ..limit(1))
-        .getSingleOrNull();
+    final row =
+        await (_db.select(_db.syncQueueItems)
+              ..where((t) => t.idempotencyKey.equals(key))
+              ..limit(1))
+            .getSingleOrNull();
     return row == null ? null : _toItem(row);
   }
 
@@ -101,9 +106,7 @@ class SyncQueue {
   /// l'ordonnanceur ne le rejoue pas en parallele.
   Future<void> markInFlight(String id) async {
     await (_db.update(_db.syncQueueItems)..where((t) => t.id.equals(id))).write(
-      SyncQueueItemsCompanion(
-        status: Value(SyncItemStatus.inFlight.wireName),
-      ),
+      SyncQueueItemsCompanion(status: Value(SyncItemStatus.inFlight.wireName)),
     );
   }
 
@@ -134,15 +137,20 @@ class SyncQueue {
     // jusqu'a ce qu'un humain tranche (EXI-S05).
     final stop = (!retryable || exhausted) && !item.neverAbandon;
 
-    await (_db.update(_db.syncQueueItems)..where((t) => t.id.equals(item.id)))
-        .write(
+    await (_db.update(
+      _db.syncQueueItems,
+    )..where((t) => t.id.equals(item.id))).write(
       SyncQueueItemsCompanion(
         attempts: Value(attempts),
         status: Value(
-          stop ? SyncItemStatus.abandoned.wireName : SyncItemStatus.failed.wireName,
+          stop
+              ? SyncItemStatus.abandoned.wireName
+              : SyncItemStatus.failed.wireName,
         ),
         lastError: Value(
-          exhausted && retryable ? SyncFailureCause.exhausted.wireName : cause.wireName,
+          exhausted && retryable
+              ? SyncFailureCause.exhausted.wireName
+              : cause.wireName,
         ),
         nextAttemptAt: Value(stop ? null : at.add(retryIn ?? Duration.zero)),
       ),
@@ -167,7 +175,9 @@ class SyncQueue {
   }
 
   Future<void> retryAll() async {
-    await _db.update(_db.syncQueueItems).write(
+    await _db
+        .update(_db.syncQueueItems)
+        .write(
           SyncQueueItemsCompanion(
             status: Value(SyncItemStatus.pending.wireName),
             attempts: Value(0),
@@ -185,9 +195,9 @@ class SyncQueue {
   /// pas de doublon cote serveur (EXI-S01) : reprendre est sans danger, ne pas
   /// reprendre perdrait l'element.
   Future<void> recoverInFlight() async {
-    await (_db.update(_db.syncQueueItems)
-          ..where((t) => t.status.equals(SyncItemStatus.inFlight.wireName)))
-        .write(
+    await (_db.update(
+      _db.syncQueueItems,
+    )..where((t) => t.status.equals(SyncItemStatus.inFlight.wireName))).write(
       SyncQueueItemsCompanion(
         status: Value(SyncItemStatus.pending.wireName),
         nextAttemptAt: Value(null),

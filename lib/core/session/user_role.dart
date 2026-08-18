@@ -23,8 +23,8 @@ enum UserRole {
   }
 
   IconData get icon => switch (this) {
-        UserRole.client => Icons.local_shipping_outlined,
-        UserRole.driver => Icons.two_wheeler_outlined,
-        UserRole.admin => Icons.admin_panel_settings_outlined,
-      };
+    UserRole.client => Icons.local_shipping_outlined,
+    UserRole.driver => Icons.two_wheeler_outlined,
+    UserRole.admin => Icons.admin_panel_settings_outlined,
+  };
 }

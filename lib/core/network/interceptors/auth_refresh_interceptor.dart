@@ -17,10 +17,7 @@ import 'package:majichrono/core/network/api_endpoints.dart';
 ///    ecriture apres expiration produirait un second traitement — exactement le
 ///    double debit qu'interdit EXI-MP06.
 class AuthRefreshInterceptor extends QueuedInterceptor {
-  AuthRefreshInterceptor({
-    required this._onRefresh,
-    required this._dio,
-  });
+  AuthRefreshInterceptor({required this._onRefresh, required this._dio});
 
   static const String _retriedFlag = '_authRetried';
 
@@ -28,17 +25,19 @@ class AuthRefreshInterceptor extends QueuedInterceptor {
   final Dio _dio;
 
   @override
-  Future<void> onError(DioException err, ErrorInterceptorHandler handler) async {
+  Future<void> onError(
+    DioException err,
+    ErrorInterceptorHandler handler,
+  ) async {
     final options = err.requestOptions;
     final status = err.response?.statusCode;
 
-    final isAuthRoute = options.path.contains(ApiEndpoints.refresh) ||
+    final isAuthRoute =
+        options.path.contains(ApiEndpoints.refresh) ||
         options.path.contains(ApiEndpoints.otpVerify) ||
         options.path.contains(ApiEndpoints.otpRequest);
 
-    if (status != 401 ||
-        isAuthRoute ||
-        options.extra[_retriedFlag] == true) {
+    if (status != 401 || isAuthRoute || options.extra[_retriedFlag] == true) {
       return handler.next(err);
     }
 

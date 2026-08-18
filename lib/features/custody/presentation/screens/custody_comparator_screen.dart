@@ -62,11 +62,8 @@ class CustodyComparatorScreen extends StatelessWidget {
           PopupMenuButton<CustodyReport>(
             icon: const Icon(Icons.picture_as_pdf_outlined),
             tooltip: l10n.custodyExportPdf,
-            onSelected: (report) => exportCustodyPdf(
-              context,
-              report: report,
-              delivery: delivery,
-            ),
+            onSelected: (report) =>
+                exportCustodyPdf(context, report: report, delivery: delivery),
             itemBuilder: (_) => [
               PopupMenuItem(value: pickup, child: Text(l10n.custodyBefore)),
               if (handover != null)
@@ -133,8 +130,10 @@ class _ChainBanner extends StatelessWidget {
         padding: AppSpacing.card,
         child: Row(
           children: [
-            Icon(intact ? Icons.verified_outlined : Icons.gpp_bad_outlined,
-                color: color),
+            Icon(
+              intact ? Icons.verified_outlined : Icons.gpp_bad_outlined,
+              color: color,
+            ),
             const SizedBox(width: AppSpacing.md),
             Expanded(
               child: Column(
@@ -187,9 +186,13 @@ class _AnglePair extends StatelessWidget {
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Expanded(child: _Side(caption: l10n.custodyBefore, photo: before)),
+            Expanded(
+              child: _Side(caption: l10n.custodyBefore, photo: before),
+            ),
             const SizedBox(width: AppSpacing.md),
-            Expanded(child: _Side(caption: l10n.custodyAfter, photo: after)),
+            Expanded(
+              child: _Side(caption: l10n.custodyAfter, photo: after),
+            ),
           ],
         ),
       ],
@@ -229,15 +232,17 @@ class _Side extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Text(
           caption,
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         if (photo != null)
           Text(
             '${photo!.takenAt.hour.toString().padLeft(2, '0')}:'
             '${photo!.takenAt.minute.toString().padLeft(2, '0')}',
-            style: theme.textTheme.bodyMedium
-                ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
           ),
       ],
     );
@@ -318,10 +323,10 @@ class _Row extends StatelessWidget {
         Expanded(
           child: Text(
             label,
-            style: Theme.of(context)
-                .textTheme
-                .bodyLarge
-                ?.copyWith(color: color, fontWeight: FontWeight.w600),
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ),
       ],

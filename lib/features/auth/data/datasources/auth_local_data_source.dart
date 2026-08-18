@@ -10,7 +10,7 @@ import 'package:majichrono/core/storage/secure_store.dart';
 /// code PIN, et jusqu'au compte en cache, qui contient un numero de telephone.
 class AuthLocalDataSource {
   AuthLocalDataSource(this._store, {Random? random})
-      : _random = random ?? Random.secure();
+    : _random = random ?? Random.secure();
 
   static const String _keyAccount = 'auth.account';
   static const String _keyPinAttempts = 'auth.pin_attempts';
@@ -53,7 +53,8 @@ class AuthLocalDataSource {
   }
 
   Future<String?> readAccessToken() => _store.read(SecureStore.keyAccessToken);
-  Future<String?> readRefreshToken() => _store.read(SecureStore.keyRefreshToken);
+  Future<String?> readRefreshToken() =>
+      _store.read(SecureStore.keyRefreshToken);
 
   Future<({DateTime access, DateTime refresh})?> readExpiries() async {
     final raw = await _store.read(SecureStore.keyAccessExpiry);

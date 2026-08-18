@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/admin/domain/entities/admin_entities.dart';
@@ -72,7 +73,8 @@ class AdminDeliveriesScreen extends ConsumerWidget {
                 return ListView.builder(
                   padding: const EdgeInsets.all(AppSpacing.lg),
                   itemCount: matching.length,
-                  itemBuilder: (_, i) => _AdminDeliveryCard(delivery: matching[i]),
+                  itemBuilder: (_, i) =>
+                      _AdminDeliveryCard(delivery: matching[i]),
                 );
               },
             ),
@@ -114,9 +116,9 @@ class _FilterBar extends ConsumerWidget {
               prefixIcon: const Icon(Icons.search),
               isDense: true,
             ),
-            onChanged: (value) => ref
-                .read(deliveryFilterProvider.notifier)
-                .state = filter.copyWith(query: value),
+            onChanged: (value) =>
+                ref.read(deliveryFilterProvider.notifier).state = filter
+                    .copyWith(query: value),
           ),
         ),
         SingleChildScrollView(
@@ -134,8 +136,8 @@ class _FilterBar extends ConsumerWidget {
                   onSelected: (on) {
                     final next = {...filter.statuses};
                     on ? next.add(status) : next.remove(status);
-                    ref.read(deliveryFilterProvider.notifier).state =
-                        filter.copyWith(statuses: next);
+                    ref.read(deliveryFilterProvider.notifier).state = filter
+                        .copyWith(statuses: next);
                   },
                 ),
                 const SizedBox(width: AppSpacing.sm),
@@ -171,9 +173,9 @@ class _AdminDeliveryCardState extends ConsumerState<_AdminDeliveryCard> {
     if (!mounted) return;
 
     if (candidates.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(l10n.adminReassignNone)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(l10n.adminReassignNone)));
       return;
     }
 
@@ -214,11 +216,13 @@ class _AdminDeliveryCardState extends ConsumerState<_AdminDeliveryCard> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      await ref.read(adminActionsProvider).reassign(
-        deliveryId: widget.delivery.id,
-        driverId: picked,
-        decision: decision,
-      );
+      await ref
+          .read(adminActionsProvider)
+          .reassign(
+            deliveryId: widget.delivery.id,
+            driverId: picked,
+            decision: decision,
+          );
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminActionDone)));
     } on Failure catch (failure) {
       messenger.showSnackBar(
@@ -271,11 +275,7 @@ class _AdminDeliveryCardState extends ConsumerState<_AdminDeliveryCard> {
                 CustodyProofAction(delivery: delivery),
                 const Spacer(),
                 if (_busy)
-                  const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
+                  const McLoader.small()
                 else if (delivery.status.isActive)
                   TextButton.icon(
                     onPressed: _reassign,

@@ -19,11 +19,8 @@ import 'package:majichrono/features/driver/domain/entities/driver_entities.dart'
 /// Elles sont donc accumulees localement et envoyees par lots de cinquante —
 /// plafond impose par le serveur, qui refuse au-dela (EXI-B06).
 class PositionBuffer {
-  PositionBuffer({
-    required this.db,
-    required this.queue,
-    AppLogger? logger,
-  }) : _logger = logger ?? AppLogger.instance;
+  PositionBuffer({required this.db, required this.queue, AppLogger? logger})
+    : _logger = logger ?? AppLogger.instance;
 
   final AppDatabase db;
   final SyncQueue queue;
@@ -34,16 +31,18 @@ class PositionBuffer {
 
   /// Enregistre une position et declenche un envoi lorsque le lot est plein.
   Future<void> record(DriverPing ping, {String? deliveryId}) async {
-    await db.into(db.bufferedPositions).insert(
-      BufferedPositionsCompanion.insert(
-        deliveryId: Value(deliveryId),
-        latitude: ping.point.latitude,
-        longitude: ping.point.longitude,
-        speedKmh: Value(ping.speedKmh),
-        accuracyMeters: Value(ping.accuracyMeters),
-        recordedAt: ping.at,
-      ),
-    );
+    await db
+        .into(db.bufferedPositions)
+        .insert(
+          BufferedPositionsCompanion.insert(
+            deliveryId: Value(deliveryId),
+            latitude: ping.point.latitude,
+            longitude: ping.point.longitude,
+            speedKmh: Value(ping.speedKmh),
+            accuracyMeters: Value(ping.accuracyMeters),
+            recordedAt: ping.at,
+          ),
+        );
 
     if (await pendingCount() >= batchSize) await flush();
   }
@@ -67,10 +66,11 @@ class PositionBuffer {
     var batches = 0;
 
     while (maxBatches == null || batches < maxBatches) {
-      final rows = await (db.select(db.bufferedPositions)
-            ..orderBy([(t) => OrderingTerm(expression: t.recordedAt)])
-            ..limit(batchSize))
-          .get();
+      final rows =
+          await (db.select(db.bufferedPositions)
+                ..orderBy([(t) => OrderingTerm(expression: t.recordedAt)])
+                ..limit(batchSize))
+              .get();
 
       if (rows.isEmpty) break;
 
@@ -90,9 +90,9 @@ class PositionBuffer {
           priority: SyncPriority.position,
         );
 
-        await (db.delete(db.bufferedPositions)
-              ..where((t) => t.id.isIn(rows.map((r) => r.id).toList())))
-            .go();
+        await (db.delete(
+          db.bufferedPositions,
+        )..where((t) => t.id.isIn(rows.map((r) => r.id).toList()))).go();
       });
 
       batches++;

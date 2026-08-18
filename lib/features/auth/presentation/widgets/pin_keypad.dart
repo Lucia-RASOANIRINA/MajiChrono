@@ -34,7 +34,11 @@ class PinKeypad extends StatelessWidget {
             ['4', '5', '6'],
             ['7', '8', '9'],
           ])
-            _Row(children: [for (final d in row) _DigitKey(digit: d, onTap: onDigit)]),
+            _Row(
+              children: [
+                for (final d in row) _DigitKey(digit: d, onTap: onDigit),
+              ],
+            ),
           _Row(
             children: [
               if (onBiometrics != null)
@@ -58,12 +62,12 @@ class _Row extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          children: children,
-        ),
-      );
+    padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+    child: Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      children: children,
+    ),
+  );
 }
 
 class _DigitKey extends StatelessWidget {
@@ -85,10 +89,7 @@ class _DigitKey extends StatelessWidget {
         child: InkWell(
           onTap: () => onTap(digit),
           child: Center(
-            child: Text(
-              digit,
-              style: theme.textTheme.headlineMedium,
-            ),
+            child: Text(digit, style: theme.textTheme.headlineMedium),
           ),
         ),
       ),
@@ -104,23 +105,25 @@ class _IconKey extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        width: 72,
-        height: 72,
-        child: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          clipBehavior: Clip.antiAlias,
-          child: InkWell(
-            onTap: onTap,
-            child: Icon(icon, size: 28),
-          ),
-        ),
-      );
+    width: 72,
+    height: 72,
+    child: Material(
+      color: Colors.transparent,
+      shape: const CircleBorder(),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(onTap: onTap, child: Icon(icon, size: 28)),
+    ),
+  );
 }
 
 /// Points indiquant les chiffres deja saisis.
 class PinDots extends StatelessWidget {
-  const PinDots({required this.filled, this.length = 4, this.error = false, super.key});
+  const PinDots({
+    required this.filled,
+    this.length = 4,
+    this.error = false,
+    super.key,
+  });
 
   final int filled;
   final int length;
@@ -143,8 +146,8 @@ class PinDots extends StatelessWidget {
               color: error
                   ? scheme.error
                   : i < filled
-                      ? scheme.primary
-                      : Colors.transparent,
+                  ? scheme.primary
+                  : Colors.transparent,
               border: Border.all(
                 color: error ? scheme.error : scheme.outline,
                 width: 2,

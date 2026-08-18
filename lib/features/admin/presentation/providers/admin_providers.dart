@@ -19,7 +19,9 @@ final adminDashboardProvider = FutureProvider.autoDispose<DashboardSummary>(
 );
 
 /// Filtre courant de la carte de flotte.
-final fleetFilterProvider = StateProvider.autoDispose<FleetStatus?>((_) => null);
+final fleetFilterProvider = StateProvider.autoDispose<FleetStatus?>(
+  (_) => null,
+);
 
 final adminFleetProvider = FutureProvider.autoDispose<List<FleetDriver>>(
   (ref) => ref
@@ -28,12 +30,12 @@ final adminFleetProvider = FutureProvider.autoDispose<List<FleetDriver>>(
 );
 
 /// Livreurs mobilisables, pour la reaffectation (EXI-A07).
-final availableDriversProvider = FutureProvider.autoDispose<List<FleetDriver>>(
-  (ref) async {
-    final all = await ref.watch(adminRepositoryProvider).fleet();
-    return all.where((d) => d.status.canReceiveDeliveries).toList();
-  },
-);
+final availableDriversProvider = FutureProvider.autoDispose<List<FleetDriver>>((
+  ref,
+) async {
+  final all = await ref.watch(adminRepositoryProvider).fleet();
+  return all.where((d) => d.status.canReceiveDeliveries).toList();
+});
 
 /// File des dossiers a valider (EXI-A03).
 final kycQueueProvider = FutureProvider.autoDispose<List<KycApplication>>(
@@ -117,7 +119,10 @@ class AdminActions {
     return delivery;
   }
 
-  Future<Dispute> reply({required String disputeId, required String body}) async {
+  Future<Dispute> reply({
+    required String disputeId,
+    required String body,
+  }) async {
     final dispute = await _repository.replyToDispute(
       disputeId: disputeId,
       body: body,

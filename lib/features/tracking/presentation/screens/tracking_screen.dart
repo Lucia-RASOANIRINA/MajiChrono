@@ -66,10 +66,8 @@ class TrackingScreen extends ConsumerWidget {
               tooltip: l10n.payTitle,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => PaymentScreen(
-                    delivery: delivery,
-                    role: UserRole.client,
-                  ),
+                  builder: (_) =>
+                      PaymentScreen(delivery: delivery, role: UserRole.client),
                 ),
               ),
             ),
@@ -90,7 +88,9 @@ class TrackingScreen extends ConsumerWidget {
               child: Row(
                 children: [
                   Expanded(
-                    child: StatusBadge(status: snapshot?.status ?? delivery.status),
+                    child: StatusBadge(
+                      status: snapshot?.status ?? delivery.status,
+                    ),
                   ),
                   if (snapshot?.etaMinutes != null)
                     Text(
@@ -117,8 +117,10 @@ class TrackingScreen extends ConsumerWidget {
             _ShareTrackingCard(token: delivery.trackingToken!),
             const SizedBox(height: AppSpacing.lg),
           ],
-          Text(l10n.trackingTimeline,
-              style: Theme.of(context).textTheme.titleMedium),
+          Text(
+            l10n.trackingTimeline,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
           const SizedBox(height: AppSpacing.sm),
           if (snapshot == null)
             // `nested` : ce squelette vit dans la liste de l'ecran.
@@ -165,11 +167,18 @@ class _DriverCard extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(driver.displayName, style: theme.textTheme.titleMedium),
+                      Text(
+                        driver.displayName,
+                        style: theme.textTheme.titleMedium,
+                      ),
                       if (driver.rating != null)
                         Row(
                           children: [
-                            const Icon(Icons.star, size: 16, color: AppColors.accent),
+                            const Icon(
+                              Icons.star,
+                              size: 16,
+                              color: AppColors.accent,
+                            ),
                             const SizedBox(width: AppSpacing.xs),
                             Text(
                               l10n.trackingRating(
@@ -181,9 +190,10 @@ class _DriverCard extends StatelessWidget {
                         ),
                       if (driver.plate != null || driver.vehicleModel != null)
                         Text(
-                          [driver.vehicleModel, driver.plate]
-                              .whereType<String>()
-                              .join(' · '),
+                          [
+                            driver.vehicleModel,
+                            driver.plate,
+                          ].whereType<String>().join(' · '),
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: theme.colorScheme.onSurfaceVariant,
                           ),
@@ -220,8 +230,9 @@ class _DriverCard extends StatelessWidget {
                     // dit a l'utilisateur, sinon un numero masque passe pour un
                     // defaut d'affichage.
                     l10n.trackingCallMasked,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],
@@ -255,8 +266,9 @@ class _ShareTrackingCard extends StatelessWidget {
           url,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: theme.textTheme.bodyMedium
-              ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+          style: theme.textTheme.bodyMedium?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
         ),
         trailing: const Icon(Icons.copy_outlined),
         // Le destinataire n'installe rien : il recoit un lien par SMS et suit
@@ -266,9 +278,9 @@ class _ShareTrackingCard extends StatelessWidget {
             ClipboardData(text: l10n.trackingShareMessage(url)),
           );
           if (!context.mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.linkCopied)),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
         },
       ),
     );
@@ -287,8 +299,9 @@ class _Timeline extends StatelessWidget {
     if (entries.isEmpty) {
       return Text(
         AppLocalizations.of(context).trackingNoDriverYet,
-        style: theme.textTheme.bodyMedium
-            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+        ),
       );
     }
 
@@ -345,15 +358,17 @@ class _TimelineRow extends StatelessWidget {
                 Container(
                   width: 2,
                   height: 14,
-                  color:
-                      isFirst ? Colors.transparent : theme.colorScheme.outlineVariant,
+                  color: isFirst
+                      ? Colors.transparent
+                      : theme.colorScheme.outlineVariant,
                 ),
                 Container(
                   height: 12,
                   width: 12,
                   decoration: BoxDecoration(
-                    color:
-                        isLast ? theme.colorScheme.primary : theme.colorScheme.outline,
+                    color: isLast
+                        ? theme.colorScheme.primary
+                        : theme.colorScheme.outline,
                     shape: BoxShape.circle,
                   ),
                 ),
@@ -378,8 +393,9 @@ class _TimelineRow extends StatelessWidget {
                 StatusBadge(status: entry.status),
                 Text(
                   time,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
               ],
             ),

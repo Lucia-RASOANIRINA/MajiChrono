@@ -83,6 +83,28 @@ class AppLocalizationsMg extends AppLocalizations {
   String get networkSyncing => 'Manao fampifanarahana...';
 
   @override
+  String get welcomeTagline =>
+      'Mitondra fahatokisana, na aiza na aiza, avy hatrany.';
+
+  @override
+  String get welcomeStart => 'Hanomboka';
+
+  @override
+  String get welcomeTrustNote => 'Voaaro ny dingana rehetra.';
+
+  @override
+  String get welcomePillarSpeed => 'Hafainganana';
+
+  @override
+  String get welcomePillarSender => 'Mpandefa';
+
+  @override
+  String get welcomePillarDriver => 'Mpanatitra';
+
+  @override
+  String get welcomePillarTrust => 'Fahatokisana';
+
+  @override
   String get authPhoneTitle => 'Ny laharanao';
 
   @override
@@ -134,6 +156,53 @@ class AppLocalizationsMg extends AppLocalizations {
   String authOtpSimulated(String code) {
     return 'Kaody an-tsary : $code';
   }
+
+  @override
+  String get authOrSeparator => 'na';
+
+  @override
+  String get authGoogleContinue => 'Hidira amin\'ny Google';
+
+  @override
+  String get authGoogleSheetTitle => 'Safidio ny kaonty';
+
+  @override
+  String get authGoogleSheetSubtitle =>
+      'Handefa kaody fanamarinana ao amin\'io boaty mailaka io izahay.';
+
+  @override
+  String get authGoogleOtherAccount => 'Adiresy hafa';
+
+  @override
+  String get authGoogleOtherAccountLabel => 'Adiresy mailaka';
+
+  @override
+  String get authGoogleEmailInvalid => 'Adiresy mailaka tsy mety';
+
+  @override
+  String get authEmailCodeTitle => 'Kaody an-taratasy';
+
+  @override
+  String authEmailCodeSentTo(String email) {
+    return 'Kaody nalefa tany amin\'ny $email';
+  }
+
+  @override
+  String get authEmailCodeHint => 'Jereo koa ny lahatahiry hafahafa (spam).';
+
+  @override
+  String get authEmailUnlinkedTitle => 'Voamarina ny adiresy';
+
+  @override
+  String authEmailUnlinkedBody(String email) {
+    return 'Mbola tsy misy kaonty MajiChrono mifandray amin\'ny $email. Hamarino ny laharana findainao : izy no fanalahidin\'ny kaontinao, avy eo izahay no hampifandray io adiresy io.';
+  }
+
+  @override
+  String get authEmailUnlinkedAction => 'Hanohy amin\'ny laharako';
+
+  @override
+  String get authEmailLinked => 'Voarohy amin\'ny kaontinao ny adiresy';
 
   @override
   String get authProfileTitle => 'Ny andraikitrao';
@@ -569,8 +638,11 @@ class AppLocalizationsMg extends AppLocalizations {
   String get custodySealHint => 'SC-4821';
 
   @override
-  String get custodySealScanLater =>
-      'Ho avy amin\'ny modely 10 ny fanaraha-maso kaody.';
+  String get custodySealScan => 'Hanaraka ny tombo-kase';
+
+  @override
+  String get custodySealScanHelp =>
+      'Ataovy ao anaty efajoro ny kaody. Azonao ahitsy ny laharana.';
 
   @override
   String get custodySealCheck => 'Toetran\'ny tombo-kase';
@@ -1326,6 +1398,24 @@ class AppLocalizationsMg extends AppLocalizations {
 
   @override
   String get syncRetryQueued => 'Nangatahina ny famerenana';
+
+  @override
+  String get traitFragile => 'Mora vaky';
+
+  @override
+  String get traitHeavy => 'Mavesatra';
+
+  @override
+  String get traitValuable => 'Sarobidy';
+
+  @override
+  String get traitFood => 'Sakafo';
+
+  @override
+  String get traitDocument => 'Taratasy';
+
+  @override
+  String get traitShopping => 'Fividianana';
 
   @override
   String get driverOnline => 'Miasa';

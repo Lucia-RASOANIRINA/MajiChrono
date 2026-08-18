@@ -59,7 +59,10 @@ class MajiChronoApp extends ConsumerWidget {
           // Plafonne la mise a l'echelle du texte : au-dela, le bouton de
           // progression livreur (§15.3) cesse de tenir sur un ecran de 320 dp.
           data: media.copyWith(
-            textScaler: media.textScaler.clamp(minScaleFactor: 0.9, maxScaleFactor: 1.4),
+            textScaler: media.textScaler.clamp(
+              minScaleFactor: 0.9,
+              maxScaleFactor: 1.4,
+            ),
           ),
           child: Builder(
             builder: (inner) => SyncGate(
@@ -67,13 +70,13 @@ class MajiChronoApp extends ConsumerWidget {
               child: InactivityLock(
                 child: Column(
                   children: [
-                // Le bandeau reseau est pose **au-dessus du Navigator**, et non
-                // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
-                // sens litteral : il survit a tout ecran empile — reglages,
-                // constat, paiement — alors qu'un bandeau porte par la coquille
-                // disparaitrait des le premier `push`. Or c'est precisement
-                // pendant un constat ou un paiement que savoir si le reseau est
-                // tombe change le comportement de l'utilisateur (§15.2.5).
+                    // Le bandeau reseau est pose **au-dessus du Navigator**, et non
+                    // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
+                    // sens litteral : il survit a tout ecran empile — reglages,
+                    // constat, paiement — alors qu'un bandeau porte par la coquille
+                    // disparaitrait des le premier `push`. Or c'est precisement
+                    // pendant un constat ou un paiement que savoir si le reseau est
+                    // tombe change le comportement de l'utilisateur (§15.2.5).
                     const McNetworkBanner(),
                     Expanded(
                       // Le bandeau a deja consomme l'encoche ; sans cela chaque

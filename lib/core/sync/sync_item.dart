@@ -61,8 +61,11 @@ enum SyncItemStatus {
 
   final String wireName;
 
-  static SyncItemStatus fromWire(String? value) => SyncItemStatus.values
-      .firstWhere((s) => s.wireName == value, orElse: () => SyncItemStatus.pending);
+  static SyncItemStatus fromWire(String? value) =>
+      SyncItemStatus.values.firstWhere(
+        (s) => s.wireName == value,
+        orElse: () => SyncItemStatus.pending,
+      );
 
   /// Vrai lorsque l'element compte encore comme « en attente » pour l'usager.
   bool get isOutstanding => this != SyncItemStatus.abandoned;
@@ -86,8 +89,11 @@ enum SyncFailureCause {
 
   final String wireName;
 
-  static SyncFailureCause fromWire(String? value) => SyncFailureCause.values
-      .firstWhere((c) => c.wireName == value, orElse: () => SyncFailureCause.none);
+  static SyncFailureCause fromWire(String? value) =>
+      SyncFailureCause.values.firstWhere(
+        (c) => c.wireName == value,
+        orElse: () => SyncFailureCause.none,
+      );
 }
 
 /// Un element de la file, tel que la couche metier le manipule.
@@ -131,7 +137,6 @@ class SyncItem {
 
   /// Drapeau EXI-S05, pose a la mise en file et jamais retire.
   final bool neverAbandon;
-
 
   Map<String, dynamic>? get body {
     if (payload.isEmpty) return null;
@@ -194,6 +199,8 @@ class SyncBackoff {
   /// defaut que la chaine de responsabilite s'emploie a rendre impossible. Le
   /// constat cesse seulement d'etre discret — il passe en tete de l'ecran des
   /// elements en attente, pour que le livreur sache qu'il doit agir.
-  static bool isExhausted({required int attempts, required bool neverAbandon}) =>
-      !neverAbandon && attempts >= maxAttempts;
+  static bool isExhausted({
+    required int attempts,
+    required bool neverAbandon,
+  }) => !neverAbandon && attempts >= maxAttempts;
 }

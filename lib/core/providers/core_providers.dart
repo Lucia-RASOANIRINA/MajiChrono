@@ -105,7 +105,10 @@ final networkStatusProvider = StreamProvider<NetworkStatus>((ref) {
   final service = ref.watch(networkStatusServiceProvider);
   // Demarrage differe : la premiere sonde ne doit pas retarder le premier
   // rendu (EXI-P01 : ecran interactif en moins de 2,5 s).
-  Future<void>.delayed(const Duration(milliseconds: 300), () => service.start());
+  Future<void>.delayed(
+    const Duration(milliseconds: 300),
+    () => service.start(),
+  );
   return service.stream;
 });
 
@@ -138,7 +141,9 @@ final pendingSyncCountProvider = StreamProvider<int>((ref) {
   final query = db.selectOnly(db.syncQueueItems)
     ..addColumns([db.syncQueueItems.id.count()])
     ..where(db.syncQueueItems.status.isNotIn(['abandoned']));
-  return query.map((row) => row.read(db.syncQueueItems.id.count()) ?? 0).watchSingle();
+  return query
+      .map((row) => row.read(db.syncQueueItems.id.count()) ?? 0)
+      .watchSingle();
 });
 
 /// Mode d'apparence, persiste entre deux lancements.
@@ -149,7 +154,9 @@ final themeModeProvider = NotifierProvider<ThemeModeController, ThemeMode>(
 class ThemeModeController extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
-    final stored = ref.watch(prefsStoreProvider).getString(PrefsStore.keyThemeMode);
+    final stored = ref
+        .watch(prefsStoreProvider)
+        .getString(PrefsStore.keyThemeMode);
     return switch (stored) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
@@ -159,6 +166,8 @@ class ThemeModeController extends Notifier<ThemeMode> {
 
   Future<void> set(ThemeMode mode) async {
     state = mode;
-    await ref.read(prefsStoreProvider).setString(PrefsStore.keyThemeMode, mode.name);
+    await ref
+        .read(prefsStoreProvider)
+        .setString(PrefsStore.keyThemeMode, mode.name);
   }
 }

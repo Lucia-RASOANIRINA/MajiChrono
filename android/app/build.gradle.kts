@@ -24,9 +24,28 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
-        // Un seul APK par ABI en production pour tenir le budget EXI-P03 (< 25 Mo).
-        ndk {
-            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
+    }
+
+    // Un APK **par** architecture (EXI-P03 : moins de 25 Mo).
+    //
+    // `ndk.abiFilters` faisait exactement l'inverse de ce que son commentaire
+    // annoncait : il empilait les trois architectures dans un seul APK. Les
+    // bibliotheques natives des plugins — surtout le lecteur de code-barres ML
+    // Kit, pres de 5 Mo par ABI — etaient donc livrees trois fois a chaque
+    // utilisateur, dont deux qu'il n'executera jamais.
+    //
+    // `splits` produit un APK par ABI, et Play distribue le bon.
+    //
+    // Le bloc est desactive des que Flutter impose lui-meme une architecture
+    // (`--target-platform`, utilise pour les builds de developpement sur
+    // emulateur) : Gradle refuse `splits` et `ndk.abiFilters` ensemble, et
+    // laisser les deux actifs cassait toute compilation de debogage.
+    splits {
+        abi {
+            isEnable = !project.hasProperty("target-platform")
+            reset()
+            include("armeabi-v7a", "arm64-v8a", "x86_64")
+            isUniversalApk = false
         }
     }
 

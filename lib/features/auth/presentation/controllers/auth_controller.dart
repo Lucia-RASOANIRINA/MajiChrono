@@ -41,7 +41,10 @@ class AuthController extends AsyncNotifier<AuthState> {
     final cached = await _repository.cachedAccount();
 
     if (cached != null && await _repository.hasPin()) {
-      return AuthLocked(cached, biometricsAvailable: await _biometricsAvailable());
+      return AuthLocked(
+        cached,
+        biometricsAvailable: await _biometricsAvailable(),
+      );
     }
 
     if (cached != null) return AuthAuthenticated(cached);
@@ -66,12 +69,26 @@ class AuthController extends AsyncNotifier<AuthState> {
 
   /// Applique le resultat d'une verification OTP reussie.
   Future<void> onOtpVerified(OtpVerification verification) async {
-    state = AsyncData(
-      switch (verification.account) {
-        AccountReady(:final account) => AuthAuthenticated(account),
-        AccountProfilePending(:final phone) => AuthProfilePending(phone),
-      },
-    );
+    // Une adresse verifiee par le parcours Google attend peut-etre d'etre
+    // rattachee. C'est le seul moment ou les deux preuves coexistent : la boite
+    // mail vient d'etre prouvee, le numero vient de l'etre. Le rattachement se
+    // fait ici, ou nulle part.
+    final pending = ref.read(pendingEmailLinkProvider);
+    if (pending != null) {
+      try {
+        await _repository.linkEmail(pending);
+      } on Failure {
+        // Le rattachement est un confort pour la prochaine entree, pas une
+        // condition de connexion : s'il echoue, la session s'ouvre quand meme et
+        // l'utilisateur reprendra son numero la prochaine fois.
+      }
+      ref.read(pendingEmailLinkProvider.notifier).state = null;
+    }
+
+    state = AsyncData(switch (verification.account) {
+      AccountReady(:final account) => AuthAuthenticated(account),
+      AccountProfilePending(:final phone) => AuthProfilePending(phone),
+    });
   }
 
   /// Pose le profil choisi a l'inscription (EXI-T02).
@@ -97,7 +114,10 @@ class AuthController extends AsyncNotifier<AuthState> {
     if (!await _repository.hasPin()) return;
 
     state = AsyncData(
-      AuthLocked(current.account, biometricsAvailable: await _biometricsAvailable()),
+      AuthLocked(
+        current.account,
+        biometricsAvailable: await _biometricsAvailable(),
+      ),
     );
   }
 
@@ -128,7 +148,9 @@ class AuthController extends AsyncNotifier<AuthState> {
     if (current is! AuthLocked) return false;
 
     try {
-      final ok = await ref.read(localAuthProvider).authenticate(
+      final ok = await ref
+          .read(localAuthProvider)
+          .authenticate(
             localizedReason: reason,
             options: const AuthenticationOptions(
               biometricOnly: true,

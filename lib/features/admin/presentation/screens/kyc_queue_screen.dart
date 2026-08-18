@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/security/device_integrity.dart';
+import 'package:majichrono/core/security/secure_screen.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/admin/domain/entities/admin_entities.dart';
 import 'package:majichrono/features/admin/presentation/providers/admin_providers.dart';
@@ -30,33 +33,38 @@ class KycQueueScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final queue = ref.watch(kycQueueProvider);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.adminKycTitle)),
-      body: queue.when(
-        loading: () => const McSkeletonList(itemCount: 3),
-        error: (error, _) => McErrorView(
-          failure: error is Failure ? error : const UnknownFailure(),
-          onRetry: () => ref.invalidate(kycQueueProvider),
-        ),
-        data: (applications) {
-          if (applications.isEmpty) {
-            return McEmptyState(
-              icon: Icons.verified_outlined,
-              title: l10n.adminKycEmpty,
-              message: l10n.adminKycApproveHelp,
-            );
-          }
+    // EXI-SEC06 : un dossier KYC porte des pieces d'identite. Meme la liste des
+    // pieces fournies designe une personne identifiable.
+    return SecureScreen(
+      surface: SecureSurface.kycDocuments,
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.adminKycTitle)),
+        body: queue.when(
+          loading: () => const McSkeletonList(itemCount: 3),
+          error: (error, _) => McErrorView(
+            failure: error is Failure ? error : const UnknownFailure(),
+            onRetry: () => ref.invalidate(kycQueueProvider),
+          ),
+          data: (applications) {
+            if (applications.isEmpty) {
+              return McEmptyState(
+                icon: Icons.verified_outlined,
+                title: l10n.adminKycEmpty,
+                message: l10n.adminKycApproveHelp,
+              );
+            }
 
-          return RefreshIndicator(
-            onRefresh: () async => ref.invalidate(kycQueueProvider),
-            child: ListView.builder(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              itemCount: applications.length,
-              itemBuilder: (_, index) =>
-                  _ApplicationCard(application: applications[index]),
-            ),
-          );
-        },
+            return RefreshIndicator(
+              onRefresh: () async => ref.invalidate(kycQueueProvider),
+              child: ListView.builder(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                itemCount: applications.length,
+                itemBuilder: (_, index) =>
+                    _ApplicationCard(application: applications[index]),
+              ),
+            );
+          },
+        ),
       ),
     );
   }
@@ -93,10 +101,9 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
     final messenger = ScaffoldMessenger.of(context);
 
     try {
-      await ref.read(adminActionsProvider).reviewKyc(
-        driverId: widget.application.driverId,
-        decision: decision,
-      );
+      await ref
+          .read(adminActionsProvider)
+          .reviewKyc(driverId: widget.application.driverId, decision: decision);
       messenger.showSnackBar(SnackBar(content: Text(l10n.adminActionDone)));
     } on Failure catch (failure) {
       messenger.showSnackBar(
@@ -194,7 +201,7 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
 
             const SizedBox(height: AppSpacing.lg),
             if (_busy)
-              const Center(child: CircularProgressIndicator())
+              const Center(child: McLoader())
             else
               Row(
                 children: [

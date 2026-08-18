@@ -9,18 +9,18 @@ import 'package:majichrono/features/delivery/domain/entities/delivery_options.da
 /// Servi par quartier lorsqu'on en connait un : proposer les relais de toute
 /// l'agglomeration a quelqu'un qui livre a Ambohipo lui ferait faire defiler une
 /// liste dont dix-neuf entrees sur vingt sont hors sujet.
-final relayPointsProvider =
-    FutureProvider.autoDispose.family<List<RelayPoint>, String?>(
-  (ref, district) async {
-    final json = await ref.watch(apiClientProvider).get<Map<String, dynamic>>(
-      ApiEndpoints.relayPoints,
-      query: {'district': ?district},
-    );
+final relayPointsProvider = FutureProvider.autoDispose
+    .family<List<RelayPoint>, String?>((ref, district) async {
+      final json = await ref
+          .watch(apiClientProvider)
+          .get<Map<String, dynamic>>(
+            ApiEndpoints.relayPoints,
+            query: {'district': ?district},
+          );
 
-    return (json['items'] as List<dynamic>? ?? [])
-        .whereType<Map<String, dynamic>>()
-        .map(RelayPoint.fromJson)
-        .whereType<RelayPoint>()
-        .toList();
-  },
-);
+      return (json['items'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(RelayPoint.fromJson)
+          .whereType<RelayPoint>()
+          .toList();
+    });

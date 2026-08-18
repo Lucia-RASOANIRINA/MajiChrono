@@ -64,7 +64,10 @@ class DataUsageScreen extends ConsumerWidget {
                         ),
                       ),
                       const SizedBox(height: AppSpacing.xs),
-                      Text(DataMeter.format(total), style: theme.textTheme.displaySmall),
+                      Text(
+                        DataMeter.format(total),
+                        style: theme.textTheme.displaySmall,
+                      ),
                       const SizedBox(height: AppSpacing.sm),
                       // Budget EXI-P06 : moins de 25 Mo par mois pour un client ordinaire.
                       LinearProgressIndicator(
@@ -98,7 +101,8 @@ class DataUsageScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      if (entry.key != breakdown.keys.last) const Divider(height: 1),
+                      if (entry.key != breakdown.keys.last)
+                        const Divider(height: 1),
                     ],
                   ],
                 ),

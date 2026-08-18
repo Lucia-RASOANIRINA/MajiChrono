@@ -52,7 +52,8 @@ class DashboardSummary {
       revenueTodayAriary: (json['revenueToday'] as num?)?.toInt() ?? 0,
       byStatus: {
         for (final entry in raw.entries)
-          DeliveryStatus.fromWire(entry.key): (entry.value as num?)?.toInt() ?? 0,
+          DeliveryStatus.fromWire(entry.key):
+              (entry.value as num?)?.toInt() ?? 0,
       },
     );
   }
@@ -237,11 +238,8 @@ enum DisputeStatus {
 
   final String wireName;
 
-  static DisputeStatus fromWire(String? value) =>
-      DisputeStatus.values.firstWhere(
-        (s) => s.wireName == value,
-        orElse: () => DisputeStatus.open,
-      );
+  static DisputeStatus fromWire(String? value) => DisputeStatus.values
+      .firstWhere((s) => s.wireName == value, orElse: () => DisputeStatus.open);
 
   bool get isClosed =>
       this == DisputeStatus.resolved || this == DisputeStatus.rejected;
@@ -422,7 +420,8 @@ class ModerationDecision {
       action: action,
       reason: '${json['reason'] ?? ''}',
       decidedAt:
-          DateTime.tryParse('${json['decidedAt']}')?.toLocal() ?? DateTime.now(),
+          DateTime.tryParse('${json['decidedAt']}')?.toLocal() ??
+          DateTime.now(),
       decidedBy: json['decidedBy'] as String?,
     );
   }
@@ -477,7 +476,9 @@ class DeliveryFilter {
   /// reseau a chaque case cochee rendrait les filtres inutilisables sur le
   /// terrain (§4.4).
   bool matches(Delivery delivery) {
-    if (statuses.isNotEmpty && !statuses.contains(delivery.status)) return false;
+    if (statuses.isNotEmpty && !statuses.contains(delivery.status)) {
+      return false;
+    }
     if (driverId != null && delivery.driverId != driverId) return false;
     if (paymentMethod != null && delivery.paymentMethod != paymentMethod) {
       return false;

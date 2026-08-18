@@ -9,7 +9,9 @@ class SecureStore {
           storage ??
           const FlutterSecureStorage(
             aOptions: AndroidOptions(encryptedSharedPreferences: true),
-            iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+            iOptions: IOSOptions(
+              accessibility: KeychainAccessibility.first_unlock,
+            ),
           );
 
   static const String keyAccessToken = 'auth.access_token';
@@ -23,8 +25,9 @@ class SecureStore {
 
   Future<String?> read(String key) => _storage.read(key: key);
 
-  Future<void> write(String key, String? value) =>
-      value == null ? _storage.delete(key: key) : _storage.write(key: key, value: value);
+  Future<void> write(String key, String? value) => value == null
+      ? _storage.delete(key: key)
+      : _storage.write(key: key, value: value);
 
   Future<void> delete(String key) => _storage.delete(key: key);
 

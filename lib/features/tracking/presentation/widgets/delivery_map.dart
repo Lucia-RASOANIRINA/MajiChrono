@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
@@ -39,7 +40,8 @@ class DeliveryMap extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final tiles = ref.watch(tileProviderProvider);
 
-    final center = driverPosition ??
+    final center =
+        driverPosition ??
         GeoPoint(
           (pickup.latitude + dropoff.latitude) / 2,
           (pickup.longitude + dropoff.longitude) / 2,
@@ -52,7 +54,7 @@ class DeliveryMap extends ConsumerWidget {
         child: tiles.when(
           loading: () => const ColoredBox(
             color: AppColors.lightSurfaceAlt,
-            child: Center(child: CircularProgressIndicator()),
+            child: Center(child: McLoader()),
           ),
           error: (_, _) => _MapUnavailable(message: l10n.mapUnavailable),
           data: (tileProvider) => FlutterMap(
@@ -84,7 +86,11 @@ class DeliveryMap extends ConsumerWidget {
                 ),
               MarkerLayer(
                 markers: [
-                  _marker(_toLatLng(pickup), Icons.trip_origin, AppColors.primary),
+                  _marker(
+                    _toLatLng(pickup),
+                    Icons.trip_origin,
+                    AppColors.primary,
+                  ),
                   _marker(_toLatLng(dropoff), Icons.place, AppColors.danger),
                   if (driverPosition != null)
                     _marker(
@@ -102,20 +108,24 @@ class DeliveryMap extends ConsumerWidget {
   }
 
   Marker _marker(LatLng point, IconData icon, Color color) => Marker(
-        point: point,
-        width: 40,
-        height: 40,
-        child: DecoratedBox(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            boxShadow: const [
-              BoxShadow(color: Color(0x33000000), blurRadius: 4, offset: Offset(0, 2)),
-            ],
+    point: point,
+    width: 40,
+    height: 40,
+    child: DecoratedBox(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x33000000),
+            blurRadius: 4,
+            offset: Offset(0, 2),
           ),
-          child: Icon(icon, color: color, size: 22),
-        ),
-      );
+        ],
+      ),
+      child: Icon(icon, color: color, size: 22),
+    ),
+  );
 }
 
 class _MapUnavailable extends StatelessWidget {
@@ -134,13 +144,17 @@ class _MapUnavailable extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.map_outlined, color: theme.colorScheme.onSurfaceVariant),
+              Icon(
+                Icons.map_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 message,
                 textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium
-                    ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
               ),
             ],
           ),

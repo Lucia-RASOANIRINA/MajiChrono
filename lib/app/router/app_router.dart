@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/shell/module_placeholder.dart';
+import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/disputes_screen.dart';
@@ -12,9 +14,11 @@ import 'package:majichrono/features/admin/presentation/screens/kyc_queue_screen.
 import 'package:majichrono/app/shell/role_shell.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
+import 'package:majichrono/features/auth/domain/entities/google_entities.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/auth/presentation/screens/lock_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/email_code_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/otp_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/phone_input_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/pin_setup_screen.dart';
@@ -66,24 +70,32 @@ final routerProvider = Provider<GoRouter>((ref) {
       // etre oublie ici.
       return switch (auth) {
         // Session en cours de relecture : on reste sur l'ecran d'attente.
-        null || AuthUnknown() =>
-          location == AppRoutes.splash ? null : AppRoutes.splash,
+        null ||
+        AuthUnknown() => location == AppRoutes.splash ? null : AppRoutes.splash,
 
         AuthUnauthenticated() =>
-          AppRoutes.isAuthRoute(location) ? null : AppRoutes.authPhone,
+          AppRoutes.isAuthRoute(location) ? null : AppRoutes.welcome,
 
         // Session ouverte, profil pas encore pose (EXI-T02).
         AuthProfilePending() =>
           location == AppRoutes.authProfile ? null : AppRoutes.authProfile,
 
         // Verrou local : rien d'autre n'est atteignable (EXI-T04, EXI-SEC07).
-        AuthLocked() => location == AppRoutes.authLock ? null : AppRoutes.authLock,
+        AuthLocked() =>
+          location == AppRoutes.authLock ? null : AppRoutes.authLock,
 
-        AuthAuthenticated(:final account) => _redirectForRole(account.role, location),
+        AuthAuthenticated(:final account) => _redirectForRole(
+          account.role,
+          location,
+        ),
       };
     },
     routes: [
       GoRoute(path: AppRoutes.splash, builder: (_, _) => const _SplashScreen()),
+      GoRoute(
+        path: AppRoutes.welcome,
+        builder: (_, _) => const WelcomeScreen(),
+      ),
       GoRoute(
         path: AppRoutes.authPhone,
         builder: (_, _) => const PhoneInputScreen(),
@@ -94,15 +106,20 @@ final routerProvider = Provider<GoRouter>((ref) {
             OtpScreen(challenge: state.extra! as OtpChallenge),
       ),
       GoRoute(
+        path: AppRoutes.authEmailCode,
+        builder: (context, state) =>
+            EmailCodeScreen(challenge: state.extra! as EmailChallenge),
+      ),
+      GoRoute(
         path: AppRoutes.authProfile,
         builder: (_, _) => const ProfileChoiceScreen(),
       ),
       GoRoute(
         path: AppRoutes.authLock,
         builder: (context, state) {
-          final auth = ProviderScope.containerOf(context)
-              .read(authControllerProvider)
-              .valueOrNull;
+          final auth = ProviderScope.containerOf(
+            context,
+          ).read(authControllerProvider).valueOrNull;
           return auth is AuthLocked
               ? LockScreen(state: auth)
               : const _SplashScreen();
@@ -110,23 +127,34 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.authPin,
-        builder: (context, _) =>
-            PinSetupScreen(onDone: () => context.pop()),
+        builder: (context, _) => PinSetupScreen(onDone: () => context.pop()),
       ),
-      GoRoute(path: AppRoutes.settings, builder: (_, _) => const SettingsScreen()),
-      GoRoute(path: AppRoutes.dataUsage, builder: (_, _) => const DataUsageScreen()),
+      GoRoute(
+        path: AppRoutes.settings,
+        builder: (_, _) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.dataUsage,
+        builder: (_, _) => const DataUsageScreen(),
+      ),
       GoRoute(
         path: AppRoutes.pendingSync,
         builder: (_, _) => const PendingSyncScreen(),
       ),
       // Ecrans de supervision atteints depuis le tableau de bord (EXI-A03,
       // EXI-A04) : la barre inferieure compte deja quatre onglets.
-      GoRoute(path: AppRoutes.adminKyc, builder: (_, _) => const KycQueueScreen()),
+      GoRoute(
+        path: AppRoutes.adminKyc,
+        builder: (_, _) => const KycQueueScreen(),
+      ),
       GoRoute(
         path: AppRoutes.adminDeliveries,
         builder: (_, _) => const AdminDeliveriesScreen(),
       ),
-      GoRoute(path: AppRoutes.devPanel, builder: (_, _) => const DevPanelScreen()),
+      GoRoute(
+        path: AppRoutes.devPanel,
+        builder: (_, _) => const DevPanelScreen(),
+      ),
       GoRoute(
         path: AppRoutes.publicTrack,
         builder: (context, state) =>
@@ -370,7 +398,8 @@ String? _redirectForRole(UserRole role, String location) {
     return home;
   }
 
-  final isRoleRoute = location.startsWith('/client') ||
+  final isRoleRoute =
+      location.startsWith('/client') ||
       location.startsWith('/driver') ||
       location.startsWith('/admin');
   if (isRoleRoute && !location.startsWith('/${role.wireName}')) return home;
@@ -383,5 +412,5 @@ class _SplashScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: CircularProgressIndicator()));
+      const Scaffold(body: Center(child: McLoader()));
 }

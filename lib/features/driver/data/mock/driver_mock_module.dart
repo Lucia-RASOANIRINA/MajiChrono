@@ -62,7 +62,10 @@ class DriverMockModule extends MockModule {
 
   // --- File des courses disponibles (EXI-L04) ---------------------------
 
-  Future<MockResponse> _available(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _available(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     if (_offers.isEmpty) _seedOffers();
 
     // Position du livreur, transmise par le client pour trier par distance a vide.
@@ -72,22 +75,23 @@ class DriverMockModule extends MockModule {
         ? GeoPoint(lat, lng)
         : GeoPoint.antananarivo;
 
-    final items = _offers.values.map((delivery) {
-      final pickup = GeoPoint.fromJson(
-        (delivery['pickup'] as Map<String, dynamic>)['point']
-            as Map<String, dynamic>?,
-      )!;
-      final price = (delivery['price'] as num?)?.toInt() ?? 0;
-      return {
-        'delivery': delivery,
-        'pickupDistanceKm': driver.distanceKmTo(pickup),
-        'estimatedEarning': (price * (1 - platformCommission)).round(),
-      };
-    }).toList()..sort(
-      (a, b) => (a['pickupDistanceKm']! as double).compareTo(
-        b['pickupDistanceKm']! as double,
-      ),
-    );
+    final items =
+        _offers.values.map((delivery) {
+          final pickup = GeoPoint.fromJson(
+            (delivery['pickup'] as Map<String, dynamic>)['point']
+                as Map<String, dynamic>?,
+          )!;
+          final price = (delivery['price'] as num?)?.toInt() ?? 0;
+          return {
+            'delivery': delivery,
+            'pickupDistanceKm': driver.distanceKmTo(pickup),
+            'estimatedEarning': (price * (1 - platformCommission)).round(),
+          };
+        }).toList()..sort(
+          (a, b) => (a['pickupDistanceKm']! as double).compareTo(
+            b['pickupDistanceKm']! as double,
+          ),
+        );
 
     return MockResponse.ok({'items': items});
   }
@@ -101,8 +105,8 @@ class DriverMockModule extends MockModule {
       }
 
       final id = 'dlv_offer_${_random.nextInt(1 << 32)}';
-      final weight = WeightCategory
-          .values[_random.nextInt(WeightCategory.values.length)];
+      final weight =
+          WeightCategory.values[_random.nextInt(WeightCategory.values.length)];
       final kind =
           DeliveryKind.values[_random.nextInt(DeliveryKind.values.length - 1)];
 
@@ -141,7 +145,10 @@ class DriverMockModule extends MockModule {
 
   // --- Acceptation (EXI-L05) --------------------------------------------
 
-  Future<MockResponse> _accept(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _accept(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final id = params['id']!;
     final offer = _offers[id];
     if (offer == null) {
@@ -162,7 +169,10 @@ class DriverMockModule extends MockModule {
 
   // --- Progression (EXI-L08, EXI-B02) -----------------------------------
 
-  Future<MockResponse> _status(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _status(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final delivery = deliveries()[params['id']];
     if (delivery == null) {
       return MockResponse.error(404, 'not_found', 'Course inconnue');
@@ -200,11 +210,18 @@ class DriverMockModule extends MockModule {
 
   // --- Positions (EXI-L10) -----------------------------------------------
 
-  Future<MockResponse> _trackingBatch(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _trackingBatch(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     final points = (req.json['points'] as List<dynamic>? ?? []).length;
     // EXI-B06 : le lot accepte jusqu'a 50 points en une requete compressee.
     if (points > 50) {
-      return MockResponse.error(422, 'batch_too_large', 'Lot de plus de 50 points');
+      return MockResponse.error(
+        422,
+        'batch_too_large',
+        'Lot de plus de 50 points',
+      );
     }
     return MockResponse.ok({'accepted': points});
   }
@@ -227,22 +244,27 @@ class DriverMockModule extends MockModule {
 
   // --- KYC (EXI-L01, EXI-L02) --------------------------------------------
 
-  Future<MockResponse> _kycStatus(MockRequest req, Map<String, String> _) async =>
-      MockResponse.ok({
-        'status': _kyc,
-        'documents': const [
-          'cin_front',
-          'cin_back',
-          'licence',
-          'selfie',
-          'registration',
-          'vehicle',
-          'plate',
-        ],
-        'rejectionReason': null,
-      });
+  Future<MockResponse> _kycStatus(
+    MockRequest req,
+    Map<String, String> _,
+  ) async => MockResponse.ok({
+    'status': _kyc,
+    'documents': const [
+      'cin_front',
+      'cin_back',
+      'licence',
+      'selfie',
+      'registration',
+      'vehicle',
+      'plate',
+    ],
+    'rejectionReason': null,
+  });
 
-  Future<MockResponse> _kycSubmit(MockRequest req, Map<String, String> _) async {
+  Future<MockResponse> _kycSubmit(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
     _kyc = 'submitted';
     return MockResponse.ok({'status': _kyc});
   }
@@ -257,7 +279,10 @@ class DriverAllowed {
       DeliveryStatus.atPickup,
       DeliveryStatus.cancelled,
     },
-    DeliveryStatus.atPickup: {DeliveryStatus.pickedUp, DeliveryStatus.cancelled},
+    DeliveryStatus.atPickup: {
+      DeliveryStatus.pickedUp,
+      DeliveryStatus.cancelled,
+    },
     DeliveryStatus.pickedUp: {
       DeliveryStatus.inTransit,
       DeliveryStatus.atDestination,

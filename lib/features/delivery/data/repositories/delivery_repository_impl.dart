@@ -94,9 +94,10 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
       await _local.replaceDelivery(localId, confirmed);
       return confirmed;
     } on Failure catch (failure) {
-      AppLogger.instance.info('delivery_queued', data: {
-        'reason': failure.runtimeType.toString(),
-      });
+      AppLogger.instance.info(
+        'delivery_queued',
+        data: {'reason': failure.runtimeType.toString()},
+      );
 
       // La cle generee plus haut est **deposee avec l'element**, pas
       // regeneree a la reprise : c'est elle qui garantit qu'une course
@@ -115,7 +116,9 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
 
   @override
   Future<void> refreshDeliveries() async {
-    final json = await _client.get<Map<String, dynamic>>(ApiEndpoints.deliveries);
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.deliveries,
+    );
     final items = (json['items'] as List<dynamic>? ?? [])
         .whereType<Map<String, dynamic>>()
         .map(Delivery.fromJson)

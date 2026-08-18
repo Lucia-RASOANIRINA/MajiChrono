@@ -195,10 +195,7 @@ class CustodyPdf {
 
     return pw.Table(
       border: pw.TableBorder.all(color: PdfColors.grey300, width: 0.5),
-      columnWidths: const {
-        0: pw.FlexColumnWidth(1),
-        1: pw.FlexColumnWidth(2),
-      },
+      columnWidths: const {0: pw.FlexColumnWidth(1), 1: pw.FlexColumnWidth(2)},
       children: [
         for (final row in rows)
           pw.TableRow(
@@ -392,7 +389,11 @@ class CustodyPdf {
   /// reste net a toute echelle, et surtout les points, la pression et les temps
   /// restent disponibles pour une expertise (EXI-CC40) — ce qu'une capture
   /// aplatie en pixels aurait detruit.
-  void _drawSignature(dynamic canvas, PdfPoint size, VectorSignature signature) {
+  void _drawSignature(
+    dynamic canvas,
+    PdfPoint size,
+    VectorSignature signature,
+  ) {
     final points = signature.strokes.expand((s) => s).toList();
     if (points.isEmpty) return;
 
@@ -432,58 +433,51 @@ class CustodyPdf {
     }
   }
 
-  pw.Widget _fingerprint(CustodyPdfLabels labels, CustodyReport report) =>
-      pw.Container(
-        width: double.infinity,
-        padding: const pw.EdgeInsets.all(8),
-        decoration: pw.BoxDecoration(
-          color: PdfColors.grey100,
-          border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+  pw.Widget _fingerprint(
+    CustodyPdfLabels labels,
+    CustodyReport report,
+  ) => pw.Container(
+    width: double.infinity,
+    padding: const pw.EdgeInsets.all(8),
+    decoration: pw.BoxDecoration(
+      color: PdfColors.grey100,
+      border: pw.Border.all(color: PdfColors.grey400, width: 0.5),
+    ),
+    child: pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: [
+        pw.Text(
+          labels.hash,
+          style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
         ),
-        child: pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.start,
-          children: [
-            pw.Text(
-              labels.hash,
-              style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
-            ),
-            pw.Text(
-              report.hash ?? '-',
-              style: const pw.TextStyle(fontSize: 8),
-            ),
-            if (report.previousHash != null) ...[
-              pw.SizedBox(height: 4),
-              pw.Text(
-                labels.previousHash,
-                style: pw.TextStyle(
-                  fontSize: 9,
-                  fontWeight: pw.FontWeight.bold,
-                ),
-              ),
-              pw.Text(
-                report.previousHash!,
-                style: const pw.TextStyle(fontSize: 8),
-              ),
-            ],
-            pw.SizedBox(height: 4),
-            pw.Text(
-              '${labels.sealedAt} ${_dateTime(report.sealedAt)}',
-              style: const pw.TextStyle(fontSize: 8),
-            ),
-            pw.Text(
-              report.serverTimestamp == null
-                  ? labels.pending
-                  : '${labels.serverTime} ${_dateTime(report.serverTimestamp)}',
-              style: pw.TextStyle(
-                fontSize: 8,
-                color: report.serverTimestamp == null
-                    ? PdfColors.orange800
-                    : PdfColors.green800,
-              ),
-            ),
-          ],
+        pw.Text(report.hash ?? '-', style: const pw.TextStyle(fontSize: 8)),
+        if (report.previousHash != null) ...[
+          pw.SizedBox(height: 4),
+          pw.Text(
+            labels.previousHash,
+            style: pw.TextStyle(fontSize: 9, fontWeight: pw.FontWeight.bold),
+          ),
+          pw.Text(report.previousHash!, style: const pw.TextStyle(fontSize: 8)),
+        ],
+        pw.SizedBox(height: 4),
+        pw.Text(
+          '${labels.sealedAt} ${_dateTime(report.sealedAt)}',
+          style: const pw.TextStyle(fontSize: 8),
         ),
-      );
+        pw.Text(
+          report.serverTimestamp == null
+              ? labels.pending
+              : '${labels.serverTime} ${_dateTime(report.serverTimestamp)}',
+          style: pw.TextStyle(
+            fontSize: 8,
+            color: report.serverTimestamp == null
+                ? PdfColors.orange800
+                : PdfColors.green800,
+          ),
+        ),
+      ],
+    ),
+  );
 
   pw.Widget _sectionTitle(String text) => pw.Padding(
     padding: const pw.EdgeInsets.only(bottom: 5),
@@ -502,9 +496,8 @@ class CustodyPdf {
   static String _time(DateTime? d) =>
       d == null ? '-' : '${_two(d.hour)}:${_two(d.minute)}';
 
-  static String _dateTime(DateTime? d) => d == null
-      ? '-'
-      : '${_two(d.day)}/${_two(d.month)}/${d.year} ${_time(d)}';
+  static String _dateTime(DateTime? d) =>
+      d == null ? '-' : '${_two(d.day)}/${_two(d.month)}/${d.year} ${_time(d)}';
 }
 
 /// Etiquettes du document, traduites en amont du rendu.

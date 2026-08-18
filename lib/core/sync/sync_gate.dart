@@ -52,7 +52,10 @@ class _SyncGateState extends ConsumerState<SyncGate> {
     // que de deviner.
     if (run.sent > 0) {
       unawaited(
-        ref.read(deliveryRepositoryProvider).refreshDeliveries().catchError((_) {}),
+        ref
+            .read(deliveryRepositoryProvider)
+            .refreshDeliveries()
+            .catchError((_) {}),
       );
     }
 

@@ -26,7 +26,10 @@ class CustodyMockModule extends MockModule {
   @override
   Future<void> reset() async => _reports.clear();
 
-  Future<MockResponse> _accept(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _accept(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final deliveryId = params['id']!;
     final body = req.json;
     final stage = '${body['stage']}';
@@ -43,7 +46,9 @@ class CustodyMockModule extends MockModule {
       ..remove('sealedAt')
       ..remove('serverTimestamp');
 
-    final recomputed = sha256.convert(utf8.encode(jsonEncode(canonical))).toString();
+    final recomputed = sha256
+        .convert(utf8.encode(jsonEncode(canonical)))
+        .toString();
 
     if (recomputed != claimed) {
       return MockResponse.error(
@@ -93,7 +98,10 @@ class CustodyMockModule extends MockModule {
     return MockResponse.created(stored);
   }
 
-  Future<MockResponse> _list(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _list(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final reports = _reports[params['id']];
     if (reports == null) {
       return MockResponse.ok({'pickup': null, 'handover': null});

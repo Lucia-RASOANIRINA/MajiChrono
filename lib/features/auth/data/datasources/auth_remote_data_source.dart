@@ -20,11 +20,27 @@ class AuthRemoteDataSource {
   Future<Map<String, dynamic>> verifyOtp({
     required String challengeId,
     required String code,
-  }) =>
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.otpVerify,
+    body: {'challengeId': challengeId, 'code': code},
+  );
+
+  Future<Map<String, dynamic>> requestEmailCode(String email) =>
       _client.post<Map<String, dynamic>>(
-        ApiEndpoints.otpVerify,
-        body: {'challengeId': challengeId, 'code': code},
+        ApiEndpoints.emailRequest,
+        body: {'email': email},
       );
+
+  Future<Map<String, dynamic>> verifyEmailCode({
+    required String challengeId,
+    required String code,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.emailVerify,
+    body: {'challengeId': challengeId, 'code': code},
+  );
+
+  Future<void> linkEmail(String email) =>
+      _client.post<void>(ApiEndpoints.emailLink, body: {'email': email});
 
   Future<Map<String, dynamic>> refresh(String refreshToken) =>
       _client.post<Map<String, dynamic>>(
@@ -40,9 +56,6 @@ class AuthRemoteDataSource {
   Future<Map<String, dynamic>> patchMe({String? role, String? displayName}) =>
       _client.patch<Map<String, dynamic>>(
         ApiEndpoints.me,
-        body: {
-          'role': ?role,
-          'displayName': ?displayName,
-        },
+        body: {'role': ?role, 'displayName': ?displayName},
       );
 }

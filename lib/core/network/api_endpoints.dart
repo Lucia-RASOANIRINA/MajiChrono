@@ -15,6 +15,16 @@ class ApiEndpoints {
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
 
+  /// Entree acceleree par adresse e-mail (compagnon du bouton « Continuer avec
+  /// Google »). Le code part dans la boite mail, jamais par SMS : c'est
+  /// justement l'interet du parcours pour qui n'a pas de reseau GSM au moment ou
+  /// il se connecte, mais du Wi-Fi.
+  static const String emailRequest = '/auth/email/request';
+  static const String emailVerify = '/auth/email/verify';
+
+  /// Rattache une adresse deja verifiee au compte de la session en cours.
+  static const String emailLink = '/auth/email/link';
+
   // --- Profil ----------------------------------------------------------
   static const String me = '/me';
   static const String meAvatar = '/me/avatar';
@@ -31,7 +41,8 @@ class ApiEndpoints {
 
   // --- Constats (§7.3) -------------------------------------------------
   static String custodyPickup(String id) => '/deliveries/$id/custody/pickup';
-  static String custodyHandover(String id) => '/deliveries/$id/custody/handover';
+  static String custodyHandover(String id) =>
+      '/deliveries/$id/custody/handover';
   static String custody(String id) => '/deliveries/$id/custody';
 
   // --- Pieces jointes --------------------------------------------------

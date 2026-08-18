@@ -27,19 +27,23 @@ class UserAccount {
 
   /// Un livreur ne peut executer aucune course tant que son dossier n'est pas
   /// valide (EXI-L01). La regle est portee par le domaine, pas par un ecran.
-  bool get canWork => role != UserRole.driver || kycStatus == KycStatus.approved;
+  bool get canWork =>
+      role != UserRole.driver || kycStatus == KycStatus.approved;
 
-  UserAccount copyWith({String? displayName, String? avatarUrl, KycStatus? kycStatus}) =>
-      UserAccount(
-        id: id,
-        phone: phone,
-        role: role,
-        displayName: displayName ?? this.displayName,
-        createdAt: createdAt,
-        avatarUrl: avatarUrl ?? this.avatarUrl,
-        rating: rating,
-        kycStatus: kycStatus ?? this.kycStatus,
-      );
+  UserAccount copyWith({
+    String? displayName,
+    String? avatarUrl,
+    KycStatus? kycStatus,
+  }) => UserAccount(
+    id: id,
+    phone: phone,
+    role: role,
+    displayName: displayName ?? this.displayName,
+    createdAt: createdAt,
+    avatarUrl: avatarUrl ?? this.avatarUrl,
+    rating: rating,
+    kycStatus: kycStatus ?? this.kycStatus,
+  );
 }
 
 /// Cycle de vie du dossier KYC (EXI-L02).
@@ -123,12 +127,12 @@ class OtpChallenge {
   }
 
   OtpChallenge copyWith({int? attemptsLeft}) => OtpChallenge(
-        challengeId: challengeId,
-        phone: phone,
-        expiresAt: expiresAt,
-        attemptsLeft: attemptsLeft ?? this.attemptsLeft,
-        debugCode: debugCode,
-      );
+    challengeId: challengeId,
+    phone: phone,
+    expiresAt: expiresAt,
+    attemptsLeft: attemptsLeft ?? this.attemptsLeft,
+    debugCode: debugCode,
+  );
 }
 
 /// Etat d'un compte tel que le serveur le renvoie.

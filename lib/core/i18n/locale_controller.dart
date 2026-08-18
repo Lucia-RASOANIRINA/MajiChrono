@@ -22,16 +22,21 @@ class AppLocales {
 /// pousse dans [activeLanguageCodeProvider], que le client HTTP envoie en
 /// `Accept-Language` a chaque requete. Le serveur traduit ainsi les messages
 /// distants dans la langue courante du compte, y compris application fermee.
-final localeProvider = NotifierProvider<LocaleController, Locale>(LocaleController.new);
+final localeProvider = NotifierProvider<LocaleController, Locale>(
+  LocaleController.new,
+);
 
 class LocaleController extends Notifier<Locale> {
   @override
   Locale build() {
-    final stored = ref.watch(prefsStoreProvider).getString(PrefsStore.keyLocale);
+    final stored = ref
+        .watch(prefsStoreProvider)
+        .getString(PrefsStore.keyLocale);
     final locale = AppLocales.fromCode(stored ?? _deviceLanguage());
     // Synchronisation immediate de l'en-tete HTTP.
     Future.microtask(
-      () => ref.read(activeLanguageCodeProvider.notifier).state = locale.languageCode,
+      () => ref.read(activeLanguageCodeProvider.notifier).state =
+          locale.languageCode,
     );
     return locale;
   }

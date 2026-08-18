@@ -9,12 +9,15 @@ import 'package:uuid/uuid.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/security/device_integrity.dart';
+import 'package:majichrono/core/security/secure_screen.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/custody/data/services/photo_pipeline.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
 import 'package:majichrono/features/custody/presentation/custody_export.dart';
 import 'package:majichrono/features/custody/presentation/providers/custody_providers.dart';
 import 'package:majichrono/features/custody/presentation/screens/guided_camera_screen.dart';
+import 'package:majichrono/features/custody/presentation/screens/seal_scan_screen.dart';
 import 'package:majichrono/features/custody/presentation/widgets/signature_pad.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -87,7 +90,8 @@ class _CustodyCaptureScreenState extends ConsumerState<CustodyCaptureScreen> {
   bool get _isHandover => widget.stage == CustodyStage.handover;
 
   /// Un scelle rompu ou absent impose une photo de plus (EXI-CC22).
-  bool get _needsSealPhoto => _isHandover && (_sealCheck?.requiresIncident ?? false);
+  bool get _needsSealPhoto =>
+      _isHandover && (_sealCheck?.requiresIncident ?? false);
 
   /// Piece d'identite du tiers, ou colis remis en main propre.
   bool get _needsOutcomePhoto =>
@@ -184,6 +188,15 @@ class _CustodyCaptureScreenState extends ConsumerState<CustodyCaptureScreen> {
     );
   }
 
+  /// Lecture du code-barres du scelle (EXI-CC14).
+  Future<void> _scanSeal() async {
+    final code = await Navigator.of(
+      context,
+    ).push<String>(MaterialPageRoute(builder: (_) => const SealScanScreen()));
+    if (code == null || !mounted) return;
+    setState(() => _seal.text = code);
+  }
+
   Future<void> _takePhoto(PhotoAngle angle) async {
     final photo = await _capture(angle: angle, fileName: angle.wireName);
     if (photo != null && mounted) setState(() => _photos[angle] = photo);
@@ -269,365 +282,389 @@ class _CustodyCaptureScreenState extends ConsumerState<CustodyCaptureScreen> {
       ConditionCriterion.crushedCorners => l10n.conditionCrushedCorners,
     };
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          _isHandover ? l10n.custodyHandoverTitle : l10n.custodyPickupTitle,
+    // EXI-SEC06 : un constat en cours porte des photos de colis, deux
+    // signatures et une position. Rien de tout cela ne doit passer par une
+    // capture d'ecran.
+    return SecureScreen(
+      surface: SecureSurface.custodyCapture,
+      child: Scaffold(
+        appBar: AppBar(
+          title: Text(
+            _isHandover ? l10n.custodyHandoverTitle : l10n.custodyPickupTitle,
+          ),
         ),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          // --- Photos guidees ---------------------------------------------
-          Text(l10n.custodyStepPhotos, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          GridView.count(
-            crossAxisCount: 2,
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: AppSpacing.md,
-            crossAxisSpacing: AppSpacing.md,
-            children: [
-              for (final angle in PhotoAngle.values)
-                _PhotoSlot(
-                  angle: angle,
-                  photo: _photos[angle],
-                  onTap: () => _takePhoto(angle),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.custodyPhotoInAppOnly,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-
-          // --- Grille d'etat ------------------------------------------------
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.custodyConditionTitle, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            l10n.custodyConditionHelp,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.sm,
-            runSpacing: AppSpacing.sm,
-            children: [
-              for (final c in ConditionCriterion.values)
-                FilterChip(
-                  label: Text(criterionLabel(c)),
-                  selected: _checked.contains(c),
-                  // Couleur **et** libelle : la couleur seule serait illisible
-                  // en plein soleil (EXI-T09).
-                  selectedColor: c.positive
-                      ? AppColors.success.withValues(alpha: 0.20)
-                      : AppColors.danger.withValues(alpha: 0.20),
-                  onSelected: (on) => setState(
-                    () => on ? _checked.add(c) : _checked.remove(c),
+        body: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            // --- Photos guidees ---------------------------------------------
+            Text(l10n.custodyStepPhotos, style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
+            GridView.count(
+              crossAxisCount: 2,
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              mainAxisSpacing: AppSpacing.md,
+              crossAxisSpacing: AppSpacing.md,
+              children: [
+                for (final angle in PhotoAngle.values)
+                  _PhotoSlot(
+                    angle: angle,
+                    photo: _photos[angle],
+                    onTap: () => _takePhoto(angle),
                   ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.custodyPhotoInAppOnly,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+
+            // --- Grille d'etat ------------------------------------------------
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              l10n.custodyConditionTitle,
+              style: theme.textTheme.titleMedium,
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              l10n.custodyConditionHelp,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              runSpacing: AppSpacing.sm,
+              children: [
+                for (final c in ConditionCriterion.values)
+                  FilterChip(
+                    label: Text(criterionLabel(c)),
+                    selected: _checked.contains(c),
+                    // Couleur **et** libelle : la couleur seule serait illisible
+                    // en plein soleil (EXI-T09).
+                    selectedColor: c.positive
+                        ? AppColors.success.withValues(alpha: 0.20)
+                        : AppColors.danger.withValues(alpha: 0.20),
+                    onSelected: (on) => setState(
+                      () => on ? _checked.add(c) : _checked.remove(c),
+                    ),
+                  ),
+              ],
+            ),
+            if (report.grid.hasAnomaly) ...[
+              const SizedBox(height: AppSpacing.lg),
+              TextField(
+                controller: _anomaly,
+                maxLines: 2,
+                decoration: InputDecoration(
+                  labelText: l10n.custodyAnomalyNote,
+                  prefixIcon: const Icon(Icons.report_problem_outlined),
                 ),
+                onChanged: (_) => setState(() {}),
+              ),
             ],
-          ),
-          if (report.grid.hasAnomaly) ...[
-            const SizedBox(height: AppSpacing.lg),
+
+            // --- Scelle -------------------------------------------------------
+            const SizedBox(height: AppSpacing.xl),
+            Text(l10n.custodyStepSeal, style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
             TextField(
-              controller: _anomaly,
-              maxLines: 2,
+              controller: _seal,
+              textCapitalization: TextCapitalization.characters,
               decoration: InputDecoration(
-                labelText: l10n.custodyAnomalyNote,
-                prefixIcon: const Icon(Icons.report_problem_outlined),
+                labelText: l10n.custodySealNumber,
+                hintText: l10n.custodySealHint,
+                prefixIcon: const Icon(Icons.qr_code_2_outlined),
+                // EXI-CC14 : le scan **remplit** le champ, il ne le remplace
+                // pas. Une etiquette sale se lit parfois de travers, et un
+                // numero faux vaut moins qu'un numero saisi a la main.
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.barcode_reader),
+                  tooltip: l10n.custodySealScan,
+                  onPressed: _scanSeal,
+                ),
               ),
               onChanged: (_) => setState(() {}),
             ),
-          ],
-
-          // --- Scelle -------------------------------------------------------
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.custodyStepSeal, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _seal,
-            textCapitalization: TextCapitalization.characters,
-            decoration: InputDecoration(
-              labelText: l10n.custodySealNumber,
-              hintText: l10n.custodySealHint,
-              prefixIcon: const Icon(Icons.qr_code_2_outlined),
-              helperText: l10n.custodySealScanLater,
-            ),
-            onChanged: (_) => setState(() {}),
-          ),
-          if (_isHandover) ...[
-            const SizedBox(height: AppSpacing.lg),
-            Text(l10n.custodySealCheck, style: theme.textTheme.bodyLarge),
-            const SizedBox(height: AppSpacing.sm),
-            SegmentedButton<SealCheck>(
-              segments: [
-                ButtonSegment(
-                  value: SealCheck.intact,
-                  label: Text(l10n.sealIntact),
+            if (_isHandover) ...[
+              const SizedBox(height: AppSpacing.lg),
+              Text(l10n.custodySealCheck, style: theme.textTheme.bodyLarge),
+              const SizedBox(height: AppSpacing.sm),
+              SegmentedButton<SealCheck>(
+                segments: [
+                  ButtonSegment(
+                    value: SealCheck.intact,
+                    label: Text(l10n.sealIntact),
+                  ),
+                  ButtonSegment(
+                    value: SealCheck.broken,
+                    label: Text(l10n.sealBroken),
+                  ),
+                  ButtonSegment(
+                    value: SealCheck.absent,
+                    label: Text(l10n.sealAbsent),
+                  ),
+                ],
+                selected: _sealCheck == null ? {} : {_sealCheck!},
+                emptySelectionAllowed: true,
+                showSelectedIcon: false,
+                onSelectionChanged: (s) =>
+                    setState(() => _sealCheck = s.isEmpty ? null : s.first),
+              ),
+              if (_needsSealPhoto) ...[
+                const SizedBox(height: AppSpacing.sm),
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.report_problem_outlined,
+                      size: 18,
+                      color: AppColors.warning,
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(child: Text(l10n.custodySealIncident)),
+                  ],
                 ),
-                ButtonSegment(
-                  value: SealCheck.broken,
-                  label: Text(l10n.sealBroken),
-                ),
-                ButtonSegment(
-                  value: SealCheck.absent,
-                  label: Text(l10n.sealAbsent),
+                const SizedBox(height: AppSpacing.sm),
+                // EXI-CC22 : le scelle rompu se photographie. Sans cette image, la
+                // rupture ne serait qu'une affirmation.
+                _ExtraPhotoTile(
+                  label: l10n.custodyExtraPhotoSeal,
+                  missingLabel: l10n.custodyExtraPhotoMissing,
+                  photo: _sealPhoto,
+                  onTap: () => _takeSealPhoto(l10n.custodyExtraPhotoSeal),
                 ),
               ],
-              selected: _sealCheck == null ? {} : {_sealCheck!},
-              emptySelectionAllowed: true,
-              showSelectedIcon: false,
-              onSelectionChanged: (s) =>
-                  setState(() => _sealCheck = s.isEmpty ? null : s.first),
-            ),
-            if (_needsSealPhoto) ...[
-              const SizedBox(height: AppSpacing.sm),
-              Row(
-                children: [
-                  const Icon(
-                    Icons.report_problem_outlined,
-                    size: 18,
-                    color: AppColors.warning,
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(child: Text(l10n.custodySealIncident)),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              // EXI-CC22 : le scelle rompu se photographie. Sans cette image, la
-              // rupture ne serait qu'une affirmation.
-              _ExtraPhotoTile(
-                label: l10n.custodyExtraPhotoSeal,
-                missingLabel: l10n.custodyExtraPhotoMissing,
-                photo: _sealPhoto,
-                onTap: () => _takeSealPhoto(l10n.custodyExtraPhotoSeal),
-              ),
-            ],
-          ],
-
-          // --- Poids confirme (EXI-CC15) ------------------------------------
-          const SizedBox(height: AppSpacing.lg),
-          Text(l10n.custodyWeightConfirm, style: theme.textTheme.bodyLarge),
-          const SizedBox(height: AppSpacing.sm),
-          Wrap(
-            spacing: AppSpacing.sm,
-            children: [
-              for (final w in WeightCategory.values)
-                ChoiceChip(
-                  label: Text(switch (w) {
-                    WeightCategory.upTo2 => l10n.pkgWeightLt2,
-                    WeightCategory.from2to5 => l10n.pkgWeight2to5,
-                    WeightCategory.from5to15 => l10n.pkgWeight5to15,
-                    WeightCategory.over15 => l10n.pkgWeightGt15,
-                  }),
-                  selected: _weight == w,
-                  onSelected: (_) => setState(() => _weight = w),
-                ),
-            ],
-          ),
-
-          // --- Issue de la remise (EXI-CC26 a EXI-CC29) ---------------------
-          if (_isHandover) ...[
-            const SizedBox(height: AppSpacing.xl),
-            Text(l10n.custodyOutcomeTitle, style: theme.textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.custodyOutcomeHelp,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            // Une liste verticale, pas des puces cote a cote : les cinq issues
-            // ont des consequences differentes, et un livreur qui vise a une
-            // main sur un ecran ensoleille ne doit pas pouvoir se tromper de
-            // quelques pixels entre « remis » et « refuse ».
-            RadioGroup<HandoverOutcome>(
-              groupValue: _outcome,
-              onChanged: (value) => setState(() {
-                _outcome = value;
-                // Changer d'issue invalide la piece justificative de la
-                // precedente : une photo de piece d'identite n'a rien a faire
-                // dans un constat de refus.
-                _outcomePhoto = null;
-              }),
-              child: Column(
-                children: [
-                  for (final outcome in HandoverOutcome.values)
-                    RadioListTile<HandoverOutcome>(
-                      value: outcome,
-                      contentPadding: EdgeInsets.zero,
-                      title: Text(switch (outcome) {
-                        HandoverOutcome.delivered => l10n.outcomeDelivered,
-                        HandoverOutcome.withReserves => l10n.outcomeWithReserves,
-                        HandoverOutcome.refused => l10n.outcomeRefused,
-                        HandoverOutcome.thirdParty => l10n.outcomeThirdParty,
-                        HandoverOutcome.noSignature => l10n.outcomeNoSignature,
-                      }),
-                    ),
-                ],
-              ),
-            ),
-
-            if (_outcome != null) ...[
-              // Consequence annoncee avant validation : le livreur doit savoir
-              // ce qu'il declenche, pas le decouvrir apres coup.
-              if (_outcome!.opensDispute)
-                _OutcomeNotice(
-                  icon: Icons.gavel_outlined,
-                  color: AppColors.warning,
-                  text: l10n.custodyReservesNotice,
-                ),
-              if (_outcome == HandoverOutcome.refused)
-                _OutcomeNotice(
-                  icon: Icons.undo_outlined,
-                  color: AppColors.warning,
-                  text: l10n.custodyRefusedNotice,
-                ),
-              if (_outcome == HandoverOutcome.noSignature)
-                _OutcomeNotice(
-                  icon: Icons.campaign_outlined,
-                  color: AppColors.danger,
-                  text: l10n.custodyNoSignatureNotice,
-                ),
             ],
 
-            // Motif ecrit : reserves, refus, absence de signature (EXI-CC26,
-            // CC27, CC29).
-            if (_outcome?.requiresReason ?? false) ...[
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _reason,
-                maxLines: 3,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: l10n.custodyOutcomeReason,
-                  helperText: l10n.custodyOutcomeReasonHelp,
-                  helperMaxLines: 2,
-                  prefixIcon: const Icon(Icons.edit_note_outlined),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ],
-
-            // Identite du tiers **et** lien avec le destinataire (EXI-CC28) :
-            // c'est le lien qui rend la remise opposable.
-            if (_outcome == HandoverOutcome.thirdParty) ...[
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _thirdPartyName,
-                textCapitalization: TextCapitalization.words,
-                decoration: InputDecoration(
-                  labelText: l10n.custodyThirdPartyName,
-                  prefixIcon: const Icon(Icons.person_outline),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              TextField(
-                controller: _thirdPartyRelation,
-                textCapitalization: TextCapitalization.sentences,
-                decoration: InputDecoration(
-                  labelText: l10n.custodyThirdPartyRelation,
-                  hintText: l10n.custodyThirdPartyRelationHint,
-                  prefixIcon: const Icon(Icons.link_outlined),
-                ),
-                onChanged: (_) => setState(() {}),
-              ),
-            ],
-
-            if (_needsOutcomePhoto) ...[
-              const SizedBox(height: AppSpacing.md),
-              Builder(
-                builder: (_) {
-                  final label = _outcome == HandoverOutcome.thirdParty
-                      ? l10n.custodyExtraPhotoId
-                      : l10n.custodyExtraPhotoHandover;
-                  return _ExtraPhotoTile(
-                    label: label,
-                    missingLabel: l10n.custodyExtraPhotoMissing,
-                    photo: _outcomePhoto,
-                    onTap: () => _takeOutcomePhoto(label),
-                  );
-                },
-              ),
-            ],
-          ],
-
-          // --- Code OTP du destinataire (EXI-CC24) --------------------------
-          if (_needsOtp) ...[
-            const SizedBox(height: AppSpacing.xl),
-            Text(l10n.custodyOtpTitle, style: theme.textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.custodyOtpHelp,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            TextField(
-              controller: _otp,
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 8),
-              decoration: const InputDecoration(counterText: ''),
-              onChanged: (_) => setState(() {}),
-            ),
-          ],
-
-          // --- Signatures ----------------------------------------------------
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.custodyStepSignatures, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          // EXI-CC29 : dans le mode degrade, le pad du destinataire disparait
-          // plutot que de rester vide. Un cadre de signature laisse vide invite
-          // a le faire remplir par n'importe qui.
-          if (_needsPartySignature) ...[
-            SignaturePad(
-              signerLabel: _isHandover
-                  ? l10n.custodySignerRecipient
-                  : l10n.custodySignerSender,
-              onChanged: (s) => setState(() => _partySignature = s),
-            ),
+            // --- Poids confirme (EXI-CC15) ------------------------------------
             const SizedBox(height: AppSpacing.lg),
-          ],
-          SignaturePad(
-            signerLabel: l10n.custodySignerDriver,
-            onChanged: (s) => setState(() => _driverSignature = s),
-          ),
-          const SizedBox(height: AppSpacing.lg),
+            Text(l10n.custodyWeightConfirm, style: theme.textTheme.bodyLarge),
+            const SizedBox(height: AppSpacing.sm),
+            Wrap(
+              spacing: AppSpacing.sm,
+              children: [
+                for (final w in WeightCategory.values)
+                  ChoiceChip(
+                    label: Text(switch (w) {
+                      WeightCategory.upTo2 => l10n.pkgWeightLt2,
+                      WeightCategory.from2to5 => l10n.pkgWeight2to5,
+                      WeightCategory.from5to15 => l10n.pkgWeight5to15,
+                      WeightCategory.over15 => l10n.pkgWeightGt15,
+                    }),
+                    selected: _weight == w,
+                    onSelected: (_) => setState(() => _weight = w),
+                  ),
+              ],
+            ),
 
-          if (!report.isComplete)
-            Card(
-              color: theme.colorScheme.errorContainer,
-              child: Padding(
-                padding: AppSpacing.card,
-                child: Row(
+            // --- Issue de la remise (EXI-CC26 a EXI-CC29) ---------------------
+            if (_isHandover) ...[
+              const SizedBox(height: AppSpacing.xl),
+              Text(
+                l10n.custodyOutcomeTitle,
+                style: theme.textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l10n.custodyOutcomeHelp,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              // Une liste verticale, pas des puces cote a cote : les cinq issues
+              // ont des consequences differentes, et un livreur qui vise a une
+              // main sur un ecran ensoleille ne doit pas pouvoir se tromper de
+              // quelques pixels entre « remis » et « refuse ».
+              RadioGroup<HandoverOutcome>(
+                groupValue: _outcome,
+                onChanged: (value) => setState(() {
+                  _outcome = value;
+                  // Changer d'issue invalide la piece justificative de la
+                  // precedente : une photo de piece d'identite n'a rien a faire
+                  // dans un constat de refus.
+                  _outcomePhoto = null;
+                }),
+                child: Column(
                   children: [
-                    const Icon(Icons.info_outline),
-                    const SizedBox(width: AppSpacing.md),
-                    Expanded(child: Text(l10n.custodyIncomplete)),
+                    for (final outcome in HandoverOutcome.values)
+                      RadioListTile<HandoverOutcome>(
+                        value: outcome,
+                        contentPadding: EdgeInsets.zero,
+                        title: Text(switch (outcome) {
+                          HandoverOutcome.delivered => l10n.outcomeDelivered,
+                          HandoverOutcome.withReserves =>
+                            l10n.outcomeWithReserves,
+                          HandoverOutcome.refused => l10n.outcomeRefused,
+                          HandoverOutcome.thirdParty => l10n.outcomeThirdParty,
+                          HandoverOutcome.noSignature =>
+                            l10n.outcomeNoSignature,
+                        }),
+                      ),
                   ],
                 ),
               ),
+
+              if (_outcome != null) ...[
+                // Consequence annoncee avant validation : le livreur doit savoir
+                // ce qu'il declenche, pas le decouvrir apres coup.
+                if (_outcome!.opensDispute)
+                  _OutcomeNotice(
+                    icon: Icons.gavel_outlined,
+                    color: AppColors.warning,
+                    text: l10n.custodyReservesNotice,
+                  ),
+                if (_outcome == HandoverOutcome.refused)
+                  _OutcomeNotice(
+                    icon: Icons.undo_outlined,
+                    color: AppColors.warning,
+                    text: l10n.custodyRefusedNotice,
+                  ),
+                if (_outcome == HandoverOutcome.noSignature)
+                  _OutcomeNotice(
+                    icon: Icons.campaign_outlined,
+                    color: AppColors.danger,
+                    text: l10n.custodyNoSignatureNotice,
+                  ),
+              ],
+
+              // Motif ecrit : reserves, refus, absence de signature (EXI-CC26,
+              // CC27, CC29).
+              if (_outcome?.requiresReason ?? false) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _reason,
+                  maxLines: 3,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: l10n.custodyOutcomeReason,
+                    helperText: l10n.custodyOutcomeReasonHelp,
+                    helperMaxLines: 2,
+                    prefixIcon: const Icon(Icons.edit_note_outlined),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+
+              // Identite du tiers **et** lien avec le destinataire (EXI-CC28) :
+              // c'est le lien qui rend la remise opposable.
+              if (_outcome == HandoverOutcome.thirdParty) ...[
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _thirdPartyName,
+                  textCapitalization: TextCapitalization.words,
+                  decoration: InputDecoration(
+                    labelText: l10n.custodyThirdPartyName,
+                    prefixIcon: const Icon(Icons.person_outline),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextField(
+                  controller: _thirdPartyRelation,
+                  textCapitalization: TextCapitalization.sentences,
+                  decoration: InputDecoration(
+                    labelText: l10n.custodyThirdPartyRelation,
+                    hintText: l10n.custodyThirdPartyRelationHint,
+                    prefixIcon: const Icon(Icons.link_outlined),
+                  ),
+                  onChanged: (_) => setState(() {}),
+                ),
+              ],
+
+              if (_needsOutcomePhoto) ...[
+                const SizedBox(height: AppSpacing.md),
+                Builder(
+                  builder: (_) {
+                    final label = _outcome == HandoverOutcome.thirdParty
+                        ? l10n.custodyExtraPhotoId
+                        : l10n.custodyExtraPhotoHandover;
+                    return _ExtraPhotoTile(
+                      label: label,
+                      missingLabel: l10n.custodyExtraPhotoMissing,
+                      photo: _outcomePhoto,
+                      onTap: () => _takeOutcomePhoto(label),
+                    );
+                  },
+                ),
+              ],
+            ],
+
+            // --- Code OTP du destinataire (EXI-CC24) --------------------------
+            if (_needsOtp) ...[
+              const SizedBox(height: AppSpacing.xl),
+              Text(l10n.custodyOtpTitle, style: theme.textTheme.titleMedium),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l10n.custodyOtpHelp,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: theme.colorScheme.onSurfaceVariant,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TextField(
+                controller: _otp,
+                keyboardType: TextInputType.number,
+                maxLength: 6,
+                textAlign: TextAlign.center,
+                style: theme.textTheme.titleLarge?.copyWith(letterSpacing: 8),
+                decoration: const InputDecoration(counterText: ''),
+                onChanged: (_) => setState(() {}),
+              ),
+            ],
+
+            // --- Signatures ----------------------------------------------------
+            const SizedBox(height: AppSpacing.xl),
+            Text(
+              l10n.custodyStepSignatures,
+              style: theme.textTheme.titleMedium,
             ),
-        ],
-      ),
-      bottomNavigationBar: McPrimaryAction.driver(
-        label: l10n.custodyValidate,
-        icon: Icons.lock_outline,
-        busy: _busy,
-        // EXI-CC03 : le statut ne peut pas progresser sans constat complet.
-        onPressed: report.isComplete ? _validate : null,
+            const SizedBox(height: AppSpacing.sm),
+            // EXI-CC29 : dans le mode degrade, le pad du destinataire disparait
+            // plutot que de rester vide. Un cadre de signature laisse vide invite
+            // a le faire remplir par n'importe qui.
+            if (_needsPartySignature) ...[
+              SignaturePad(
+                signerLabel: _isHandover
+                    ? l10n.custodySignerRecipient
+                    : l10n.custodySignerSender,
+                onChanged: (s) => setState(() => _partySignature = s),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+            SignaturePad(
+              signerLabel: l10n.custodySignerDriver,
+              onChanged: (s) => setState(() => _driverSignature = s),
+            ),
+            const SizedBox(height: AppSpacing.lg),
+
+            if (!report.isComplete)
+              Card(
+                color: theme.colorScheme.errorContainer,
+                child: Padding(
+                  padding: AppSpacing.card,
+                  child: Row(
+                    children: [
+                      const Icon(Icons.info_outline),
+                      const SizedBox(width: AppSpacing.md),
+                      Expanded(child: Text(l10n.custodyIncomplete)),
+                    ],
+                  ),
+                ),
+              ),
+          ],
+        ),
+        bottomNavigationBar: McPrimaryAction.driver(
+          label: l10n.custodyValidate,
+          icon: Icons.lock_outline,
+          busy: _busy,
+          // EXI-CC03 : le statut ne peut pas progresser sans constat complet.
+          onPressed: report.isComplete ? _validate : null,
+        ),
       ),
     );
   }
@@ -653,7 +690,9 @@ class _OutcomeNotice extends StatelessWidget {
       children: [
         Icon(icon, size: 18, color: color),
         const SizedBox(width: AppSpacing.sm),
-        Expanded(child: Text(text, style: Theme.of(context).textTheme.bodyMedium)),
+        Expanded(
+          child: Text(text, style: Theme.of(context).textTheme.bodyMedium),
+        ),
       ],
     ),
   );
@@ -721,8 +760,7 @@ class _ExtraPhotoTile extends StatelessWidget {
                 ],
               ),
             ),
-            if (taken)
-              const Icon(Icons.check_circle, color: AppColors.success),
+            if (taken) const Icon(Icons.check_circle, color: AppColors.success),
           ],
         ),
       ),
@@ -732,7 +770,11 @@ class _ExtraPhotoTile extends StatelessWidget {
 
 /// Emplacement d'une photo d'angle.
 class _PhotoSlot extends StatelessWidget {
-  const _PhotoSlot({required this.angle, required this.photo, required this.onTap});
+  const _PhotoSlot({
+    required this.angle,
+    required this.photo,
+    required this.onTap,
+  });
 
   final PhotoAngle angle;
   final CustodyPhoto? photo;

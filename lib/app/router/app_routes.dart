@@ -9,15 +9,24 @@ class AppRoutes {
 
   static const String splash = '/';
 
+  /// Premier ecran vu par un nouvel utilisateur : la promesse et les quatre
+  /// piliers en mouvement, avant toute demande d'identite.
+  static const String welcome = '/welcome';
+
   // --- Authentification (module 1) --------------------------------------
   static const String authPhone = '/auth/phone';
   static const String authOtp = '/auth/otp';
+  /// Code recu par e-mail, apres « Continuer avec Google ».
+  static const String authEmailCode = '/auth/email';
   static const String authProfile = '/auth/profile';
   static const String authPin = '/auth/pin';
   static const String authLock = '/auth/lock';
 
   /// Vrai pour toute route du parcours d'authentification.
-  static bool isAuthRoute(String location) => location.startsWith('/auth');
+  /// L'accueil compte comme une etape du parcours d'entree : un visiteur non
+  /// identifie doit pouvoir y rester sans etre renvoye sur la saisie du numero.
+  static bool isAuthRoute(String location) =>
+      location.startsWith('/auth') || location == welcome;
 
   static const String settings = '/settings';
   static const String dataUsage = '/settings/data';

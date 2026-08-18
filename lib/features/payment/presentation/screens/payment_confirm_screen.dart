@@ -3,6 +3,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/security/device_integrity.dart';
+import 'package:majichrono/core/security/secure_screen.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
@@ -54,10 +56,9 @@ class _PaymentConfirmScreenState extends ConsumerState<PaymentConfirmScreen> {
     final navigator = Navigator.of(context);
 
     try {
-      final settled = await ref.read(paymentActionsProvider).confirm(
-        intentId: widget.intent.id,
-        pin: _pin.text.trim(),
-      );
+      final settled = await ref
+          .read(paymentActionsProvider)
+          .confirm(intentId: widget.intent.id, pin: _pin.text.trim());
 
       if (settled == null) {
         // Code faux : le serveur n'a pas ete sollicite. Inutile de lui faire
@@ -101,121 +102,125 @@ class _PaymentConfirmScreenState extends ConsumerState<PaymentConfirmScreen> {
 
     final covered = balance.valueOrNull?.covers(widget.intent.amountAriary);
 
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.payConfirmTitle)),
-      body: ListView(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        children: [
-          // Ce qu'on paie, avant de demander comment.
-          Text(
-            l10n.payAmount,
-            style: theme.textTheme.bodyLarge?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-          Text(
-            formatAriary(widget.intent.amountAriary),
-            style: theme.textTheme.displaySmall?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              const Icon(Icons.person_outline, size: 18),
-              const SizedBox(width: AppSpacing.sm),
-              Text(
-                '${l10n.payConfirmTo} : ${widget.intent.payeeLabel ?? '-'}',
-                style: theme.textTheme.bodyLarge,
-              ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.lg),
-          Card(
-            child: ListTile(
-              leading: const Icon(Icons.account_balance_wallet_outlined),
-              title: Text(l10n.payBalance),
-              subtitle: Text(balance.valueOrNull?.accountRef ?? ''),
-              trailing: Text(
-                balance.valueOrNull == null
-                    ? l10n.payBalanceUnavailable
-                    : formatAriary(balance.valueOrNull!.availableAriary),
-                style: theme.textTheme.titleMedium?.copyWith(
-                  color: covered == false ? AppColors.danger : null,
-                ),
-              ),
-            ),
-          ),
-
-          if (covered == false) ...[
-            const SizedBox(height: AppSpacing.sm),
+    // EXI-SEC06 : montant, beneficiaire et solde ne doivent pas finir dans une
+    // capture d'ecran ni dans l'apercu des applications recentes.
+    return SecureScreen(
+      surface: SecureSurface.payment,
+      child: Scaffold(
+        appBar: AppBar(title: Text(l10n.payConfirmTitle)),
+        body: ListView(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          children: [
+            // Ce qu'on paie, avant de demander comment.
             Text(
-              l10n.payFailedInsufficient,
+              l10n.payAmount,
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: AppColors.danger,
+                color: theme.colorScheme.onSurfaceVariant,
               ),
             ),
-          ],
-
-          const SizedBox(height: AppSpacing.xl),
-          Text(l10n.payConfirmPin, style: theme.textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.sm),
-          TextField(
-            controller: _pin,
-            keyboardType: TextInputType.number,
-            obscureText: true,
-            maxLength: 4,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: 12),
-            decoration: InputDecoration(
-              counterText: '',
-              errorText: _error,
+            Text(
+              formatAriary(widget.intent.amountAriary),
+              style: theme.textTheme.displaySmall?.copyWith(
+                fontWeight: FontWeight.w700,
+              ),
             ),
-            onChanged: (_) => setState(() => _error = null),
-          ),
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              children: [
+                const Icon(Icons.person_outline, size: 18),
+                const SizedBox(width: AppSpacing.sm),
+                Text(
+                  '${l10n.payConfirmTo} : ${widget.intent.payeeLabel ?? '-'}',
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ],
+            ),
 
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Icon(Icons.shield_outlined, size: 18),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  l10n.payConfirmNever,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
+            const SizedBox(height: AppSpacing.lg),
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.account_balance_wallet_outlined),
+                title: Text(l10n.payBalance),
+                subtitle: Text(balance.valueOrNull?.accountRef ?? ''),
+                trailing: Text(
+                  balance.valueOrNull == null
+                      ? l10n.payBalanceUnavailable
+                      : formatAriary(balance.valueOrNull!.availableAriary),
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: covered == false ? AppColors.danger : null,
                   ),
                 ),
               ),
-            ],
-          ),
-
-          const SizedBox(height: AppSpacing.xl),
-          // EXI-MP08 : la sortie especes est offerte d'emblee, pas seulement
-          // apres un echec. Un client sans solde ne doit pas avoir a echouer
-          // d'abord pour decouvrir qu'il peut payer autrement.
-          OutlinedButton.icon(
-            onPressed: _busy ? null : _payCash,
-            icon: const Icon(Icons.payments_outlined),
-            label: Text(l10n.payCashFallback),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(
-            l10n.payCashHelp,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
             ),
+
+            if (covered == false) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Text(
+                l10n.payFailedInsufficient,
+                style: theme.textTheme.bodyLarge?.copyWith(
+                  color: AppColors.danger,
+                ),
+              ),
+            ],
+
+            const SizedBox(height: AppSpacing.xl),
+            Text(l10n.payConfirmPin, style: theme.textTheme.titleMedium),
+            const SizedBox(height: AppSpacing.sm),
+            TextField(
+              controller: _pin,
+              keyboardType: TextInputType.number,
+              obscureText: true,
+              maxLength: 4,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.headlineSmall?.copyWith(letterSpacing: 12),
+              decoration: InputDecoration(counterText: '', errorText: _error),
+              onChanged: (_) => setState(() => _error = null),
+            ),
+
+            const SizedBox(height: AppSpacing.md),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Icon(Icons.shield_outlined, size: 18),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: Text(
+                    l10n.payConfirmNever,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+
+            const SizedBox(height: AppSpacing.xl),
+            // EXI-MP08 : la sortie especes est offerte d'emblee, pas seulement
+            // apres un echec. Un client sans solde ne doit pas avoir a echouer
+            // d'abord pour decouvrir qu'il peut payer autrement.
+            OutlinedButton.icon(
+              onPressed: _busy ? null : _payCash,
+              icon: const Icon(Icons.payments_outlined),
+              label: Text(l10n.payCashFallback),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.payCashHelp,
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+        bottomNavigationBar: McPrimaryAction(
+          label: l10n.payConfirmAction(
+            formatAriary(widget.intent.amountAriary),
           ),
-        ],
-      ),
-      bottomNavigationBar: McPrimaryAction(
-        label: l10n.payConfirmAction(formatAriary(widget.intent.amountAriary)),
-        icon: Icons.lock_outline,
-        busy: _busy,
-        onPressed: _pin.text.trim().length == 4 ? _confirm : null,
+          icon: Icons.lock_outline,
+          busy: _busy,
+          onPressed: _pin.text.trim().length == 4 ? _confirm : null,
+        ),
       ),
     );
   }

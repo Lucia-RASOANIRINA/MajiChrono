@@ -78,7 +78,10 @@ class DeliveryMockModule extends MockModule {
     return MockResponse.ok({'items': items});
   }
 
-  Future<MockResponse> _detail(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _detail(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final delivery = _deliveries[params['id']];
     if (delivery == null) {
       return MockResponse.error(404, 'not_found', 'Course inconnue');
@@ -86,7 +89,10 @@ class DeliveryMockModule extends MockModule {
     return MockResponse.ok(delivery);
   }
 
-  Future<MockResponse> _cancel(MockRequest req, Map<String, String> params) async {
+  Future<MockResponse> _cancel(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
     final delivery = _deliveries[params['id']];
     if (delivery == null) {
       return MockResponse.error(404, 'not_found', 'Course inconnue');
@@ -110,22 +116,23 @@ class DeliveryMockModule extends MockModule {
 
   Future<MockResponse> _estimate(MockRequest req, Map<String, String> _) async {
     final body = req.json;
-    return MockResponse.ok({
-      'price': _price(body),
-      'provisional': true,
-    });
+    return MockResponse.ok({'price': _price(body), 'provisional': true});
   }
 
   /// Reproduit la grille provisoire pour que le prix serveur et le prix local
   /// coincident tant que DO-3 n'est pas arbitre.
   int _price(Map<String, dynamic> body) {
     final pickup = GeoPoint.fromJson(
-      (body['pickup'] as Map<String, dynamic>?)?['point'] as Map<String, dynamic>?,
+      (body['pickup'] as Map<String, dynamic>?)?['point']
+          as Map<String, dynamic>?,
     );
     final dropoff = GeoPoint.fromJson(
-      (body['dropoff'] as Map<String, dynamic>?)?['point'] as Map<String, dynamic>?,
+      (body['dropoff'] as Map<String, dynamic>?)?['point']
+          as Map<String, dynamic>?,
     );
-    if (pickup == null || dropoff == null) return TariffGrid.provisional.minimumAriary;
+    if (pickup == null || dropoff == null) {
+      return TariffGrid.provisional.minimumAriary;
+    }
 
     final estimate = TariffGrid.provisional.estimate(
       straightLineKm: pickup.distanceKmTo(dropoff),

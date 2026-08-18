@@ -19,7 +19,8 @@ class GeoPoint {
 
     final dLat = toRad(other.latitude - latitude);
     final dLon = toRad(other.longitude - longitude);
-    final a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
         math.cos(toRad(latitude)) *
             math.cos(toRad(other.latitude)) *
             math.sin(dLon / 2) *

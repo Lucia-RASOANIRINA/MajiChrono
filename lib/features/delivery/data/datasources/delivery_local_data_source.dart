@@ -27,8 +27,8 @@ class DeliveryLocalDataSource {
         (t) => OrderingTerm.desc(t.lastUsedAt),
       ]);
     return query.watch().map(
-          (rows) => rows.map(_toSavedAddress).whereType<SavedAddress>().toList(),
-        );
+      (rows) => rows.map(_toSavedAddress).whereType<SavedAddress>().toList(),
+    );
   }
 
   Future<void> upsertAddress(SavedAddress entry) => _db
@@ -48,9 +48,9 @@ class DeliveryLocalDataSource {
       (_db.delete(_db.savedAddresses)..where((t) => t.id.equals(id))).go();
 
   Future<void> touchAddress(String id) async {
-    final row = await (_db.select(_db.savedAddresses)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.savedAddresses,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     if (row == null) return;
 
     await (_db.update(_db.savedAddresses)..where((t) => t.id.equals(id))).write(
@@ -62,8 +62,9 @@ class DeliveryLocalDataSource {
   }
 
   SavedAddress? _toSavedAddress(SavedAddressesData row) {
-    final address =
-        Address.fromJson(jsonDecode(row.payload) as Map<String, dynamic>);
+    final address = Address.fromJson(
+      jsonDecode(row.payload) as Map<String, dynamic>,
+    );
     if (address == null) return null;
     return SavedAddress(
       id: row.id,
@@ -80,19 +81,21 @@ class DeliveryLocalDataSource {
     final query = _db.select(_db.cachedDeliveries)
       ..orderBy([(t) => OrderingTerm.desc(t.createdAt)]);
     return query.watch().map(
-          (rows) => rows.map(_toDelivery).whereType<Delivery>().toList(),
-        );
+      (rows) => rows.map(_toDelivery).whereType<Delivery>().toList(),
+    );
   }
 
   Future<Delivery?> deliveryById(String id) async {
-    final row = await (_db.select(_db.cachedDeliveries)
-          ..where((t) => t.id.equals(id)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.cachedDeliveries,
+    )..where((t) => t.id.equals(id))).getSingleOrNull();
     return row == null ? null : _toDelivery(row);
   }
 
   Future<void> upsertDelivery(Delivery delivery, {required bool pendingSync}) =>
-      _db.into(_db.cachedDeliveries).insertOnConflictUpdate(
+      _db
+          .into(_db.cachedDeliveries)
+          .insertOnConflictUpdate(
             CachedDeliveriesCompanion.insert(
               id: delivery.id,
               status: delivery.status.wireName,
@@ -111,8 +114,9 @@ class DeliveryLocalDataSource {
   /// serveur, qui attribue le sien.
   Future<void> replaceDelivery(String localId, Delivery confirmed) async {
     await _db.transaction(() async {
-      await (_db.delete(_db.cachedDeliveries)..where((t) => t.id.equals(localId)))
-          .go();
+      await (_db.delete(
+        _db.cachedDeliveries,
+      )..where((t) => t.id.equals(localId))).go();
       await upsertDelivery(confirmed, pendingSync: false);
     });
   }
@@ -121,9 +125,9 @@ class DeliveryLocalDataSource {
     await _db.transaction(() async {
       // Les courses non transmises ne sont jamais ecrasees par une reponse
       // serveur : le serveur ne les connait pas encore.
-      await (_db.delete(_db.cachedDeliveries)
-            ..where((t) => t.pendingSync.equals(false)))
-          .go();
+      await (_db.delete(
+        _db.cachedDeliveries,
+      )..where((t) => t.pendingSync.equals(false))).go();
       for (final delivery in deliveries) {
         await upsertDelivery(delivery, pendingSync: false);
       }
@@ -131,8 +135,9 @@ class DeliveryLocalDataSource {
   }
 
   Delivery? _toDelivery(CachedDelivery row) {
-    final delivery =
-        Delivery.fromJson(jsonDecode(row.payload) as Map<String, dynamic>);
+    final delivery = Delivery.fromJson(
+      jsonDecode(row.payload) as Map<String, dynamic>,
+    );
     return delivery?.copyWith(pendingSync: row.pendingSync);
   }
 }

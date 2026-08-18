@@ -44,7 +44,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
   Future<void> _tryBiometrics() async {
     if (_busy) return;
     setState(() => _busy = true);
-    await ref.read(authControllerProvider.notifier).unlockWithBiometrics(
+    await ref
+        .read(authControllerProvider.notifier)
+        .unlockWithBiometrics(
           reason: AppLocalizations.of(context).authBiometricsReason,
         );
     if (mounted) setState(() => _busy = false);
@@ -61,7 +63,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
 
   Future<void> _submit() async {
     setState(() => _busy = true);
-    final ok = await ref.read(authControllerProvider.notifier).unlockWithPin(_pin);
+    final ok = await ref
+        .read(authControllerProvider.notifier)
+        .unlockWithPin(_pin);
     if (!mounted) return;
     if (!ok) {
       await HapticFeedback.heavyImpact();
@@ -100,8 +104,11 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                 child: Column(
                   children: [
                     const SizedBox(height: AppSpacing.xl),
-                    Icon(Icons.lock_outline,
-                        size: 48, color: theme.colorScheme.primary),
+                    Icon(
+                      Icons.lock_outline,
+                      size: 48,
+                      color: theme.colorScheme.primary,
+                    ),
                     const SizedBox(height: AppSpacing.lg),
                     Text(
                       l10n.authWelcome(widget.state.account.displayName),
@@ -112,8 +119,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                     Text(
                       l10n.authLockSubtitle,
                       textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     PinDots(filled: _pin.length, error: _error),
@@ -123,8 +131,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
                       child: _error
                           ? Text(
                               l10n.authLockWrongPin,
-                              style: theme.textTheme.bodyMedium
-                                  ?.copyWith(color: theme.colorScheme.error),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
                             )
                           : null,
                     ),
@@ -135,8 +144,9 @@ class _LockScreenState extends ConsumerState<LockScreen> {
             PinKeypad(
               onDigit: _onDigit,
               onBackspace: _onBackspace,
-              onBiometrics:
-                  widget.state.biometricsAvailable ? _tryBiometrics : null,
+              onBiometrics: widget.state.biometricsAvailable
+                  ? _tryBiometrics
+                  : null,
             ),
             const SizedBox(height: AppSpacing.lg),
             TextButton(

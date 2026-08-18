@@ -113,12 +113,13 @@ class CachedTileProvider extends TileProvider {
   Future<void> _enforceBudget() async {
     try {
       if (!cacheDirectory.existsSync()) return;
-      final files = cacheDirectory
-          .listSync()
-          .whereType<File>()
-          .map((f) => (file: f, stat: f.statSync()))
-          .toList()
-        ..sort((a, b) => a.stat.modified.compareTo(b.stat.modified));
+      final files =
+          cacheDirectory
+              .listSync()
+              .whereType<File>()
+              .map((f) => (file: f, stat: f.statSync()))
+              .toList()
+            ..sort((a, b) => a.stat.modified.compareTo(b.stat.modified));
 
       var total = files.fold<int>(0, (sum, e) => sum + e.stat.size);
       final cutoff = DateTime.now().subtract(maxAge);
@@ -129,17 +130,20 @@ class CachedTileProvider extends TileProvider {
         await entry.file.delete();
       }
     } on Exception catch (error) {
-      AppLogger.instance.debug('tile_cache_purge_failed', data: {'error': '$error'});
+      AppLogger.instance.debug(
+        'tile_cache_purge_failed',
+        data: {'error': '$error'},
+      );
     }
   }
 
   /// Taille actuelle du cache, affichee dans les reglages.
   Future<int> cacheSizeBytes() async {
     if (!cacheDirectory.existsSync()) return 0;
-    return cacheDirectory
-        .listSync()
-        .whereType<File>()
-        .fold<int>(0, (sum, f) => sum + f.lengthSync());
+    return cacheDirectory.listSync().whereType<File>().fold<int>(
+      0,
+      (sum, f) => sum + f.lengthSync(),
+    );
   }
 
   Future<void> clearCache() async {
@@ -169,12 +173,11 @@ class _CachedTileImage extends ImageProvider<_CachedTileImage> {
   ImageStreamCompleter loadImage(
     _CachedTileImage key,
     ImageDecoderCallback decode,
-  ) =>
-      MultiFrameImageStreamCompleter(
-        codec: _load(decode),
-        scale: 1,
-        debugLabel: url,
-      );
+  ) => MultiFrameImageStreamCompleter(
+    codec: _load(decode),
+    scale: 1,
+    debugLabel: url,
+  );
 
   Future<ui.Codec> _load(ImageDecoderCallback decode) async {
     final bytes = await provider.load(url, file);
@@ -199,10 +202,71 @@ class _CachedTileImage extends ImageProvider<_CachedTileImage> {
 
 /// PNG 1x1 entierement transparent.
 final Uint8List _transparentPixelPng = Uint8List.fromList([
-  0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, 0x00, 0x00, 0x00, 0x0D,
-  0x49, 0x48, 0x44, 0x52, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x01,
-  0x08, 0x06, 0x00, 0x00, 0x00, 0x1F, 0x15, 0xC4, 0x89, 0x00, 0x00, 0x00,
-  0x0A, 0x49, 0x44, 0x41, 0x54, 0x78, 0x9C, 0x63, 0x00, 0x01, 0x00, 0x00,
-  0x05, 0x00, 0x01, 0x0D, 0x0A, 0x2D, 0xB4, 0x00, 0x00, 0x00, 0x00, 0x49,
-  0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82,
+  0x89,
+  0x50,
+  0x4E,
+  0x47,
+  0x0D,
+  0x0A,
+  0x1A,
+  0x0A,
+  0x00,
+  0x00,
+  0x00,
+  0x0D,
+  0x49,
+  0x48,
+  0x44,
+  0x52,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x00,
+  0x01,
+  0x08,
+  0x06,
+  0x00,
+  0x00,
+  0x00,
+  0x1F,
+  0x15,
+  0xC4,
+  0x89,
+  0x00,
+  0x00,
+  0x00,
+  0x0A,
+  0x49,
+  0x44,
+  0x41,
+  0x54,
+  0x78,
+  0x9C,
+  0x63,
+  0x00,
+  0x01,
+  0x00,
+  0x00,
+  0x05,
+  0x00,
+  0x01,
+  0x0D,
+  0x0A,
+  0x2D,
+  0xB4,
+  0x00,
+  0x00,
+  0x00,
+  0x00,
+  0x49,
+  0x45,
+  0x4E,
+  0x44,
+  0xAE,
+  0x42,
+  0x60,
+  0x82,
 ]);

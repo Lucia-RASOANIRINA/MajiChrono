@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
@@ -67,11 +68,7 @@ class SocleHomeScreen extends ConsumerWidget {
               child: status.when(
                 loading: () => Row(
                   children: [
-                    const SizedBox(
-                      height: 18,
-                      width: 18,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
+                    const McLoader.small(),
                     const SizedBox(width: AppSpacing.md),
                     Text(l10n.commonLoading),
                   ],
@@ -88,7 +85,9 @@ class SocleHomeScreen extends ConsumerWidget {
                       value: value.isOnline
                           ? '${value.profile.label} · ${value.rttMs} ms'
                           : l10n.networkOfflineNoPending,
-                      color: value.isOnline ? AppColors.success : AppColors.offline,
+                      color: value.isOnline
+                          ? AppColors.success
+                          : AppColors.offline,
                     ),
                     const Divider(height: AppSpacing.xl),
                     _KeyValueRow(
@@ -221,7 +220,11 @@ class _KeyValueRow extends StatelessWidget {
     final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, size: 20, color: color ?? theme.colorScheme.onSurfaceVariant),
+        Icon(
+          icon,
+          size: 20,
+          color: color ?? theme.colorScheme.onSurfaceVariant,
+        ),
         const SizedBox(width: AppSpacing.md),
         Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
         Text(

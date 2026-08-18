@@ -23,7 +23,11 @@ class ShellDestination {
 /// Elle porte le bandeau reseau permanent (EXI-T06) au-dessus du contenu :
 /// place ici plutot que dans chaque ecran, il ne peut pas etre oublie.
 class RoleShell extends StatelessWidget {
-  const RoleShell({required this.navigationShell, required this.destinations, super.key});
+  const RoleShell({
+    required this.navigationShell,
+    required this.destinations,
+    super.key,
+  });
 
   final StatefulNavigationShell navigationShell;
   final List<ShellDestination> destinations;

@@ -69,7 +69,9 @@ class MockHttpAdapter implements HttpClientAdapter {
     final request = MockRequest(
       method: options.method,
       path: _pathOf(options),
-      query: options.queryParameters.map((key, value) => MapEntry(key, '$value')),
+      query: options.queryParameters.map(
+        (key, value) => MapEntry(key, '$value'),
+      ),
       headers: {
         for (final entry in options.headers.entries)
           entry.key.toLowerCase(): '${entry.value}',
@@ -154,8 +156,9 @@ class MockHttpAdapter implements HttpClientAdapter {
     return (bytes * 8 / (profile.kbps * 1000) * 1000).round();
   }
 
-  Future<void> _sleep(int ms) =>
-      ms <= 0 ? Future<void>.value() : Future<void>.delayed(Duration(milliseconds: ms));
+  Future<void> _sleep(int ms) => ms <= 0
+      ? Future<void>.value()
+      : Future<void>.delayed(Duration(milliseconds: ms));
 
   @override
   void close({bool force = false}) {}

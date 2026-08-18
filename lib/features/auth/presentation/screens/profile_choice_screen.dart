@@ -18,7 +18,8 @@ class ProfileChoiceScreen extends ConsumerStatefulWidget {
   const ProfileChoiceScreen({super.key});
 
   @override
-  ConsumerState<ProfileChoiceScreen> createState() => _ProfileChoiceScreenState();
+  ConsumerState<ProfileChoiceScreen> createState() =>
+      _ProfileChoiceScreenState();
 }
 
 class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
@@ -49,10 +50,9 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
     });
 
     try {
-      await ref.read(authControllerProvider.notifier).chooseProfile(
-            role: role,
-            displayName: _name.text.trim(),
-          );
+      await ref
+          .read(authControllerProvider.notifier)
+          .chooseProfile(role: role, displayName: _name.text.trim());
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.localizedMessage(l10n));
@@ -76,8 +76,9 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
               children: [
                 Text(
                   l10n.authProfileSubtitle,
-                  style: theme.textTheme.bodyMedium
-                      ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: AppSpacing.xl),
                 _ProfileCard(
@@ -119,8 +120,9 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
                     Expanded(
                       child: Text(
                         l10n.authProfileAdminNote,
-                        style: theme.textTheme.bodyMedium
-                            ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -129,8 +131,9 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
                   const SizedBox(height: AppSpacing.lg),
                   Text(
                     _error!,
-                    style: theme.textTheme.bodyLarge
-                        ?.copyWith(color: theme.colorScheme.error),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.error,
+                    ),
                   ),
                 ],
               ],
@@ -170,7 +173,9 @@ class _ProfileCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: AppRadii.sheetAll,
         side: BorderSide(
-          color: selected ? theme.colorScheme.primary : theme.colorScheme.outlineVariant,
+          color: selected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.outlineVariant,
           width: selected ? 2 : 1,
         ),
       ),
@@ -190,8 +195,9 @@ class _ProfileCard extends StatelessWidget {
                     const SizedBox(height: AppSpacing.xs),
                     Text(
                       description,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ],
                 ),

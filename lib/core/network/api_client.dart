@@ -81,14 +81,18 @@ class ApiClient {
   MockBackend get mockBackend => _mockBackend;
 
   /// Profil reseau simule, pilotable depuis le panneau developpeur (§16.2).
-  NetworkProfile get simulatedProfile => _mockAdapter?.profile ?? NetworkProfile.fourG;
+  NetworkProfile get simulatedProfile =>
+      _mockAdapter?.profile ?? NetworkProfile.fourG;
 
   set simulatedProfile(NetworkProfile value) => _mockAdapter?.profile = value;
 
   double get simulatedFailureRate => _mockAdapter?.failureRate ?? 0;
   set simulatedFailureRate(double value) => _mockAdapter?.failureRate = value;
 
-  void _decorateRequest(RequestOptions options, RequestInterceptorHandler handler) {
+  void _decorateRequest(
+    RequestOptions options,
+    RequestInterceptorHandler handler,
+  ) {
     options.headers['Accept-Language'] = _languageProvider();
     final token = _accessTokenProvider();
     if (token != null) {

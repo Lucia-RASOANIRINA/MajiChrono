@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 
 /// Action principale d'un ecran (§15.2.1 : une seule, en bas, au pouce).
@@ -57,11 +58,7 @@ class McPrimaryAction extends StatelessWidget {
             ),
           ),
           icon: busy
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2.5),
-                )
+              ? const McLoader.small()
               : Icon(icon ?? Icons.arrow_forward),
           label: Text(label, textAlign: TextAlign.center),
         ),

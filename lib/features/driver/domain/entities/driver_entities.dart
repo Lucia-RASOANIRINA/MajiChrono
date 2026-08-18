@@ -29,7 +29,9 @@ class AvailableDelivery {
       totalDistanceKm <= 0 ? 0 : estimatedEarningAriary / totalDistanceKm;
 
   static AvailableDelivery? fromJson(Map<String, dynamic> json) {
-    final delivery = Delivery.fromJson(json['delivery'] as Map<String, dynamic>);
+    final delivery = Delivery.fromJson(
+      json['delivery'] as Map<String, dynamic>,
+    );
     if (delivery == null) return null;
     return AvailableDelivery(
       delivery: delivery,
@@ -114,7 +116,12 @@ enum IncidentType {
   final IncidentOutcome outcome;
 }
 
-enum IncidentOutcome { waitThenReturn, contactSupport, returnToSender, reassign }
+enum IncidentOutcome {
+  waitThenReturn,
+  contactSupport,
+  returnToSender,
+  reassign,
+}
 
 /// Transition de statut demandee par le livreur (EXI-L08).
 ///

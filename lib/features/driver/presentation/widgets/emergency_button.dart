@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/driver/domain/entities/emergency.dart';
@@ -135,14 +136,7 @@ class _EmergencySheetState extends ConsumerState<_EmergencySheet> {
                     ),
                   ),
                   icon: _busy
-                      ? const SizedBox(
-                          height: 20,
-                          width: 20,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2.5,
-                            color: Colors.white,
-                          ),
-                        )
+                      ? const McLoader.small(color: Colors.white)
                       : const Icon(Icons.campaign),
                   label: Text(l10n.emergencySend),
                 ),

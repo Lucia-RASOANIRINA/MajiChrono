@@ -84,15 +84,23 @@ void main() {
     );
   }
 
-  testWidgets('sans session, l application demande le numero de telephone',
-      (tester) async {
+  testWidgets('sans session, l application ouvre sur l accueil', (tester) async {
+    // Le premier ecran montre la promesse et les quatre piliers avant de
+    // demander une identite : on ne demande pas un numero de telephone a
+    // quelqu'un a qui on n'a encore rien montre.
     await tester.pumpWidget(
       await buildApp(tester: tester, auth: const AuthUnauthenticated()),
     );
-    await tester.pumpAndSettle();
+    // `pump` et non `pumpAndSettle` : le carrousel tourne en boucle, l'etat
+    // stable n'arrive jamais.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
-    expect(find.text('Votre numero'), findsOneWidget);
-    expect(find.text('Numero de telephone'), findsOneWidget);
+    expect(find.text('MajiChrono'), findsWidgets);
+    expect(find.text('Commencer'), findsOneWidget);
+    // Les quatre piliers sont tous montes, meme ceux qui sont au fond.
+    expect(find.text('Rapidite'), findsOneWidget);
+    expect(find.text('Confiance'), findsOneWidget);
   });
 
   testWidgets('la bascule de langue est immediate, sans redemarrage (EXI-T05)',
@@ -100,6 +108,14 @@ void main() {
     await tester.pumpWidget(
       await buildApp(tester: tester, auth: const AuthUnauthenticated()),
     );
+    // Le carrousel de l'accueil tourne en boucle : pumpAndSettle n'atteint
+    // jamais l'etat stable qu'il attend.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    // Le selecteur de langue vit sur l'ecran du numero, pas sur l'accueil :
+    // celui-ci ne porte qu'une promesse et un bouton.
+    await tester.tap(find.text('Commencer'));
     await tester.pumpAndSettle();
 
     expect(find.text('Votre numero'), findsOneWidget);
@@ -160,7 +176,8 @@ void main() {
         online: false,
       ),
     );
-    await tester.pumpAndSettle();
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.byType(McNetworkBanner), findsOneWidget);
     expect(find.text('Hors ligne'), findsOneWidget);

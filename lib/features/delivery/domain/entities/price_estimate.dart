@@ -2,7 +2,11 @@ import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 
 /// Une ligne de l'estimation, telle qu'elle est affichee a l'utilisateur.
 class PriceLine {
-  const PriceLine({required this.kind, required this.amountAriary, this.detail});
+  const PriceLine({
+    required this.kind,
+    required this.amountAriary,
+    this.detail,
+  });
 
   final PriceLineKind kind;
   final int amountAriary;
@@ -11,7 +15,14 @@ class PriceLine {
   final String? detail;
 }
 
-enum PriceLineKind { base, distance, weight, kindSurcharge, schedule, insurance }
+enum PriceLineKind {
+  base,
+  distance,
+  weight,
+  kindSurcharge,
+  schedule,
+  insurance,
+}
 
 /// Estimation de prix ventilee (EXI-C10).
 ///
@@ -97,31 +108,39 @@ class TariffGrid {
     ];
 
     if (weight.surchargeAriary > 0) {
-      lines.add(PriceLine(
-        kind: PriceLineKind.weight,
-        amountAriary: weight.surchargeAriary,
-      ));
+      lines.add(
+        PriceLine(
+          kind: PriceLineKind.weight,
+          amountAriary: weight.surchargeAriary,
+        ),
+      );
     }
 
     var subtotal = lines.fold<int>(0, (sum, line) => sum + line.amountAriary);
 
     if (kind.priceMultiplier != 1) {
       final surcharge = (subtotal * (kind.priceMultiplier - 1)).round();
-      lines.add(PriceLine(kind: PriceLineKind.kindSurcharge, amountAriary: surcharge));
+      lines.add(
+        PriceLine(kind: PriceLineKind.kindSurcharge, amountAriary: surcharge),
+      );
       subtotal += surcharge;
     }
 
     if (!slot.isImmediate) {
-      lines.add(PriceLine(
-        kind: PriceLineKind.schedule,
-        amountAriary: scheduledSurchargeAriary,
-      ));
+      lines.add(
+        PriceLine(
+          kind: PriceLineKind.schedule,
+          amountAriary: scheduledSurchargeAriary,
+        ),
+      );
       subtotal += scheduledSurchargeAriary;
     }
 
     if (insuredValueAriary != null && insuredValueAriary > 0) {
       final premium = (insuredValueAriary * insuranceRate).round();
-      lines.add(PriceLine(kind: PriceLineKind.insurance, amountAriary: premium));
+      lines.add(
+        PriceLine(kind: PriceLineKind.insurance, amountAriary: premium),
+      );
       subtotal += premium;
     }
 

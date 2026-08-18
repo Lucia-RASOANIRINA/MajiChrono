@@ -11,6 +11,7 @@ import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/auth/presentation/widgets/google_account_sheet.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_primary_action.dart';
@@ -52,8 +53,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     });
 
     try {
-      final challenge =
-          await ref.read(authRepositoryProvider).requestOtp(phone);
+      final challenge = await ref
+          .read(authRepositoryProvider)
+          .requestOtp(phone);
       if (!mounted) return;
       // `unawaited` : le futur de `push` ne se complete qu'au retour de l'ecran
       // OTP. L'attendre bloquerait ce bloc `try` jusque-la, et le `finally`
@@ -61,7 +63,39 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       unawaited(context.push(AppRoutes.authOtp, extra: challenge));
     } on Failure catch (failure) {
       if (!mounted) return;
-      setState(() => _error = failure.localizedMessage(AppLocalizations.of(context)));
+      setState(
+        () => _error = failure.localizedMessage(AppLocalizations.of(context)),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  /// Entree par Google : choix du compte, puis code dans la boite mail.
+  ///
+  /// Le numero reste la cle du compte. Ce chemin ne le remplace pas, il evite
+  /// seulement d'attendre un SMS quand on est sur Wi-Fi — situation ordinaire a
+  /// Antananarivo, ou la couverture GSM d'un appartement peut etre pire que
+  /// celle de sa box.
+  Future<void> _continueWithGoogle() async {
+    final email = await showGoogleAccountSheet(context);
+    if (email == null || !mounted) return;
+
+    setState(() {
+      _busy = true;
+      _error = null;
+    });
+    try {
+      final challenge = await ref
+          .read(authRepositoryProvider)
+          .requestEmailCode(email);
+      if (!mounted) return;
+      unawaited(context.push(AppRoutes.authEmailCode, extra: challenge));
+    } on Failure catch (failure) {
+      if (!mounted) return;
+      setState(
+        () => _error = failure.localizedMessage(AppLocalizations.of(context)),
+      );
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -74,13 +108,23 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     final locale = ref.watch(localeProvider);
     final operator = _phone?.operator;
 
+    // Le bouton n'apparait que si l'appareil porte vraiment des comptes Google.
+    // Sur un telephone sans services Google — courant sur le parc vise — il
+    // n'aurait rien a proposer, et un bouton qui echoue au premier appui coute
+    // plus de confiance qu'il n'en fait gagner.
+    final googleAccounts =
+        ref.watch(googleAccountHintsProvider).valueOrNull ?? const [];
+
     return Scaffold(
       body: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.only(right: AppSpacing.lg, top: AppSpacing.sm),
+              padding: const EdgeInsets.only(
+                right: AppSpacing.lg,
+                top: AppSpacing.sm,
+              ),
               child: Align(
                 alignment: Alignment.centerRight,
                 child: SegmentedButton<String>(
@@ -106,8 +150,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                   const SizedBox(height: AppSpacing.sm),
                   Text(
                     l10n.authPhoneSubtitle,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   TextField(
@@ -130,8 +175,8 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                       errorText: _controller.text.isNotEmpty && _phone == null
                           ? l10n.authPhoneInvalid
                           : null,
-                      helperText: operator != null &&
-                              operator != MobileOperator.unknown
+                      helperText:
+                          operator != null && operator != MobileOperator.unknown
                           ? l10n.authPhoneOperator(operator.label)
                           : null,
                     ),
@@ -142,8 +187,38 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                     const SizedBox(height: AppSpacing.lg),
                     Text(
                       _error!,
-                      style: theme.textTheme.bodyMedium
-                          ?.copyWith(color: theme.colorScheme.error),
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.error,
+                      ),
+                    ),
+                  ],
+                  if (googleAccounts.isNotEmpty) ...[
+                    const SizedBox(height: AppSpacing.xl),
+                    Row(
+                      children: [
+                        const Expanded(child: Divider()),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.md,
+                          ),
+                          child: Text(
+                            l10n.authOrSeparator,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: theme.colorScheme.onSurfaceVariant,
+                            ),
+                          ),
+                        ),
+                        const Expanded(child: Divider()),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    SizedBox(
+                      height: AppSizes.minTouchTarget,
+                      child: OutlinedButton.icon(
+                        onPressed: _busy ? null : _continueWithGoogle,
+                        icon: const _GoogleMark(),
+                        label: Text(l10n.authGoogleContinue),
+                      ),
                     ),
                   ],
                 ],
@@ -159,4 +234,53 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       ),
     );
   }
+}
+
+/// Marque du bouton Google.
+///
+/// Un cercle a quatre secteurs, et non le « G » officiel : le logo de Google est
+/// une marque deposee dont l'usage est encadre par ses regles de marque, qui
+/// imposent l'asset fourni par Google — jamais un dessin approchant. L'asset
+/// officiel sera pose ici en meme temps que l'identifiant client OAuth, dans le
+/// meme lot. D'ici la, une marque neutre annonce l'origine du bouton sans
+/// pretendre etre celle de Google.
+class _GoogleMark extends StatelessWidget {
+  const _GoogleMark();
+
+  @override
+  Widget build(BuildContext context) =>
+      const SizedBox.square(dimension: 20, child: CustomPaint(painter: _GoogleMarkPainter()));
+}
+
+class _GoogleMarkPainter extends CustomPainter {
+  const _GoogleMarkPainter();
+
+  /// Les quatre couleurs de la marque, dans leur ordre habituel.
+  static const List<Color> _sectors = [
+    Color(0xFF4285F4),
+    Color(0xFFEA4335),
+    Color(0xFFFBBC05),
+    Color(0xFF34A853),
+  ];
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final stroke = size.shortestSide * 0.18;
+    final rect = Rect.fromLTWH(0, 0, size.width, size.height).deflate(stroke / 2);
+    final paint = Paint()
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = stroke
+      ..strokeCap = StrokeCap.butt;
+
+    // Un quart de tour par secteur, avec un leger espace : sans lui, les arcs se
+    // touchent et le cercle se lit comme un anneau bicolore a petite taille.
+    const sweep = 1.4;
+    for (var i = 0; i < _sectors.length; i++) {
+      paint.color = _sectors[i];
+      canvas.drawArc(rect, -1.4 + i * 1.5708, sweep, false, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(_GoogleMarkPainter oldDelegate) => false;
 }

@@ -938,15 +938,105 @@ de banc d'essai plus que de produit.
 
 ### Module 10 — Durcissement et recette terrain
 
-| Tâche | Profil | Exigences |
+**État : livré pour ce qui se vérifie sans terrain.** 27 tests. Trois exigences
+demandent des appareils réels ou des personnes réelles ; elles sont listées
+comme non faites, pas comme faites.
+
+| Élément | Exigences | État |
 |---|---|---|
-| Budgets tenus : démarrage, mémoire, taille, batterie, données | Transverse | EXI-P01 à EXI-P06 |
-| Épinglage de certificat à double empreinte et rotation | Transverse | EXI-SEC02 |
-| Détection d'appareil rooté, capture d'écran interdite sur les écrans sensibles | Transverse | EXI-SEC05, EXI-SEC06 |
-| Accessibilité : contraste AA, cibles de 48 dp, TalkBack | Transverse | EXI-T09 |
-| Les 8 scénarios de recette du §16.2 sur trois appareils réels | Transverse | §16.2 |
-| Recette terrain par 10 livreurs sur 5 jours | Livreur | Critère 10 du §18 |
-| Préparation de la publication iOS | Transverse | §2.1 |
+| Épinglage de certificat à double empreinte, rotation sans coupure | EXI-SEC02 | Fait |
+| Détection d'appareil rooté, prévenir sans bloquer | EXI-SEC05 | Fait |
+| Capture d'écran interdite sur les 4 surfaces sensibles | EXI-SEC06 | Fait |
+| Accessibilité : contraste AA vérifié, cibles ≥ 48 dp | EXI-T09 | Fait |
+| Scan du code-barres de scellé | EXI-CC14 | Fait |
+| Scénarios de recette rejoués automatiquement | §16.2 | Fait (voir réserve) |
+| Compilation de production fonctionnelle, un APK par ABI | EXI-P03 | Fait |
+| Budget de taille : moins de 25 Mo | EXI-P03 | **Non tenu — 28,3 Mo** |
+| Position en arrière-plan, écran verrouillé | EXI-L09 | Non fait |
+| Visionneuse d'images des pièces KYC | EXI-A03 | Non fait |
+| Acceptation groupée dans la file d'offres | EXI-L06 | Non fait |
+| Recette sur trois appareils réels | §16.2 | Non fait |
+| Recette terrain, 10 livreurs sur 5 jours | §18, critère 10 | Non fait |
+| Préparation de la publication iOS | §2.1 | Non fait |
+
+**Trois défauts de compilation trouvés, dont deux qui rendaient la production
+impossible.** Aucun n'était visible depuis les tests : la chaîne de production
+n'avait jamais été exercée.
+
+Le premier : **R8 refusait de compiler**. L'embarqueur Flutter référence les
+classes Play Core des « composants différés », que MajiChrono n'utilise pas et
+n'embarque donc pas. La compilation de production échouait entièrement. Ajouter
+la dépendance Play Core aurait alourdi l'APK pour du code jamais exécuté ; des
+règles `-dontwarn` disent à R8 que ces absences sont attendues.
+
+Le second : `ndk.abiFilters` faisait **exactement l'inverse de ce que son
+commentaire annonçait**. Le commentaire disait « un seul APK par ABI pour tenir
+le budget » ; le code empilait les trois architectures dans un même APK. Le
+lecteur de code-barres ML Kit — près de 5 Mo de bibliothèque native par
+architecture — était livré trois fois à chaque utilisateur, dont deux qu'il
+n'exécutera jamais. Remplacé par un vrai bloc `splits`, ce qui fait passer
+l'APK de 43,7 Mo à 28,3 Mo.
+
+Le troisième, introduit par la correction du deuxième : `splits` et
+`--target-platform` sont mutuellement exclusifs pour Gradle, et toute
+compilation de débogage cessait de fonctionner. Le bloc est désormais désactivé
+dès que Flutter impose lui-même une architecture.
+
+**Le budget de taille n'est pas tenu, et voici le chiffre exact.**
+
+| Architecture | Taille | Budget EXI-P03 |
+|---|---|---|
+| armeabi-v7a | 28,3 Mo | 25 Mo |
+| arm64-v8a | 31,6 Mo | 25 Mo |
+| x86_64 | 34,1 Mo | 25 Mo |
+
+Le poste identifiable est le lecteur de code-barres ML Kit : **5,6 Mo** dans
+l'APK arm64, bibliothèque native et modèle embarqué compris. `mobile_scanner`
+propose une variante « non groupée » qui télécharge le modèle depuis les
+services Google Play ; elle ramènerait l'APK sous les 26 Mo. Le reste tient au
+moteur Flutter (11,6 Mo) et au code applicatif (10,9 Mo), qui ne se compriment
+pas beaucoup. Je n'ai pas fait la bascule : elle change le comportement au
+premier scan sur un appareil sans services Play, et cela se décide avec une
+mesure terrain, pas depuis un bureau.
+
+**Un défaut de fond trouvé par les scénarios de recette.** `_withServerTime`
+reconstruisait le constat champ par champ après l'accusé serveur, et **perdait
+l'issue de remise** — un oubli datant de l'ajout des issues au module 5.
+Conséquence : l'empreinte recalculée à la relecture ne correspondait plus à
+celle qui avait été scellée, et **la chaîne de preuve se déclarait rompue alors
+que rien n'avait été falsifié**. Exactement le faux positif qui détruit la
+confiance dans un mécanisme de preuve. Corrigé, avec un test de non-régression
+qui relit un constat accusé et vérifie son intégrité.
+
+C'est ce que les scénarios de bout en bout apportent que les tests unitaires
+n'apportaient pas : chacun des morceaux était juste, l'enchaînement ne l'était
+pas.
+
+**Réserve sur les scénarios du §16.2.** Le cahier des charges n'est pas sur
+disque et le README ne retranscrit pas les huit scénarios. Ceux qui sont
+automatisés ici — coupure totale, constat hors ligne, coupure en cours de
+requête, retour du réseau, chaîne de preuve, double débit, tournée longue,
+réseau 2G — sont dérivés des exigences citables (EXI-S01 à S05, EXI-B05,
+EXI-MP06, EXI-L10, EXI-T08). **Leur numérotation et leur libellé doivent être
+confrontés au document avant de considérer l'exigence satisfaite.**
+
+Et ils ne remplacent pas la recette sur appareil : un test ne vérifie ni la
+lisibilité en plein soleil, ni l'autonomie sur huit heures, ni ce qu'un livreur
+comprend d'un écran. Ce qu'ils apportent, c'est de rejouer ces huit situations à
+**chaque** modification, ce qu'une recette manuelle ne fera jamais.
+
+**Ce que la sécurité fait, et ce qu'elle ne fait pas.** L'épinglage exige deux
+empreintes : avec une seule, le jour du renouvellement du certificat, toutes les
+applications installées cesseraient de fonctionner en même temps, et il faudrait
+publier une mise à jour que les utilisateurs mettraient des semaines à
+installer. La détection d'appareil rooté **prévient sans bloquer** — refuser de
+démarrer priverait de l'application des livreurs dont le téléphone d'occasion
+est arrivé rooté sans qu'ils l'aient su. La liste des surfaces protégées contre
+la capture est **fermée et nommée** dans le code : c'est la seule façon de
+répondre à « qu'est-ce qui est protégé ? » sans relire toute l'application.
+
+Aucune de ces mesures n'est infaillible. Elles relèvent le coût d'une attaque
+opportuniste, pas d'une attaque déterminée.
 
 ---
 

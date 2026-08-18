@@ -17,10 +17,10 @@ final paymentRepositoryProvider = Provider<PaymentRepository>(
 /// `autoDispose` a dessein : un solde n'a de sens qu'a l'instant ou on le
 /// regarde. Le conserver entre deux visites afficherait un montant perime au
 /// moment precis ou il compte.
-final majiPayBalanceProvider =
-    FutureProvider.autoDispose.family<MajiPayBalance?, UserRole>(
-  (ref, role) => ref.watch(paymentRepositoryProvider).balance(role),
-);
+final majiPayBalanceProvider = FutureProvider.autoDispose
+    .family<MajiPayBalance?, UserRole>(
+      (ref, role) => ref.watch(paymentRepositoryProvider).balance(role),
+    );
 
 /// Suivi d'une intention jusqu'a son etat final (EXI-MP05).
 ///
@@ -28,54 +28,55 @@ final majiPayBalanceProvider =
 /// reseau : en 2G, interroger le serveur toutes les deux secondes couterait du
 /// forfait pour une reponse qui n'a pas eu le temps de changer (§4.4). Il
 /// s'arrete des qu'un etat final est atteint.
-final paymentStatusProvider =
-    StreamProvider.autoDispose.family<PaymentIntent, String>((ref, intentId) {
-  final repository = ref.watch(paymentRepositoryProvider);
-  final controller = StreamController<PaymentIntent>();
+final paymentStatusProvider = StreamProvider.autoDispose
+    .family<PaymentIntent, String>((ref, intentId) {
+      final repository = ref.watch(paymentRepositoryProvider);
+      final controller = StreamController<PaymentIntent>();
 
-  const deadline = Duration(seconds: 120);
-  final startedAt = DateTime.now();
-  Timer? timer;
+      const deadline = Duration(seconds: 120);
+      final startedAt = DateTime.now();
+      Timer? timer;
 
-  Future<void> poll() async {
-    try {
-      final intent = await repository.status(intentId);
-      if (controller.isClosed) return;
-      controller.add(intent);
+      Future<void> poll() async {
+        try {
+          final intent = await repository.status(intentId);
+          if (controller.isClosed) return;
+          controller.add(intent);
 
-      if (intent.status.isFinal) {
-        timer?.cancel();
-        await controller.close();
+          if (intent.status.isFinal) {
+            timer?.cancel();
+            await controller.close();
+          }
+        } on Object {
+          // Une lecture ratee n'interrompt pas le suivi : le reseau malgache coupe
+          // par a-coups, et abandonner au premier echec laisserait l'utilisateur
+          // devant un ecran figé alors que le paiement aboutit peut-etre.
+        }
+
+        if (DateTime.now().difference(startedAt) > deadline) {
+          timer?.cancel();
+          if (!controller.isClosed) await controller.close();
+        }
       }
-    } on Object {
-      // Une lecture ratee n'interrompt pas le suivi : le reseau malgache coupe
-      // par a-coups, et abandonner au premier echec laisserait l'utilisateur
-      // devant un ecran figé alors que le paiement aboutit peut-etre.
-    }
 
-    if (DateTime.now().difference(startedAt) > deadline) {
-      timer?.cancel();
-      if (!controller.isClosed) await controller.close();
-    }
-  }
+      final interval =
+          ref
+              .watch(networkStatusProvider)
+              .valueOrNull
+              ?.profile
+              .trackingRefreshInterval ??
+          const Duration(seconds: 10);
 
-  final interval = ref
-      .watch(networkStatusProvider)
-      .valueOrNull
-      ?.profile
-      .trackingRefreshInterval ??
-      const Duration(seconds: 10);
+      timer = Timer.periodic(interval, (_) => poll());
+      unawaited(poll());
 
-  timer = Timer.periodic(interval, (_) => poll());
-  unawaited(poll());
+      ref.onDispose(() {
+        timer?.cancel();
+        if (!controller.isClosed) controller.close();
+      });
 
-  ref.onDispose(() {
-    timer?.cancel();
-    if (!controller.isClosed) controller.close();
-  });
-
-  return controller.stream;
-});
+      return controller.stream;
+    });
 
 final paymentActionsProvider = Provider<PaymentActions>(
   (ref) => PaymentActions(ref),

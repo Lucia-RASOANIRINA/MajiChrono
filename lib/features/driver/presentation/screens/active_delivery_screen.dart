@@ -74,9 +74,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       // Le serveur fait foi (EXI-S04) : on affiche son etat plutot que de
       // laisser le livreur re-appuyer sur un bouton qui ne passera pas.
       messenger.showSnackBar(
-        SnackBar(
-          content: Text(failure.currentState ?? l10n.errorConflict),
-        ),
+        SnackBar(content: Text(failure.currentState ?? l10n.errorConflict)),
       );
     } on Failure catch (failure) {
       messenger.showSnackBar(
@@ -92,7 +90,8 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
   /// L'exigence est de deleguer, pas de reimplementer : un livreur connait deja
   /// son application de navigation, ses raccourcis et ses cartes hors ligne.
   Future<void> _navigate(Delivery delivery) async {
-    final target = delivery.status == DeliveryStatus.accepted ||
+    final target =
+        delivery.status == DeliveryStatus.accepted ||
             delivery.status == DeliveryStatus.atPickup
         ? delivery.pickup.point
         : delivery.dropoff.point;
@@ -109,8 +108,9 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final deliveries = ref.watch(deliveriesProvider).valueOrNull;
-    final delivery =
-        deliveries?.where((d) => d.id == widget.deliveryId).firstOrNull;
+    final delivery = deliveries
+        ?.where((d) => d.id == widget.deliveryId)
+        .firstOrNull;
 
     if (delivery == null) {
       return Scaffold(
@@ -126,13 +126,14 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     final action = DriverAction.nextFor(delivery.status);
 
     String label(DriverAction a) => switch (a) {
-          DriverAction.arrivedAtPickup => l10n.driverStepArrivedPickup,
-          DriverAction.pickedUp => l10n.driverStepPickedUp,
-          DriverAction.arrivedAtDestination => l10n.driverStepArrivedDestination,
-          DriverAction.delivered => l10n.driverStepDelivered,
-        };
+      DriverAction.arrivedAtPickup => l10n.driverStepArrivedPickup,
+      DriverAction.pickedUp => l10n.driverStepPickedUp,
+      DriverAction.arrivedAtDestination => l10n.driverStepArrivedDestination,
+      DriverAction.delivered => l10n.driverStepDelivered,
+    };
 
-    final target = delivery.status == DeliveryStatus.accepted ||
+    final target =
+        delivery.status == DeliveryStatus.accepted ||
             delivery.status == DeliveryStatus.atPickup
         ? delivery.pickup
         : delivery.dropoff;
@@ -152,10 +153,8 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               tooltip: l10n.payCollect,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => PaymentScreen(
-                    delivery: delivery,
-                    role: UserRole.driver,
-                  ),
+                  builder: (_) =>
+                      PaymentScreen(delivery: delivery, role: UserRole.driver),
                 ),
               ),
             ),
@@ -167,9 +166,8 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
               tooltip: l10n.groupTitle,
               onPressed: () => Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => GroupedRouteScreen(
-                    group: ref.read(activeGroupProvider)!,
-                  ),
+                  builder: (_) =>
+                      GroupedRouteScreen(group: ref.read(activeGroupProvider)!),
                 ),
               ),
             ),
@@ -195,8 +193,9 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                   const SizedBox(height: AppSpacing.xs),
                   Text(
                     target.district,
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                   const SizedBox(height: AppSpacing.lg),
                   Row(
@@ -284,18 +283,18 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     final l10n = AppLocalizations.of(context);
 
     String title(IncidentType type) => switch (type) {
-          IncidentType.recipientAbsent => l10n.incidentRecipientAbsent,
-          IncidentType.addressNotFound => l10n.incidentAddressNotFound,
-          IncidentType.refusedByRecipient => l10n.incidentRefused,
-          IncidentType.vehicleBreakdown => l10n.incidentBreakdown,
-        };
+      IncidentType.recipientAbsent => l10n.incidentRecipientAbsent,
+      IncidentType.addressNotFound => l10n.incidentAddressNotFound,
+      IncidentType.refusedByRecipient => l10n.incidentRefused,
+      IncidentType.vehicleBreakdown => l10n.incidentBreakdown,
+    };
 
     String outcome(IncidentOutcome o) => switch (o) {
-          IncidentOutcome.waitThenReturn => l10n.outcomeWaitThenReturn,
-          IncidentOutcome.contactSupport => l10n.outcomeContactSupport,
-          IncidentOutcome.returnToSender => l10n.outcomeReturnToSender,
-          IncidentOutcome.reassign => l10n.outcomeReassign,
-        };
+      IncidentOutcome.waitThenReturn => l10n.outcomeWaitThenReturn,
+      IncidentOutcome.contactSupport => l10n.outcomeContactSupport,
+      IncidentOutcome.returnToSender => l10n.outcomeReturnToSender,
+      IncidentOutcome.reassign => l10n.outcomeReassign,
+    };
 
     showModalBottomSheet<void>(
       context: context,

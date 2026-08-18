@@ -33,11 +33,19 @@ Failure mapDioException(Object error, [StackTrace? stackTrace]) {
   };
 
   if (timeouts.contains(error.type)) {
-    return TimeoutFailure(cause: error, stackTrace: stackTrace, details: details);
+    return TimeoutFailure(
+      cause: error,
+      stackTrace: stackTrace,
+      details: details,
+    );
   }
   if (transportFailures.contains(error.type) ||
       (error.type != DioExceptionType.badResponse && response == null)) {
-    return NetworkFailure(cause: error, stackTrace: stackTrace, details: details);
+    return NetworkFailure(
+      cause: error,
+      stackTrace: stackTrace,
+      details: details,
+    );
   }
 
   final status = response?.statusCode ?? 0;
@@ -52,8 +60,11 @@ Failure mapDioException(Object error, [StackTrace? stackTrace]) {
       stackTrace: stackTrace,
       details: details,
     ),
-    401 ||
-    403 => UnauthorizedFailure(cause: error, stackTrace: stackTrace, details: details),
+    401 || 403 => UnauthorizedFailure(
+      cause: error,
+      stackTrace: stackTrace,
+      details: details,
+    ),
     409 => ConflictFailure(
       currentState: apiDetails?['currentState'] as String?,
       cause: error,

@@ -61,7 +61,9 @@ class AppTheme {
       textTheme: text,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
-        backgroundColor: isLight ? AppColors.lightSurface : AppColors.darkSurface,
+        backgroundColor: isLight
+            ? AppColors.lightSurface
+            : AppColors.darkSurface,
         foregroundColor: scheme.onSurface,
         elevation: AppElevation.flat,
         scrolledUnderElevation: AppElevation.raised,
@@ -79,7 +81,9 @@ class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
-          shape: const RoundedRectangleBorder(borderRadius: AppRadii.componentAll),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppRadii.componentAll,
+          ),
           textStyle: text.labelLarge,
           padding: const EdgeInsets.symmetric(
             horizontal: AppSpacing.xl,
@@ -90,20 +94,27 @@ class AppTheme {
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
           minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
-          shape: const RoundedRectangleBorder(borderRadius: AppRadii.componentAll),
+          shape: const RoundedRectangleBorder(
+            borderRadius: AppRadii.componentAll,
+          ),
           textStyle: text.labelLarge,
           side: BorderSide(color: scheme.outline),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size(AppSizes.minTouchTarget, AppSizes.minTouchTarget),
+          minimumSize: const Size(
+            AppSizes.minTouchTarget,
+            AppSizes.minTouchTarget,
+          ),
           textStyle: text.labelLarge,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: isLight ? AppColors.lightSurfaceAlt : AppColors.darkSurfaceAlt,
+        fillColor: isLight
+            ? AppColors.lightSurfaceAlt
+            : AppColors.darkSurfaceAlt,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: AppSpacing.lg,
           vertical: AppSpacing.lg,
@@ -137,7 +148,9 @@ class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         height: 68,
         elevation: AppElevation.raised,
-        backgroundColor: isLight ? AppColors.lightSurface : AppColors.darkSurface,
+        backgroundColor: isLight
+            ? AppColors.lightSurface
+            : AppColors.darkSurface,
         indicatorColor: scheme.primaryContainer,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         // Iconographie systematiquement doublee d'un libelle (§15.1).
@@ -146,17 +159,25 @@ class AppTheme {
         ),
       ),
       bottomSheetTheme: BottomSheetThemeData(
-        backgroundColor: isLight ? AppColors.lightSurface : AppColors.darkSurface,
+        backgroundColor: isLight
+            ? AppColors.lightSurface
+            : AppColors.darkSurface,
         shape: const RoundedRectangleBorder(borderRadius: AppRadii.sheetTop),
         showDragHandle: true,
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
-        shape: const RoundedRectangleBorder(borderRadius: AppRadii.componentAll),
-        contentTextStyle: text.bodyLarge?.copyWith(color: scheme.onInverseSurface),
+        shape: const RoundedRectangleBorder(
+          borderRadius: AppRadii.componentAll,
+        ),
+        contentTextStyle: text.bodyLarge?.copyWith(
+          color: scheme.onInverseSurface,
+        ),
       ),
       chipTheme: ChipThemeData(
-        shape: const RoundedRectangleBorder(borderRadius: AppRadii.componentAll),
+        shape: const RoundedRectangleBorder(
+          borderRadius: AppRadii.componentAll,
+        ),
         labelStyle: text.bodyMedium,
         side: BorderSide(color: scheme.outlineVariant),
       ),

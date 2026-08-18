@@ -25,7 +25,9 @@ final deliveryRepositoryProvider = Provider<DeliveryRepository>(
 /// Provisoire tant que la decision DO-3 du §19.2 n'est pas arbitree. Isolee
 /// dans un provider pour qu'une grille servie par le serveur la remplace sans
 /// toucher aux ecrans.
-final tariffGridProvider = Provider<TariffGrid>((ref) => TariffGrid.provisional);
+final tariffGridProvider = Provider<TariffGrid>(
+  (ref) => TariffGrid.provisional,
+);
 
 final addressBookProvider = StreamProvider<List<SavedAddress>>(
   (ref) => ref.watch(deliveryRepositoryProvider).watchAddressBook(),

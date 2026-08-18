@@ -213,9 +213,7 @@ class VectorSignature {
   Map<String, dynamic> toJson() => {
     'signerLabel': signerLabel,
     'signedAt': signedAt.toUtc().toIso8601String(),
-    'strokes': strokes
-        .map((s) => s.map((p) => p.toJson()).toList())
-        .toList(),
+    'strokes': strokes.map((s) => s.map((p) => p.toJson()).toList()).toList(),
   };
 }
 
@@ -284,8 +282,7 @@ enum HandoverOutcome {
   /// Une photo supplementaire est imposee : piece d'identite du tiers, ou colis
   /// remis en main propre.
   bool get requiresExtraPhoto =>
-      this == HandoverOutcome.thirdParty ||
-      this == HandoverOutcome.noSignature;
+      this == HandoverOutcome.thirdParty || this == HandoverOutcome.noSignature;
 
   /// La signature du destinataire est attendue, sauf dans le mode degrade.
   bool get requiresRecipientSignature => this != HandoverOutcome.noSignature;
@@ -403,8 +400,7 @@ class CustodyReport {
     // Deux signatures : celle de la partie et la contre-signature du livreur.
     // La remise sans signature (EXI-CC29) est la seule exception, et elle se
     // paie d'une photo supplementaire et d'une alerte a l'exploitation.
-    final minimumSignatures =
-        outcome == HandoverOutcome.noSignature ? 1 : 2;
+    final minimumSignatures = outcome == HandoverOutcome.noSignature ? 1 : 2;
     if (signatures.length < minimumSignatures) return false;
 
     // EXI-CC13 : toute anomalie cochee exige une photo dediee et un commentaire.

@@ -83,6 +83,28 @@ class AppLocalizationsFr extends AppLocalizations {
   String get networkSyncing => 'Synchronisation en cours...';
 
   @override
+  String get welcomeTagline =>
+      'Delivrer la confiance, partout, instantanement.';
+
+  @override
+  String get welcomeStart => 'Commencer';
+
+  @override
+  String get welcomeTrustNote => 'Chaque etape, securisee.';
+
+  @override
+  String get welcomePillarSpeed => 'Rapidite';
+
+  @override
+  String get welcomePillarSender => 'Expediteur';
+
+  @override
+  String get welcomePillarDriver => 'Livreur';
+
+  @override
+  String get welcomePillarTrust => 'Confiance';
+
+  @override
   String get authPhoneTitle => 'Votre numero';
 
   @override
@@ -134,6 +156,53 @@ class AppLocalizationsFr extends AppLocalizations {
   String authOtpSimulated(String code) {
     return 'Code simule : $code';
   }
+
+  @override
+  String get authOrSeparator => 'ou';
+
+  @override
+  String get authGoogleContinue => 'Continuer avec Google';
+
+  @override
+  String get authGoogleSheetTitle => 'Choisissez un compte';
+
+  @override
+  String get authGoogleSheetSubtitle =>
+      'Nous envoyons un code de verification dans cette boite mail.';
+
+  @override
+  String get authGoogleOtherAccount => 'Une autre adresse';
+
+  @override
+  String get authGoogleOtherAccountLabel => 'Adresse e-mail';
+
+  @override
+  String get authGoogleEmailInvalid => 'Adresse e-mail invalide';
+
+  @override
+  String get authEmailCodeTitle => 'Code par e-mail';
+
+  @override
+  String authEmailCodeSentTo(String email) {
+    return 'Code envoye a $email';
+  }
+
+  @override
+  String get authEmailCodeHint => 'Regardez aussi le dossier indesirables.';
+
+  @override
+  String get authEmailUnlinkedTitle => 'Adresse verifiee';
+
+  @override
+  String authEmailUnlinkedBody(String email) {
+    return 'Aucun compte MajiChrono n\'est encore rattache a $email. Confirmez votre numero de telephone : il reste la cle de votre compte, et nous rattacherons cette adresse ensuite.';
+  }
+
+  @override
+  String get authEmailUnlinkedAction => 'Continuer avec mon numero';
+
+  @override
+  String get authEmailLinked => 'Adresse rattachee a votre compte';
 
   @override
   String get authProfileTitle => 'Votre profil';
@@ -570,7 +639,11 @@ class AppLocalizationsFr extends AppLocalizations {
   String get custodySealHint => 'SC-4821';
 
   @override
-  String get custodySealScanLater => 'Le scan de code arrive au module 10.';
+  String get custodySealScan => 'Scanner le scelle';
+
+  @override
+  String get custodySealScanHelp =>
+      'Cadrez le code-barres du scelle. Vous pourrez corriger le numero.';
 
   @override
   String get custodySealCheck => 'Etat du scelle';
@@ -1322,6 +1395,24 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get syncRetryQueued => 'Relance demandee';
+
+  @override
+  String get traitFragile => 'Fragile';
+
+  @override
+  String get traitHeavy => 'Lourd';
+
+  @override
+  String get traitValuable => 'Precieux';
+
+  @override
+  String get traitFood => 'Alimentaire';
+
+  @override
+  String get traitDocument => 'Document';
+
+  @override
+  String get traitShopping => 'Achat';
 
   @override
   String get driverOnline => 'En ligne';

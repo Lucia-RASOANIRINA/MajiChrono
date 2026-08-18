@@ -1,5 +1,6 @@
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
+import 'package:majichrono/features/auth/domain/entities/google_entities.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
 
 /// Contrat d'authentification vu par le domaine.
@@ -16,6 +17,23 @@ abstract interface class AuthRepository {
     required String challengeId,
     required String code,
   });
+
+  /// Envoie un code a six chiffres dans une boite mail.
+  ///
+  /// La reponse ne dit **pas** si l'adresse est connue : le savoir avant d'avoir
+  /// prouve la possession de la boite permettrait d'enumerer les comptes.
+  Future<EmailChallenge> requestEmailCode(String email);
+
+  /// Verifie un code recu par e-mail. Ouvre la session si l'adresse est
+  /// rattachee a un compte, sinon renvoie [EmailUnlinked].
+  Future<EmailVerification> verifyEmailCode({
+    required String challengeId,
+    required String code,
+  });
+
+  /// Rattache une adresse deja verifiee au compte de la session en cours, pour
+  /// que la prochaine entree se fasse par Google sans repasser par le SMS.
+  Future<void> linkEmail(String email);
 
   /// Pose le profil d'un compte tout juste cree (EXI-T02).
   ///

@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/custody/domain/entities/custody_report.dart';
@@ -116,7 +117,7 @@ class _GuidedCameraScreenState extends State<GuidedCameraScreen> {
               ),
             )
           : _controller == null
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: McLoader())
           : Stack(
               fit: StackFit.expand,
               children: [

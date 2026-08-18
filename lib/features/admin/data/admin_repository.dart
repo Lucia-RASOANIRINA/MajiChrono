@@ -76,9 +76,10 @@ class AdminRepository {
 
     // Le motif n'est pas journalise : il concerne une personne identifiable, et
     // les traces d'exploitation partent dans le diagnostic terrain (EXI-P10).
-    AppLogger.instance.info('admin_kyc_reviewed', data: {
-      'decision': decision.action.wireName,
-    });
+    AppLogger.instance.info(
+      'admin_kyc_reviewed',
+      data: {'decision': decision.action.wireName},
+    );
     return application;
   }
 
@@ -98,9 +99,10 @@ class AdminRepository {
     final driver = FleetDriver.fromJson(json);
     if (driver == null) throw const ServerFailure(statusCode: 500);
 
-    AppLogger.instance.info('admin_suspension', data: {
-      'decision': decision.action.wireName,
-    });
+    AppLogger.instance.info(
+      'admin_suspension',
+      data: {'decision': decision.action.wireName},
+    );
     return driver;
   }
 
@@ -175,9 +177,10 @@ class AdminRepository {
     final dispute = Dispute.fromJson(json);
     if (dispute == null) throw const ServerFailure(statusCode: 500);
 
-    AppLogger.instance.info('admin_dispute_decided', data: {
-      'decision': decision.action.wireName,
-    });
+    AppLogger.instance.info(
+      'admin_dispute_decided',
+      data: {'decision': decision.action.wireName},
+    );
     return dispute;
   }
 }

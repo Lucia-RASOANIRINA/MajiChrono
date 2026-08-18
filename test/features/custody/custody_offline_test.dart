@@ -187,6 +187,26 @@ void main() {
       }
     });
 
+    test('un constat accuse reste verifiable a la relecture', () async {
+      // Regression : `_withServerTime` reconstruisait le constat champ par
+      // champ et **perdait** l'issue de remise. L'empreinte recalculee a la
+      // relecture ne correspondait plus a celle qui avait ete scellee, et la
+      // chaine se declarait rompue alors que rien n'avait ete falsifie.
+      final pickup = await repository.submit(
+        (await draft(CustodyStage.pickup)).seal(),
+      );
+      final handover = await repository.submit(
+        (await draft(CustodyStage.handover)).seal(previousHash: pickup.hash),
+      );
+
+      expect(handover.outcome, HandoverOutcome.delivered);
+
+      final chain = await repository.chainFor('dlv_77');
+      expect(chain.handover!.outcome, HandoverOutcome.delivered);
+      expect(chain.handover!.verifyIntegrity(), isTrue);
+      expect(chain.isIntact, isTrue);
+    });
+
     test('un constat refuse par le serveur garde ses photos', () async {
       // Le serveur recalcule l'empreinte et refuse ce constat falsifie
       // (EXI-B05) : sans accuse, pas de purge.

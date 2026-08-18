@@ -49,7 +49,8 @@ class DataMeter extends ChangeNotifier {
 
   int sentFor(DataCategory category) => _sent[category] ?? 0;
   int receivedFor(DataCategory category) => _received[category] ?? 0;
-  int totalFor(DataCategory category) => sentFor(category) + receivedFor(category);
+  int totalFor(DataCategory category) =>
+      sentFor(category) + receivedFor(category);
 
   int get total => DataCategory.values.fold(0, (sum, c) => sum + totalFor(c));
 

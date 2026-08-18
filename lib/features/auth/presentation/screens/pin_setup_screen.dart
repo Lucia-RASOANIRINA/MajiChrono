@@ -88,10 +88,7 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
       appBar: AppBar(
         title: Text(l10n.authPinTitle),
         actions: [
-          TextButton(
-            onPressed: widget.onDone,
-            child: Text(l10n.authPinLater),
-          ),
+          TextButton(onPressed: widget.onDone, child: Text(l10n.authPinLater)),
         ],
       ),
       body: SafeArea(
@@ -122,8 +119,9 @@ class _PinSetupScreenState extends ConsumerState<PinSetupScreen> {
                       child: _error
                           ? Text(
                               l10n.authPinMismatch,
-                              style: theme.textTheme.bodyMedium
-                                  ?.copyWith(color: theme.colorScheme.error),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                color: theme.colorScheme.error,
+                              ),
                             )
                           : null,
                     ),

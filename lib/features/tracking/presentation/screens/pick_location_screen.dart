@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
+import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
@@ -54,13 +55,15 @@ class _PickLocationScreenState extends ConsumerState<PickLocationScreen> {
               alignment: Alignment.center,
               children: [
                 tiles.when(
-                  loading: () => const Center(child: CircularProgressIndicator()),
+                  loading: () => const Center(child: McLoader()),
                   error: (_, _) => Center(child: Text(l10n.mapUnavailable)),
                   data: (tileProvider) => FlutterMap(
                     mapController: _controller,
                     options: MapOptions(
-                      initialCenter:
-                          LatLng(_selected.latitude, _selected.longitude),
+                      initialCenter: LatLng(
+                        _selected.latitude,
+                        _selected.longitude,
+                      ),
                       initialZoom: 15,
                       onPositionChanged: (position, _) => setState(
                         () => _selected = GeoPoint(
@@ -104,13 +107,18 @@ class _PickLocationScreenState extends ConsumerState<PickLocationScreen> {
             ),
             child: Row(
               children: [
-                Icon(Icons.my_location, size: 18, color: theme.colorScheme.primary),
+                Icon(
+                  Icons.my_location,
+                  size: 18,
+                  color: theme.colorScheme.primary,
+                ),
                 const SizedBox(width: AppSpacing.sm),
                 Expanded(
                   child: Text(
                     _selected.toString(),
-                    style: theme.textTheme.bodyMedium
-                        ?.copyWith(color: theme.colorScheme.onSurfaceVariant),
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ],

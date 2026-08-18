@@ -11,9 +11,11 @@ class AppColors {
 
   // --- Marque ----------------------------------------------------------
   /// Bleu profond : fiabilite, lisible sur ecran bas de gamme en exterieur.
-  static const Color primary = Color(0xFF0B4F6C);
-  static const Color primaryLight = Color(0xFF2C7DA0);
-  static const Color primaryDark = Color(0xFF05304A);
+  // Bleu profond de la charte MajiChrono. Il remplace le turquoise initial :
+  // c'est la couleur des maquettes validees, et celle de l'icone de lanceur.
+  static const Color primary = Color(0xFF1E2A78);
+  static const Color primaryLight = Color(0xFF2F6BE4);
+  static const Color primaryDark = Color(0xFF141C52);
 
   /// Ambre : action, urgence utile, contraste fort sur le bleu.
   static const Color accent = Color(0xFFF4A62A);
@@ -50,7 +52,7 @@ class AppColors {
     brightness: Brightness.light,
     primary: primary,
     onPrimary: Colors.white,
-    primaryContainer: Color(0xFFD3E7F0),
+    primaryContainer: Color(0xFFDCE3FA),
     onPrimaryContainer: primaryDark,
     secondary: accent,
     onSecondary: Color(0xFF3A2600),
