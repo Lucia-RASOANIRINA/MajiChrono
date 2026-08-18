@@ -14,6 +14,11 @@ class AppRoutes {
   static const String welcome = '/welcome';
 
   // --- Authentification (module 1) --------------------------------------
+
+  /// Choix de la porte d'entree : numero ou adresse e-mail.
+  static const String authChoice = '/auth/choice';
+  static const String authSignIn = '/auth/signin';
+  static const String authSignUp = '/auth/signup';
   static const String authPhone = '/auth/phone';
   static const String authOtp = '/auth/otp';
   /// Code recu par e-mail, apres « Continuer avec Google ».

@@ -114,8 +114,14 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Le selecteur de langue vit sur l'ecran du numero, pas sur l'accueil :
-    // celui-ci ne porte qu'une promesse et un bouton.
+    // celui-ci ne porte qu'une promesse et un bouton. On traverse donc le choix
+    // de la porte d'entree.
     await tester.tap(find.text('Commencer'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Comment voulez-vous continuer ?'), findsOneWidget);
+
+    await tester.tap(find.text('Avec mon numero'));
     await tester.pumpAndSettle();
 
     expect(find.text('Votre numero'), findsOneWidget);

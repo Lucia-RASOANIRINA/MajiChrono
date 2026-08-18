@@ -246,4 +246,99 @@ void main() {
       );
     });
   });
+
+  group('mot de passe', () {
+    // Meme invariant que le reste du lot : une adresse ne cree jamais un
+    // compte. L'inscription enregistre un mot de passe et rien d'autre ; le
+    // compte n'existe qu'une fois le numero confirme.
+
+    test('un compte pre-inscrit se connecte par mot de passe', () async {
+      final result = await repository.signInWithPassword(
+        email: 'hery.rakoto@gmail.com',
+        password: AuthMockModule.seededPassword,
+      );
+
+      expect(result, isA<EmailLinked>());
+      expect(pushedToken, isNotNull);
+
+      // Le compte porte son adresse : sans elle, l'ecran de profil afficherait
+      // « aucune adresse rattachee » a quelqu'un qui vient d'entrer par cette
+      // adresse.
+      final account =
+          ((result as EmailLinked).verification.account as AccountReady).account;
+      expect(account.email, 'hery.rakoto@gmail.com');
+    });
+
+    test('un mot de passe faux et une adresse inconnue echouent pareil',
+        () async {
+      // Repondre differemment dirait quelles adresses portent un compte.
+      Future<Object?> outcome(String email, String password) async {
+        try {
+          await repository.signInWithPassword(email: email, password: password);
+          return null;
+        } on Failure catch (error) {
+          return error.runtimeType;
+        }
+      }
+
+      expect(
+        await outcome('hery.rakoto@gmail.com', 'mauvais-mot-de-passe'),
+        await outcome('personne@gmail.com', 'peu-importe'),
+      );
+      expect(pushedToken, isNull);
+    });
+
+    test('l inscription n ouvre aucune session', () async {
+      final result = await repository.signUpWithPassword(
+        email: 'nouveau@gmail.com',
+        password: 'motdepasse123',
+      );
+
+      expect(result, isA<EmailUnlinked>());
+      expect(pushedToken, isNull);
+      expect(await repository.currentSession(), isNull);
+    });
+
+    test('un mot de passe trop court est refuse', () async {
+      await expectLater(
+        repository.signUpWithPassword(
+          email: 'court@gmail.com',
+          password: 'abc',
+        ),
+        throwsA(isA<ValidationFailure>()),
+      );
+    });
+
+    test('une adresse deja inscrite est refusee', () async {
+      await expectLater(
+        repository.signUpWithPassword(
+          email: 'hery.rakoto@gmail.com',
+          password: 'motdepasse123',
+        ),
+        throwsA(isA<ConflictFailure>()),
+      );
+    });
+
+    test('inscription puis numero : la connexion suivante ouvre la session',
+        () async {
+      await repository.signUpWithPassword(
+        email: 'nouveau@gmail.com',
+        password: 'motdepasse123',
+      );
+
+      final phone = MalagasyPhone.tryParse('0341234567')!;
+      final otp = await repository.requestOtp(phone);
+      await repository.verifyOtp(
+        challengeId: otp.challengeId,
+        code: otp.debugCode!,
+      );
+      await repository.linkEmail('nouveau@gmail.com');
+
+      final second = await repository.signInWithPassword(
+        email: 'nouveau@gmail.com',
+        password: 'motdepasse123',
+      );
+      expect(second, isA<EmailLinked>());
+    });
+  });
 }

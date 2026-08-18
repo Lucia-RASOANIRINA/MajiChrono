@@ -85,6 +85,36 @@ class AuthRepositoryImpl implements AuthRepository {
       code: code,
     );
 
+    return _emailOutcome(json);
+  }
+
+  @override
+  Future<EmailVerification> signInWithPassword({
+    required String email,
+    required String password,
+  }) async => _emailOutcome(
+    await _remote.signInWithPassword(
+      email: email.trim().toLowerCase(),
+      password: password,
+    ),
+  );
+
+  @override
+  Future<EmailVerification> signUpWithPassword({
+    required String email,
+    required String password,
+  }) async => _emailOutcome(
+    await _remote.signUpWithPassword(
+      email: email.trim().toLowerCase(),
+      password: password,
+    ),
+  );
+
+  /// Traduit une reponse d'entree par adresse : session ouverte et persistee, ou
+  /// adresse sans compte. Trois points d'entree partagent ce format ; les
+  /// traduire au meme endroit evite qu'un seul d'entre eux oublie de persister
+  /// la session.
+  Future<EmailVerification> _emailOutcome(Map<String, dynamic> json) async {
     if (json['linked'] != true) {
       return EmailUnlinked(json['email'] as String? ?? '');
     }
@@ -253,6 +283,7 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         role: role,
         displayName: json['displayName'] as String? ?? '',
+        email: json['email'] as String?,
         createdAt:
             DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
             DateTime.now(),

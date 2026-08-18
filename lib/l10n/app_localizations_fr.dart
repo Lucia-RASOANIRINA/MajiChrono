@@ -121,6 +121,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get authPhoneInvalid => 'Numero malgache invalide';
 
   @override
+  String get authPhoneUnknownOperator =>
+      'Prefixe inconnu. Utilisez un numero Orange (032), Airtel (033), Telma (034, 038) ou un fixe Telma (020).';
+
+  @override
+  String get authPhoneNoSms =>
+      'Une ligne fixe ne recoit pas de SMS. Passez par l\'entree e-mail.';
+
+  @override
   String authPhoneOperator(String operator) {
     return 'Operateur reconnu : $operator';
   }
@@ -159,6 +167,95 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authOrSeparator => 'ou';
+
+  @override
+  String get authChoiceTitle => 'Comment voulez-vous continuer ?';
+
+  @override
+  String get authChoiceSubtitle => 'Les deux menent au meme compte.';
+
+  @override
+  String get authChoicePhone => 'Avec mon numero';
+
+  @override
+  String get authChoicePhoneNote =>
+      'Code par SMS. Le numero reste la cle de votre compte.';
+
+  @override
+  String get authChoiceEmail => 'Avec une adresse e-mail';
+
+  @override
+  String get authChoiceEmailNote =>
+      'Google, Facebook, Twitter ou mot de passe.';
+
+  @override
+  String get authSignInTitle => 'Connexion a votre compte';
+
+  @override
+  String get authSignUpTitle => 'Creer votre compte';
+
+  @override
+  String get authFieldEmail => 'E-mail';
+
+  @override
+  String get authFieldPassword => 'Mot de passe';
+
+  @override
+  String get authFieldPasswordConfirm => 'Confirmer le mot de passe';
+
+  @override
+  String get authSignIn => 'Se connecter';
+
+  @override
+  String get authSignUp => 'S\'inscrire';
+
+  @override
+  String get authOrSignInWith => '- Ou se connecter avec -';
+
+  @override
+  String get authOrSignUpWith => '- Ou s\'inscrire avec -';
+
+  @override
+  String get authNoAccount => 'Pas encore de compte ?';
+
+  @override
+  String get authHaveAccount => 'Deja un compte ?';
+
+  @override
+  String get authPasswordTooShort => 'Au moins 8 caracteres';
+
+  @override
+  String get authPasswordMismatch => 'Les deux mots de passe different';
+
+  @override
+  String get authBadCredentials => 'E-mail ou mot de passe incorrect';
+
+  @override
+  String get authEmailTaken => 'Cette adresse a deja un compte';
+
+  @override
+  String get authBannerFast => 'Livraison rapide';
+
+  @override
+  String get authFooterTrustTitle => 'Confiance MajiChrono';
+
+  @override
+  String get authFooterTrustNote => 'Chaque etape, securisee.';
+
+  @override
+  String get authFooterSpeedTitle => 'Rapidite MajiChrono';
+
+  @override
+  String get authFooterSpeedNote => 'L\'efficacite a chaque seconde.';
+
+  @override
+  String get authSocialFacebook => 'Facebook';
+
+  @override
+  String get authSocialTwitter => 'Twitter';
+
+  @override
+  String get authSocialGoogle => 'Google';
 
   @override
   String get authGoogleContinue => 'Continuer avec Google';
@@ -305,6 +402,51 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get navProfile => 'Profil';
+
+  @override
+  String get profileAccount => 'Mon compte';
+
+  @override
+  String get profileSecurity => 'Securite';
+
+  @override
+  String get profilePinOn => 'Code de verrouillage actif';
+
+  @override
+  String get profilePinOff => 'Aucun code de verrouillage';
+
+  @override
+  String get profilePinSet => 'Definir un code';
+
+  @override
+  String get profilePinChange => 'Changer le code';
+
+  @override
+  String get profileEmailLinked => 'Adresse rattachee';
+
+  @override
+  String get profileEmailNone => 'Aucune adresse rattachee';
+
+  @override
+  String profileMemberSince(String date) {
+    return 'Membre depuis $date';
+  }
+
+  @override
+  String get profileRatingLabel => 'Note';
+
+  @override
+  String get driverDeliveriesEmpty => 'Aucune course pour l instant';
+
+  @override
+  String get driverDeliveriesEmptyNote =>
+      'Les courses acceptees apparaissent ici, meme hors ligne.';
+
+  @override
+  String get driverDeliveriesActive => 'En cours';
+
+  @override
+  String get driverDeliveriesDone => 'Terminees';
 
   @override
   String get navFleet => 'Flotte';

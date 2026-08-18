@@ -54,17 +54,38 @@ void main() {
     test('les prefixes connus sont reconnus', () {
       expect(MalagasyPhone.tryParse('0321234567')!.operator, MobileOperator.orange);
       expect(MalagasyPhone.tryParse('0331234567')!.operator, MobileOperator.airtel);
-      expect(MalagasyPhone.tryParse('0341234567')!.operator, MobileOperator.yas);
-      expect(MalagasyPhone.tryParse('0381234567')!.operator, MobileOperator.yas);
+      expect(MalagasyPhone.tryParse('0341234567')!.operator, MobileOperator.telma);
+      expect(MalagasyPhone.tryParse('0381234567')!.operator, MobileOperator.telma);
     });
 
-    test('un prefixe inconnu reste un numero valide', () {
-      // Une plage nouvellement attribuee ne doit pas empecher une inscription :
-      // la validation suit le cahier des charges (`3x`), la detection
-      // d'operateur est un confort separe.
-      final phone = MalagasyPhone.tryParse('0391234567');
+    test('le fixe Telma est reconnu', () {
+      // Beaucoup de boutiques d'Antananarivo n'ont qu'un 020.
+      final phone = MalagasyPhone.tryParse('0202212345');
       expect(phone, isNotNull);
-      expect(phone!.operator, MobileOperator.unknown);
+      expect(phone!.operator, MobileOperator.telmaFixe);
+    });
+
+    test('un prefixe qu aucun operateur n exploite est refuse', () {
+      // Le refus est volontaire : un numero bien forme mais impossible partait
+      // autrefois en inscription, le SMS n'arrivait jamais, et l'utilisateur
+      // concluait que l'application ne marche pas.
+      for (final input in ['0301234567', '0351234567', '0391234567']) {
+        expect(MalagasyPhone.tryParse(input), isNull, reason: input);
+        expect(MalagasyPhone.isUnknownOperator(input), isTrue, reason: input);
+      }
+    });
+
+    test('une saisie trop courte n est pas un prefixe inconnu', () {
+      // Distinguer les deux permet d'afficher le bon message : « prefixe
+      // inconnu » sur un numero complet, « numero invalide » sur une saisie en
+      // cours.
+      expect(MalagasyPhone.isUnknownOperator('034123'), isFalse);
+    });
+
+    test('seules les lignes mobiles recoivent un SMS', () {
+      expect(MobileOperator.telma.receivesSms, isTrue);
+      expect(MobileOperator.telmaFixe.receivesSms, isFalse);
+      expect(MobileOperator.unknown.receivesSms, isFalse);
     });
   });
 

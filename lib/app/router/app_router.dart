@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/router/app_routes.dart';
-import 'package:majichrono/app/shell/module_placeholder.dart';
 import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
@@ -18,6 +17,8 @@ import 'package:majichrono/features/auth/domain/entities/google_entities.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/auth/presentation/screens/lock_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/auth_choice_screen.dart';
+import 'package:majichrono/features/auth/presentation/screens/email_auth_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/email_code_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/otp_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/phone_input_screen.dart';
@@ -27,7 +28,9 @@ import 'package:majichrono/features/delivery/presentation/screens/create_deliver
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/driver/presentation/screens/active_delivery_screen.dart';
 import 'package:majichrono/features/driver/presentation/screens/driver_home_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/driver_deliveries_screen.dart';
 import 'package:majichrono/features/driver/presentation/screens/earnings_screen.dart';
+import 'package:majichrono/features/profile/presentation/profile_screen.dart';
 import 'package:majichrono/features/driver/presentation/screens/kyc_screen.dart';
 import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/public_tracking_screen.dart';
@@ -95,6 +98,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.welcome,
         builder: (_, _) => const WelcomeScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authChoice,
+        builder: (_, _) => const AuthChoiceScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authSignIn,
+        builder: (_, _) => const EmailAuthScreen(mode: EmailAuthMode.signIn),
+      ),
+      GoRoute(
+        path: AppRoutes.authSignUp,
+        builder: (_, _) => const EmailAuthScreen(mode: EmailAuthMode.signUp),
       ),
       GoRoute(
         path: AppRoutes.authPhone,
@@ -223,12 +238,7 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.clientProfile,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navProfile,
-            module: '1',
-            icon: Icons.person_outline,
-            requirements: const ['EXI-T02', 'EXI-T04'],
-          ),
+          builder: (context, _) => const ProfileScreen(),
         ),
       ],
     ),
@@ -284,12 +294,7 @@ StatefulShellRoute _driverShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.driverDeliveries,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navDeliveries,
-            module: '4',
-            icon: Icons.route_outlined,
-            requirements: const ['EXI-L04', 'EXI-L05', 'EXI-L08', 'EXI-L15'],
-          ),
+          builder: (context, _) => const DriverDeliveriesScreen(),
         ),
       ],
     ),
@@ -370,12 +375,7 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
       routes: [
         GoRoute(
           path: AppRoutes.adminProfile,
-          builder: (context, _) => ModulePlaceholderScreen(
-            title: AppLocalizations.of(context).navProfile,
-            module: '1',
-            icon: Icons.person_outline,
-            requirements: const ['EXI-T02'],
-          ),
+          builder: (context, _) => const ProfileScreen(),
         ),
       ],
     ),

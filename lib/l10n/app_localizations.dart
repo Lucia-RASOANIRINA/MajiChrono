@@ -314,6 +314,18 @@ abstract class AppLocalizations {
   /// **'Numero malgache invalide'**
   String get authPhoneInvalid;
 
+  /// No description provided for @authPhoneUnknownOperator.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prefixe inconnu. Utilisez un numero Orange (032), Airtel (033), Telma (034, 038) ou un fixe Telma (020).'**
+  String get authPhoneUnknownOperator;
+
+  /// No description provided for @authPhoneNoSms.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une ligne fixe ne recoit pas de SMS. Passez par l\'entree e-mail.'**
+  String get authPhoneNoSms;
+
   /// No description provided for @authPhoneOperator.
   ///
   /// In fr, this message translates to:
@@ -373,6 +385,180 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'ou'**
   String get authOrSeparator;
+
+  /// No description provided for @authChoiceTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment voulez-vous continuer ?'**
+  String get authChoiceTitle;
+
+  /// No description provided for @authChoiceSubtitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les deux menent au meme compte.'**
+  String get authChoiceSubtitle;
+
+  /// No description provided for @authChoicePhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec mon numero'**
+  String get authChoicePhone;
+
+  /// No description provided for @authChoicePhoneNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code par SMS. Le numero reste la cle de votre compte.'**
+  String get authChoicePhoneNote;
+
+  /// No description provided for @authChoiceEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Avec une adresse e-mail'**
+  String get authChoiceEmail;
+
+  /// No description provided for @authChoiceEmailNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Google, Facebook, Twitter ou mot de passe.'**
+  String get authChoiceEmailNote;
+
+  /// No description provided for @authSignInTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion a votre compte'**
+  String get authSignInTitle;
+
+  /// No description provided for @authSignUpTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Creer votre compte'**
+  String get authSignUpTitle;
+
+  /// No description provided for @authFieldEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail'**
+  String get authFieldEmail;
+
+  /// No description provided for @authFieldPassword.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get authFieldPassword;
+
+  /// No description provided for @authFieldPasswordConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get authFieldPasswordConfirm;
+
+  /// No description provided for @authSignIn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Se connecter'**
+  String get authSignIn;
+
+  /// No description provided for @authSignUp.
+  ///
+  /// In fr, this message translates to:
+  /// **'S\'inscrire'**
+  String get authSignUp;
+
+  /// No description provided for @authOrSignInWith.
+  ///
+  /// In fr, this message translates to:
+  /// **'- Ou se connecter avec -'**
+  String get authOrSignInWith;
+
+  /// No description provided for @authOrSignUpWith.
+  ///
+  /// In fr, this message translates to:
+  /// **'- Ou s\'inscrire avec -'**
+  String get authOrSignUpWith;
+
+  /// No description provided for @authNoAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de compte ?'**
+  String get authNoAccount;
+
+  /// No description provided for @authHaveAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deja un compte ?'**
+  String get authHaveAccount;
+
+  /// No description provided for @authPasswordTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Au moins 8 caracteres'**
+  String get authPasswordTooShort;
+
+  /// No description provided for @authPasswordMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les deux mots de passe different'**
+  String get authPasswordMismatch;
+
+  /// No description provided for @authBadCredentials.
+  ///
+  /// In fr, this message translates to:
+  /// **'E-mail ou mot de passe incorrect'**
+  String get authBadCredentials;
+
+  /// No description provided for @authEmailTaken.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cette adresse a deja un compte'**
+  String get authEmailTaken;
+
+  /// No description provided for @authBannerFast.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison rapide'**
+  String get authBannerFast;
+
+  /// No description provided for @authFooterTrustTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confiance MajiChrono'**
+  String get authFooterTrustTitle;
+
+  /// No description provided for @authFooterTrustNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque etape, securisee.'**
+  String get authFooterTrustNote;
+
+  /// No description provided for @authFooterSpeedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rapidite MajiChrono'**
+  String get authFooterSpeedTitle;
+
+  /// No description provided for @authFooterSpeedNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'L\'efficacite a chaque seconde.'**
+  String get authFooterSpeedNote;
+
+  /// No description provided for @authSocialFacebook.
+  ///
+  /// In fr, this message translates to:
+  /// **'Facebook'**
+  String get authSocialFacebook;
+
+  /// No description provided for @authSocialTwitter.
+  ///
+  /// In fr, this message translates to:
+  /// **'Twitter'**
+  String get authSocialTwitter;
+
+  /// No description provided for @authSocialGoogle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Google'**
+  String get authSocialGoogle;
 
   /// No description provided for @authGoogleContinue.
   ///
@@ -643,6 +829,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Profil'**
   String get navProfile;
+
+  /// No description provided for @profileAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon compte'**
+  String get profileAccount;
+
+  /// No description provided for @profileSecurity.
+  ///
+  /// In fr, this message translates to:
+  /// **'Securite'**
+  String get profileSecurity;
+
+  /// No description provided for @profilePinOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de verrouillage actif'**
+  String get profilePinOn;
+
+  /// No description provided for @profilePinOff.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun code de verrouillage'**
+  String get profilePinOff;
+
+  /// No description provided for @profilePinSet.
+  ///
+  /// In fr, this message translates to:
+  /// **'Definir un code'**
+  String get profilePinSet;
+
+  /// No description provided for @profilePinChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer le code'**
+  String get profilePinChange;
+
+  /// No description provided for @profileEmailLinked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse rattachee'**
+  String get profileEmailLinked;
+
+  /// No description provided for @profileEmailNone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune adresse rattachee'**
+  String get profileEmailNone;
+
+  /// No description provided for @profileMemberSince.
+  ///
+  /// In fr, this message translates to:
+  /// **'Membre depuis {date}'**
+  String profileMemberSince(String date);
+
+  /// No description provided for @profileRatingLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note'**
+  String get profileRatingLabel;
+
+  /// No description provided for @driverDeliveriesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course pour l instant'**
+  String get driverDeliveriesEmpty;
+
+  /// No description provided for @driverDeliveriesEmptyNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les courses acceptees apparaissent ici, meme hors ligne.'**
+  String get driverDeliveriesEmptyNote;
+
+  /// No description provided for @driverDeliveriesActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get driverDeliveriesActive;
+
+  /// No description provided for @driverDeliveriesDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminees'**
+  String get driverDeliveriesDone;
 
   /// No description provided for @navFleet.
   ///

@@ -39,6 +39,12 @@ class AuthMockModule extends MockModule {
   /// visiteur, pas un compte a creer.
   final Map<String, String> _emailLinks = {...seededEmails};
 
+  /// Mots de passe, par adresse. Les comptes pre-inscrits en ont un pour que la
+  /// connexion par mot de passe soit recettable sans inscription prealable.
+  final Map<String, String> _passwords = {
+    for (final email in seededEmails.keys) email: seededPassword,
+  };
+
   static const Duration otpValidity = Duration(minutes: 5);
   static const int maxAttempts = 3;
   static const Duration accessTtl = Duration(minutes: 15);
@@ -65,8 +71,15 @@ class AuthMockModule extends MockModule {
     'naina.andria@gmail.com': '+261330000002',
   };
 
+  /// Mots de passe des comptes de recette, en clair — c'est un simulateur, et il
+  /// n'est jamais compile face a un vrai serveur. Le vrai backend ne stockera
+  /// qu'une empreinte Argon2 (§8.4).
+  static const String seededPassword = 'majichrono';
+
   @override
   void register(MockBackend backend) {
+    backend.post(ApiEndpoints.passwordSignIn, _signInWithPassword);
+    backend.post(ApiEndpoints.passwordSignUp, _signUpWithPassword);
     backend.post(ApiEndpoints.emailRequest, _requestEmailCode);
     backend.post(ApiEndpoints.emailVerify, _verifyEmailCode);
     backend.post(ApiEndpoints.emailLink, _linkEmail);
@@ -85,6 +98,110 @@ class AuthMockModule extends MockModule {
     _emailLinks
       ..clear()
       ..addAll(seededEmails);
+    _passwords
+      ..clear()
+      ..addAll({for (final email in seededEmails.keys) email: seededPassword});
+  }
+
+  // --- POST /auth/password/signin ---------------------------------------
+
+  Future<MockResponse> _signInWithPassword(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final email = (req.json['email'] as String?)?.trim().toLowerCase();
+    final password = req.json['password'] as String?;
+
+    // Une seule reponse d'echec pour « adresse inconnue » et « mot de passe
+    // faux ». Les distinguer dirait a un attaquant quelles adresses ont un
+    // compte, ce que le point d'entree par code refuse deja de dire.
+    if (email == null || password == null || _passwords[email] != password) {
+      return MockResponse.error(
+        401,
+        'bad_credentials',
+        'E-mail ou mot de passe incorrect',
+      );
+    }
+
+    return _sessionForEmail(email);
+  }
+
+  // --- POST /auth/password/signup ---------------------------------------
+
+  Future<MockResponse> _signUpWithPassword(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final email = (req.json['email'] as String?)?.trim().toLowerCase();
+    final password = req.json['password'] as String?;
+
+    if (email == null || !_looksLikeEmail(email)) {
+      return MockResponse.error(422, 'invalid_email', 'Adresse e-mail invalide');
+    }
+    if (password == null || password.length < minPasswordLength) {
+      return MockResponse.error(
+        422,
+        'weak_password',
+        'Mot de passe trop court',
+        details: {'minLength': minPasswordLength},
+      );
+    }
+    if (_passwords.containsKey(email)) {
+      return MockResponse.error(
+        409,
+        'email_taken',
+        'Cette adresse a deja un compte',
+      );
+    }
+
+    _passwords[email] = password;
+
+    // Le mot de passe est enregistre, mais **aucune session n'est ouverte** :
+    // le compte n'existe pas encore tant qu'aucun numero ne s'y rattache. La
+    // reponse est volontairement celle d'une adresse non rattachee, pour que
+    // l'application enchaine sur la confirmation du numero comme apres Google.
+    return MockResponse.ok({'linked': false, 'email': email});
+  }
+
+  static const int minPasswordLength = 8;
+
+  /// Ouvre la session du compte rattache a une adresse, ou signale qu'aucun
+  /// numero ne s'y rattache encore.
+  MockResponse _sessionForEmail(String email) {
+    final phone = _emailLinks[email];
+    if (phone == null) return MockResponse.ok({'linked': false, 'email': email});
+
+    return MockResponse.ok({
+      'linked': true,
+      'session': _issueSession(_accountFor(phone)),
+      'account': _accountFor(phone).toJson(),
+    });
+  }
+
+  /// Compte associe a un numero, adresse rattachee comprise.
+  ///
+  /// L'adresse est retrouvee par balayage inverse plutot que stockee deux fois :
+  /// deux tables a tenir a jour finiraient par se contredire, et c'est le genre
+  /// de divergence qu'on ne remarque que le jour ou un utilisateur se plaint de
+  /// ne plus voir son adresse.
+  _Account _accountFor(String phone) {
+    final seeded = seededAccounts[phone];
+    String? email;
+    for (final entry in _emailLinks.entries) {
+      if (entry.value == phone) {
+        email = entry.key;
+        break;
+      }
+    }
+
+    return _Account(
+      id: 'usr_${phone.substring(4)}',
+      phone: phone,
+      role: seeded?.role,
+      name: seeded?.name ?? '',
+      createdAt: DateTime.now(),
+      email: email,
+    );
   }
 
   // --- POST /auth/email/request -----------------------------------------
@@ -167,28 +284,10 @@ class AuthMockModule extends MockModule {
 
     _emailChallenges.remove(challengeId);
 
-    final phone = _emailLinks[challenge.email];
-    if (phone == null) {
-      // Adresse prouvee, compte inconnu. Aucune session n'est ouverte : un
-      // compte sans numero ne pourrait ni etre appele par un livreur, ni
-      // recevoir le SMS de suivi (EXI-C24).
-      return MockResponse.ok({'linked': false, 'email': challenge.email});
-    }
-
-    final seeded = seededAccounts[phone];
-    final account = _Account(
-      id: 'usr_${phone.substring(4)}',
-      phone: phone,
-      role: seeded?.role,
-      name: seeded?.name ?? '',
-      createdAt: DateTime.now(),
-    );
-
-    return MockResponse.ok({
-      'linked': true,
-      'session': _issueSession(account),
-      'account': account.toJson(),
-    });
+    // Adresse prouvee. Si aucun numero ne s'y rattache, aucune session n'est
+    // ouverte : un compte sans numero ne pourrait ni etre appele par un livreur,
+    // ni recevoir le SMS de suivi (EXI-C24).
+    return _sessionForEmail(challenge.email);
   }
 
   // --- POST /auth/email/link --------------------------------------------
@@ -230,7 +329,9 @@ class AuthMockModule extends MockModule {
     Map<String, String> _,
   ) async {
     final phone = req.json['phone'] as String?;
-    if (phone == null || !RegExp(r'^\+2613\d{8}$').hasMatch(phone)) {
+    // Memes plages que le domaine : Orange (32), Airtel (33), Telma (34, 38) et
+    // le fixe Telma (20). Le simulateur refuse ce que le vrai serveur refusera.
+    if (phone == null || !RegExp(r'^\+261(32|33|34|38|20)\d{7}$').hasMatch(phone)) {
       return MockResponse.error(
         422,
         'invalid_phone',
@@ -299,14 +400,7 @@ class AuthMockModule extends MockModule {
     // Le defi est brule des qu'il a servi : un code ne vaut qu'une fois.
     _challenges.remove(challengeId);
 
-    final seeded = seededAccounts[challenge.phone];
-    final account = _Account(
-      id: 'usr_${challenge.phone.substring(4)}',
-      phone: challenge.phone,
-      role: seeded?.role,
-      name: seeded?.name ?? '',
-      createdAt: DateTime.now(),
-    );
+    final account = _accountFor(challenge.phone);
 
     return MockResponse.ok({
       'session': _issueSession(account),
@@ -494,6 +588,7 @@ class _Account {
     required this.role,
     required this.name,
     required this.createdAt,
+    this.email,
     this.kycStatus,
   });
 
@@ -502,7 +597,8 @@ class _Account {
     phone: '${claims['phone']}',
     role: claims['role'] as String?,
     name: '${claims['name'] ?? ''}',
-    createdAt: DateTime.tryParse('${claims['iat']}') ?? DateTime.now(),
+    createdAt: DateTime.tryParse('') ?? DateTime.now(),
+    email: claims['email'] as String?,
     kycStatus: claims['kyc'] as String?,
   );
 
@@ -511,6 +607,7 @@ class _Account {
   final String? role;
   final String name;
   final DateTime createdAt;
+  final String? email;
   final String? kycStatus;
 
   _Account copyWith({String? role, String? name, String? kycStatus}) =>
@@ -520,6 +617,7 @@ class _Account {
         role: role ?? this.role,
         name: name ?? this.name,
         createdAt: createdAt,
+        email: email,
         kycStatus: kycStatus ?? this.kycStatus,
       );
 
@@ -529,6 +627,7 @@ class _Account {
     'phone': phone,
     'role': role,
     'name': name,
+    'email': email,
     'kyc': kycStatus,
     'iat': createdAt.toUtc().toIso8601String(),
     'exp': expiresAt.toUtc().toIso8601String(),
@@ -539,6 +638,7 @@ class _Account {
     'phone': phone,
     'role': role,
     'displayName': name,
+    'email': email,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'kycStatus': kycStatus,
     'rating': role == 'driver' ? 4.6 : null,

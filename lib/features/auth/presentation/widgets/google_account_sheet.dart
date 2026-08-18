@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/auth/domain/entities/google_entities.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/auth/presentation/widgets/auth_branding.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_loader.dart';
 
@@ -15,16 +16,20 @@ import 'package:majichrono/shared/widgets/mc_loader.dart';
 /// qui hesite n'a rien perdu.
 ///
 /// Retourne l'adresse choisie, ou `null` si la feuille est fermee sans choix.
-Future<String?> showGoogleAccountSheet(BuildContext context) =>
-    showModalBottomSheet<String>(
-      context: context,
-      isScrollControlled: true,
-      showDragHandle: true,
-      builder: (_) => const _GoogleAccountSheet(),
-    );
+Future<String?> showGoogleAccountSheet(
+  BuildContext context, {
+  SocialProvider provider = SocialProvider.google,
+}) => showModalBottomSheet<String>(
+  context: context,
+  isScrollControlled: true,
+  showDragHandle: true,
+  builder: (_) => _GoogleAccountSheet(provider: provider),
+);
 
 class _GoogleAccountSheet extends ConsumerStatefulWidget {
-  const _GoogleAccountSheet();
+  const _GoogleAccountSheet({required this.provider});
+
+  final SocialProvider provider;
 
   @override
   ConsumerState<_GoogleAccountSheet> createState() =>
@@ -65,7 +70,18 @@ class _GoogleAccountSheetState extends ConsumerState<_GoogleAccountSheet> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(l10n.authGoogleSheetTitle, style: theme.textTheme.titleLarge),
+            Row(
+              children: [
+                SocialMark(provider: widget.provider, size: 24),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    l10n.authGoogleSheetTitle,
+                    style: theme.textTheme.titleLarge,
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: AppSpacing.xs),
             Text(
               l10n.authGoogleSheetSubtitle,

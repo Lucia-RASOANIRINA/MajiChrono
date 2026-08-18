@@ -35,6 +35,25 @@ abstract interface class AuthRepository {
   /// que la prochaine entree se fasse par Google sans repasser par le SMS.
   Future<void> linkEmail(String email);
 
+  /// Connexion par couple e-mail / mot de passe.
+  ///
+  /// Meme issue que le code par e-mail : session ouverte si l'adresse porte un
+  /// compte, renvoi vers le numero sinon.
+  Future<EmailVerification> signInWithPassword({
+    required String email,
+    required String password,
+  });
+
+  /// Inscription par couple e-mail / mot de passe.
+  ///
+  /// Ne rend **jamais** [EmailLinked] : un compte neuf n'a pas encore de
+  /// numero, et sans numero il n'y a pas de compte. Le mot de passe est
+  /// enregistre, puis le parcours enchaine sur la confirmation du numero.
+  Future<EmailVerification> signUpWithPassword({
+    required String email,
+    required String password,
+  });
+
   /// Pose le profil d'un compte tout juste cree (EXI-T02).
   ///
   /// Le role administrateur est refuse par le serveur : il n'est attribue que

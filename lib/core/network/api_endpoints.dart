@@ -25,6 +25,11 @@ class ApiEndpoints {
   /// Rattache une adresse deja verifiee au compte de la session en cours.
   static const String emailLink = '/auth/email/link';
 
+  /// Entree par mot de passe, pour qui prefere un couple e-mail/mot de passe a
+  /// un code recu a chaque connexion.
+  static const String passwordSignIn = '/auth/password/signin';
+  static const String passwordSignUp = '/auth/password/signup';
+
   // --- Profil ----------------------------------------------------------
   static const String me = '/me';
   static const String meAvatar = '/me/avatar';

@@ -9,6 +9,7 @@ class UserAccount {
     required this.role,
     required this.displayName,
     required this.createdAt,
+    this.email,
     this.avatarUrl,
     this.rating,
     this.kycStatus,
@@ -19,6 +20,12 @@ class UserAccount {
   final UserRole role;
   final String displayName;
   final DateTime createdAt;
+
+  /// Adresse rattachee au compte, quand il y en a une (parcours Google ou mot
+  /// de passe). Elle est une **seconde porte** vers ce compte, jamais son
+  /// identite : celle-ci reste le numero.
+  final String? email;
+
   final String? avatarUrl;
   final double? rating;
 
@@ -40,6 +47,7 @@ class UserAccount {
     role: role,
     displayName: displayName ?? this.displayName,
     createdAt: createdAt,
+    email: email,
     avatarUrl: avatarUrl ?? this.avatarUrl,
     rating: rating,
     kycStatus: kycStatus ?? this.kycStatus,

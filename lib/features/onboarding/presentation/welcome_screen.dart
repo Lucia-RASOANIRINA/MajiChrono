@@ -89,7 +89,7 @@ class WelcomeScreen extends ConsumerWidget {
               SizedBox(
                 height: AppSizes.driverActionHeight,
                 child: FilledButton(
-                  onPressed: () => context.go(AppRoutes.authPhone),
+                  onPressed: () => context.go(AppRoutes.authChoice),
                   style: FilledButton.styleFrom(
                     backgroundColor: Colors.white,
                     foregroundColor: AppColors.primary,

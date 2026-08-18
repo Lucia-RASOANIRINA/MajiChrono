@@ -121,6 +121,14 @@ class AppLocalizationsMg extends AppLocalizations {
   String get authPhoneInvalid => 'Laharana malagasy tsy mety';
 
   @override
+  String get authPhoneUnknownOperator =>
+      'Tsy fantatra ny tovona. Ampiasao laharana Orange (032), Airtel (033), Telma (034, 038) na fixe Telma (020).';
+
+  @override
+  String get authPhoneNoSms =>
+      'Tsy mandray SMS ny laharana fixe. Ampiasao ny fidirana amin\'ny mailaka.';
+
+  @override
   String authPhoneOperator(String operator) {
     return 'Mpandraharaha fantatra : $operator';
   }
@@ -159,6 +167,96 @@ class AppLocalizationsMg extends AppLocalizations {
 
   @override
   String get authOrSeparator => 'na';
+
+  @override
+  String get authChoiceTitle => 'Ahoana no tianao hidirana ?';
+
+  @override
+  String get authChoiceSubtitle =>
+      'Mitondra amin\'ny kaonty iray ihany izy roa.';
+
+  @override
+  String get authChoicePhone => 'Amin\'ny laharako';
+
+  @override
+  String get authChoicePhoneNote =>
+      'Kaody amin\'ny SMS. Ny laharana no fanalahidin\'ny kaontinao.';
+
+  @override
+  String get authChoiceEmail => 'Amin\'ny adiresy mailaka';
+
+  @override
+  String get authChoiceEmailNote =>
+      'Google, Facebook, Twitter na teny miafina.';
+
+  @override
+  String get authSignInTitle => 'Fidirana amin\'ny kaontinao';
+
+  @override
+  String get authSignUpTitle => 'Hamorona ny kaontinao';
+
+  @override
+  String get authFieldEmail => 'Mailaka';
+
+  @override
+  String get authFieldPassword => 'Teny miafina';
+
+  @override
+  String get authFieldPasswordConfirm => 'Hamarino ny teny miafina';
+
+  @override
+  String get authSignIn => 'Hiditra';
+
+  @override
+  String get authSignUp => 'Hisoratra anarana';
+
+  @override
+  String get authOrSignInWith => '- Na hiditra amin\'ny -';
+
+  @override
+  String get authOrSignUpWith => '- Na hisoratra amin\'ny -';
+
+  @override
+  String get authNoAccount => 'Mbola tsy manana kaonty ?';
+
+  @override
+  String get authHaveAccount => 'Efa manana kaonty ?';
+
+  @override
+  String get authPasswordTooShort => 'Farafahakeliny litera 8';
+
+  @override
+  String get authPasswordMismatch => 'Tsy mitovy ny teny miafina roa';
+
+  @override
+  String get authBadCredentials => 'Diso ny mailaka na ny teny miafina';
+
+  @override
+  String get authEmailTaken => 'Efa manana kaonty io adiresy io';
+
+  @override
+  String get authBannerFast => 'Fandefasana haingana';
+
+  @override
+  String get authFooterTrustTitle => 'Fahatokisana MajiChrono';
+
+  @override
+  String get authFooterTrustNote => 'Voaaro ny dingana rehetra.';
+
+  @override
+  String get authFooterSpeedTitle => 'Hafainganana MajiChrono';
+
+  @override
+  String get authFooterSpeedNote => 'Mahomby isaky ny segondra.';
+
+  @override
+  String get authSocialFacebook => 'Facebook';
+
+  @override
+  String get authSocialTwitter => 'Twitter';
+
+  @override
+  String get authSocialGoogle => 'Google';
 
   @override
   String get authGoogleContinue => 'Hidira amin\'ny Google';
@@ -305,6 +403,51 @@ class AppLocalizationsMg extends AppLocalizations {
 
   @override
   String get navProfile => 'Momba';
+
+  @override
+  String get profileAccount => 'Ny kaontiko';
+
+  @override
+  String get profileSecurity => 'Fiarovana';
+
+  @override
+  String get profilePinOn => 'Mandeha ny kaody hidy';
+
+  @override
+  String get profilePinOff => 'Tsy misy kaody hidy';
+
+  @override
+  String get profilePinSet => 'Hametraka kaody';
+
+  @override
+  String get profilePinChange => 'Hanova ny kaody';
+
+  @override
+  String get profileEmailLinked => 'Adiresy voarohy';
+
+  @override
+  String get profileEmailNone => 'Tsy misy adiresy voarohy';
+
+  @override
+  String profileMemberSince(String date) {
+    return 'Mpikambana hatramin\'ny $date';
+  }
+
+  @override
+  String get profileRatingLabel => 'Naoty';
+
+  @override
+  String get driverDeliveriesEmpty => 'Tsy misy dia hatreto';
+
+  @override
+  String get driverDeliveriesEmptyNote =>
+      'Miseho eto ny dia noraisina, na tsy misy aterineto aza.';
+
+  @override
+  String get driverDeliveriesActive => 'An-dalana';
+
+  @override
+  String get driverDeliveriesDone => 'Vita';
 
   @override
   String get navFleet => 'Mpanatitra';

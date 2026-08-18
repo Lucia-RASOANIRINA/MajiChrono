@@ -172,13 +172,24 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                       labelText: l10n.authPhoneLabel,
                       hintText: l10n.authPhoneHint,
                       prefixIcon: const Icon(Icons.phone_outlined),
+                      // Trois messages distincts, parce que trois causes
+                      // distinctes : saisie incomplete, prefixe qu'aucun
+                      // operateur n'exploite, et ligne fixe qui ne recevra
+                      // jamais le SMS. « Numero invalide » pour les trois
+                      // laisserait l'utilisateur corriger au hasard.
                       errorText: _controller.text.isNotEmpty && _phone == null
-                          ? l10n.authPhoneInvalid
+                          ? (MalagasyPhone.isUnknownOperator(_controller.text)
+                                ? l10n.authPhoneUnknownOperator
+                                : l10n.authPhoneInvalid)
                           : null,
-                      helperText:
-                          operator != null && operator != MobileOperator.unknown
-                          ? l10n.authPhoneOperator(operator.label)
-                          : null,
+                      helperText: switch (operator) {
+                        null => null,
+                        MobileOperator.unknown => null,
+                        MobileOperator.telmaFixe => l10n.authPhoneNoSms,
+                        final known => l10n.authPhoneOperator(known.label),
+                      },
+                      helperMaxLines: 2,
+                      errorMaxLines: 3,
                     ),
                     onChanged: _onChanged,
                     onSubmitted: (_) => _submit(),

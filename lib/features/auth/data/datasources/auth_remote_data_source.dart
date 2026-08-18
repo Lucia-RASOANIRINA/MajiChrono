@@ -39,6 +39,22 @@ class AuthRemoteDataSource {
     body: {'challengeId': challengeId, 'code': code},
   );
 
+  Future<Map<String, dynamic>> signInWithPassword({
+    required String email,
+    required String password,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.passwordSignIn,
+    body: {'email': email, 'password': password},
+  );
+
+  Future<Map<String, dynamic>> signUpWithPassword({
+    required String email,
+    required String password,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.passwordSignUp,
+    body: {'email': email, 'password': password},
+  );
+
   Future<void> linkEmail(String email) =>
       _client.post<void>(ApiEndpoints.emailLink, body: {'email': email});
 

@@ -8,7 +8,21 @@
 enum MobileOperator {
   orange('Orange', {'32'}),
   airtel('Airtel', {'33'}),
-  yas('YAS', {'34', '38'}),
+
+  /// Telma, qui exploite commercialement la marque YAS depuis 2025. Le libelle
+  /// retenu est « Telma » : c'est le nom sous lequel les utilisateurs designent
+  /// encore leur ligne, et celui qui figure sur leurs factures.
+  telma('Telma', {'34', '38'}),
+
+  /// Ligne fixe Telma, en `020 XX XXX XX`.
+  ///
+  /// Elle est acceptee parce que beaucoup de boutiques et de bureaux
+  /// d'Antananarivo n'ont que ce numero. Elle ne recoit **pas** de SMS : un
+  /// compte ouvert sur un fixe doit passer par l'entree e-mail, ce que
+  /// [receivesSms] permet a l'interface d'anticiper au lieu de laisser
+  /// l'utilisateur attendre un code qui n'arrivera jamais.
+  telmaFixe('Telma fixe', {'20'}),
+
   unknown('', {});
 
   const MobileOperator(this.label, this.prefixes);
@@ -17,6 +31,11 @@ enum MobileOperator {
 
   /// Deux chiffres suivant l'indicatif pays, sans le 0 national.
   final Set<String> prefixes;
+
+  bool get isKnown => this != MobileOperator.unknown;
+
+  bool get receivesSms =>
+      this != MobileOperator.unknown && this != MobileOperator.telmaFixe;
 
   static MobileOperator fromNationalPrefix(String twoDigits) {
     for (final operator in MobileOperator.values) {
@@ -33,11 +52,16 @@ enum MobileOperator {
 /// formes saisies par l'utilisateur (`034 12 345 67`, `+261 34 12 345 67`,
 /// `0341234567`) sont toutes normalisees vers elle.
 ///
-/// La validation accepte **tout prefixe `3X`**, comme l'ecrit le cahier des
-/// charges, et non la seule liste des operateurs connus : une nouvelle plage
-/// attribuee par l'ARTEC ne doit pas empecher un livreur de s'inscrire. La
-/// detection d'operateur reste separee, et peut donc repondre « inconnu » sur un
-/// numero par ailleurs parfaitement valide.
+/// La validation n'accepte que les plages **reellement exploitees a
+/// Madagascar** : Orange (032), Airtel (033), Telma (034 et 038) et le fixe
+/// Telma (020). Un numero en 035, 036 ou 039 est refuse a la saisie.
+///
+/// C'est un choix, et il a un cout : le jour ou l'ARTEC attribue une nouvelle
+/// plage, cette liste devra etre completee avant qu'un abonne de cette plage
+/// puisse s'inscrire. Le cout inverse est plus lourd — un numero mal recopie
+/// mais formellement valide part en inscription, le SMS n'arrive jamais, et
+/// l'utilisateur conclut que l'application ne marche pas. Mieux vaut refuser
+/// tot, avec un message qui nomme les operateurs attendus.
 class MalagasyPhone {
   const MalagasyPhone._(this.e164);
 
@@ -70,12 +94,44 @@ class MalagasyPhone {
     }
 
     if (national.length != nationalLength) return null;
-    if (!RegExp(r'^3\d{8}$').hasMatch(national)) return null;
+    if (!RegExp(r'^\d{9}$').hasMatch(national)) return null;
+
+    // Le prefixe doit designer un operateur connu. C'est ce qui distingue un
+    // numero valide d'un numero seulement bien forme.
+    if (!MobileOperator.fromNationalPrefix(national.substring(0, 2)).isKnown) {
+      return null;
+    }
 
     return MalagasyPhone._('+$countryCode$national');
   }
 
   static bool isValid(String input) => tryParse(input) != null;
+
+  /// Vrai si la saisie est bien formee — neuf chiffres apres l'indicatif — mais
+  /// portee par un prefixe qu'aucun operateur n'exploite.
+  ///
+  /// Distinguer ce cas de la simple faute de frappe permet de dire *pourquoi* le
+  /// numero est refuse : « 035 n'est pas un prefixe malgache » aide, « numero
+  /// invalide » n'aide pas.
+  static bool isUnknownOperator(String input) {
+    final digits = input.replaceAll(RegExp(r'[^\d+]'), '');
+    var national = digits;
+    if (national.startsWith('+$countryCode')) {
+      national = national.substring(countryCode.length + 1);
+    } else if (national.startsWith('00$countryCode')) {
+      national = national.substring(countryCode.length + 2);
+    } else if (national.startsWith(countryCode) &&
+        national.length == countryCode.length + nationalLength) {
+      national = national.substring(countryCode.length);
+    } else if (national.startsWith('0')) {
+      national = national.substring(1);
+    }
+
+    if (!RegExp(r'^\d{9}$').hasMatch(national)) return false;
+    return !MobileOperator.fromNationalPrefix(
+      national.substring(0, 2),
+    ).isKnown;
+  }
 
   /// Les neuf chiffres nationaux, sans indicatif ni zero.
   String get national => e164.substring(countryCode.length + 1);
