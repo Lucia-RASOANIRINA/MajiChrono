@@ -176,6 +176,9 @@ class AppLocalizationsMg extends AppLocalizations {
       'Mitondra amin\'ny kaonty iray ihany izy roa.';
 
   @override
+  String get authChoiceOneAccount => 'Kaonty iray, lalana roa';
+
+  @override
   String get authChoicePhone => 'Amin\'ny laharako';
 
   @override

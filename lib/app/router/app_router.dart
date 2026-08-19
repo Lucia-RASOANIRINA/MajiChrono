@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/app/router/app_routes.dart';
+import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
@@ -43,6 +43,17 @@ import 'package:majichrono/l10n/app_localizations.dart';
 
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
+/// Duree minimale d'affichage de l'ecran d'attente.
+///
+/// Elle est **nulle** : le logo est desormais porte par l'ecran de demarrage du
+/// systeme, qui s'affiche des la premiere milliseconde. Retenir l'utilisateur
+/// ici ajouterait une attente derriere une attente, sans rien montrer de plus.
+///
+/// Le point d'extension est conserve — et non supprime — parce qu'un ecran
+/// d'attente sans plancher devient invisible le jour ou on y met quoi que ce
+/// soit a regarder. La valeur se change ici, en un seul endroit.
+final splashHoldProvider = FutureProvider<void>((ref) async {});
+
 /// Routeur applicatif.
 ///
 /// `go_router` est impose par le §9.1 : les liens profonds sont la seule facon
@@ -53,6 +64,10 @@ final routerProvider = Provider<GoRouter>((ref) {
   // session change, sans etre reconstruit (ce qui perdrait la pile de navigation).
   final refresh = ValueNotifier<Object?>(null);
   ref.listen(authControllerProvider, (_, next) => refresh.value = next);
+  // Le plancher d'affichage compte aussi comme un changement d'etat : sans cette
+  // seconde ecoute, le routeur ne reevaluerait rien a son echeance et l'ecran
+  // resterait sur la marque.
+  ref.listen(splashHoldProvider, (_, next) => refresh.value = next);
   ref.onDispose(refresh.dispose);
 
   return GoRouter(
@@ -67,6 +82,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       // Le suivi public est accessible sans compte : le destinataire
       // n'installe rien et n'a pas de session (EXI-C24).
       if (location.startsWith('/track/')) return null;
+
+      // Plancher d'affichage de l'ecran d'attente. Nul aujourd'hui : le logo
+      // est porte par l'ecran de demarrage du systeme, en amont.
+      if (!ref.watch(splashHoldProvider).hasValue) {
+        return location == AppRoutes.splash ? null : AppRoutes.splash;
+      }
 
       // Toute la navigation decoule de l'etat de session, et de lui seul. Le
       // filtrage exhaustif garantit qu'un etat ajoute plus tard ne pourra pas
@@ -407,10 +428,26 @@ String? _redirectForRole(UserRole role, String location) {
   return null;
 }
 
+/// Ecran d'attente pendant la relecture de la session.
+///
+/// Un aplat du bleu de la marque, sans rien dessus. Il prolonge exactement
+/// l'ecran de lancement Android, qui porte deja ce bleu, et se confond ensuite
+/// avec l'accueil qui le porte aussi : l'utilisateur ne voit donc **aucune
+/// etape** entre le lanceur et l'animation. Un indicateur de chargement place
+/// ici ferait apparaitre une attente la ou il n'y a, le plus souvent, que
+/// quelques dizaines de millisecondes de lecture locale.
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
+  // `Scaffold` et non un simple `ColoredBox` : la route est posee directement
+  // sous le Navigator, sans contrainte de taille. Un `ColoredBox` y reste sans
+  // dimension et ne peint rien — l'ecran devient noir, ce qui ne se voit qu'en
+  // release, la ou l'erreur de mise en page ne s'affiche pas.
+  // Aucun logo : l'accueil est l'ecran d'entree, et son nom y figure deja en
+  // grand. Ce qui s'affiche ici n'est qu'un aplat de la meme couleur que lui,
+  // le temps que la session se relise — quelques dizaines de millisecondes. Rien
+  // ne clignote entre les deux : l'ecran se remplit, il ne se remplace pas.
   Widget build(BuildContext context) =>
-      const Scaffold(body: Center(child: McLoader()));
+      const Scaffold(backgroundColor: AppColors.primary);
 }

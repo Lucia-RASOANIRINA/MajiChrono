@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:majichrono/app/router/app_routes.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
+import 'package:majichrono/shared/widgets/mc_brand_mark.dart';
 
 /// Fournisseur d'identite propose a cote du mot de passe.
 ///
@@ -151,9 +155,7 @@ class _SocialButton extends StatelessWidget {
           style: OutlinedButton.styleFrom(
             padding: EdgeInsets.zero,
             side: BorderSide(color: theme.colorScheme.outlineVariant),
-            shape: RoundedRectangleBorder(
-              borderRadius: AppRadii.componentAll,
-            ),
+            shape: RoundedRectangleBorder(borderRadius: AppRadii.componentAll),
           ),
           child: SocialMark(provider: provider),
         ),
@@ -228,4 +230,214 @@ class _GoogleMarkPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_GoogleMarkPainter oldDelegate) => false;
+}
+
+/// Coquille commune des ecrans d'identite.
+///
+/// Elle apporte trois choses que chaque ecran refaisait a sa facon : le degrade
+/// de la charte, un titre pose au meme endroit, et **une fleche de retour**.
+///
+/// Cette fleche n'est pas un ornement. Depuis le choix de la porte d'entree, un
+/// utilisateur qui touche « avec mon numero » puis se ravise n'avait aucun moyen
+/// de revenir : le geste systeme fonctionnait, le bouton n'existait pas. Sur un
+/// telephone d'entree de gamme sans navigation gestuelle, c'etait une impasse.
+class McAuthScaffold extends StatelessWidget {
+  const McAuthScaffold({
+    required this.child,
+    this.title,
+    this.subtitle,
+    this.onBack,
+    this.showBack = true,
+    this.footer,
+    super.key,
+  });
+
+  final Widget child;
+  final String? title;
+  final String? subtitle;
+
+  /// Retour personnalise. Par defaut, on depile ; si la pile est vide — cas
+  /// d'une arrivee par lien profond — on renvoie au choix plutot que de laisser
+  /// un bouton inerte.
+  final VoidCallback? onBack;
+  final bool showBack;
+  final Widget? footer;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Scaffold(
+      backgroundColor: AppColors.primary,
+      body: DecoratedBox(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Color(0xFF2A3894), AppColors.primary, Color(0xFF151E5E)],
+          ),
+        ),
+        child: Stack(
+          children: [
+            // Madagascar en filigrane, tres pale, derriere le degrade. Il
+            // ancre l'ecran dans le pays sans rien ajouter a lire — a cette
+            // opacite il se percoit plutot qu'il ne se regarde.
+            Positioned(
+              right: -40,
+              top: 20,
+              child: MadagascarMark(
+                height: 260,
+                color: Colors.white.withValues(alpha: 0.055),
+              ),
+            ),
+            SafeArea(
+              child: Column(
+                children: [
+                  SizedBox(
+                    height: AppSizes.minTouchTarget,
+                    child: Row(
+                      children: [
+                        if (showBack)
+                          IconButton(
+                            onPressed: onBack ?? () => _goBack(context),
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                            ),
+                            tooltip: MaterialLocalizations.of(
+                              context,
+                            ).backButtonTooltip,
+                          ),
+                      ],
+                    ),
+                  ),
+                  if (title != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    Text(
+                      title!,
+                      textAlign: TextAlign.center,
+                      style: theme.textTheme.headlineMedium?.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                  if (subtitle != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.xl,
+                      ),
+                      child: Text(
+                        subtitle!,
+                        textAlign: TextAlign.center,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: Colors.white.withValues(alpha: 0.78),
+                          height: 1.4,
+                        ),
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.xl),
+
+                  // Le contenu vit sur une feuille claire arrondie : le contraste
+                  // avec le fond sombre delimite ou l'on saisit, ce qu'un ecran
+                  // entierement bleu ne faisait pas.
+                  Expanded(
+                    child: _RiseIn(
+                      child: Container(
+                        width: double.infinity,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          borderRadius: const BorderRadius.vertical(
+                            top: Radius.circular(28),
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.22),
+                              blurRadius: 24,
+                              offset: const Offset(0, -6),
+                            ),
+                          ],
+                        ),
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.xl,
+                          AppSpacing.xl,
+                          AppSpacing.xl,
+                          0,
+                        ),
+                        child: child,
+                      ),
+                    ),
+                  ),
+                  ?footer,
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  static void _goBack(BuildContext context) {
+    if (Navigator.of(context).canPop()) {
+      Navigator.of(context).pop();
+      return;
+    }
+    // Pile vide : on ne laisse pas un bouton sans effet.
+    GoRouter.of(context).go(AppRoutes.authChoice);
+  }
+}
+
+/// Entree par le bas de la feuille de saisie.
+///
+/// Trois cent cinquante millisecondes, une seule fois, sans boucle. La feuille
+/// monte et se revele : le mouvement dit d'ou vient l'ecran, ce qui rend le
+/// retour en arriere evident sans qu'aucun texte ne l'explique.
+///
+/// L'animation est retiree quand le systeme demande la suppression des effets
+/// (EXI-T09) — elle est un confort, jamais un passage oblige.
+class _RiseIn extends StatefulWidget {
+  const _RiseIn({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_RiseIn> createState() => _RiseInState();
+}
+
+class _RiseInState extends State<_RiseIn> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 350),
+  )..forward();
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (MediaQuery.maybeDisableAnimationsOf(context) ?? false) {
+      return widget.child;
+    }
+
+    final curve = CurvedAnimation(
+      parent: _controller,
+      curve: Curves.easeOutCubic,
+    );
+    return FadeTransition(
+      opacity: curve,
+      child: SlideTransition(
+        position: Tween<Offset>(
+          begin: const Offset(0, 0.06),
+          end: Offset.zero,
+        ).animate(curve),
+        child: widget.child,
+      ),
+    );
+  }
 }

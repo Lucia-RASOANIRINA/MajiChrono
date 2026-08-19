@@ -65,6 +65,7 @@
   "authOrSeparator": "na",
   "authChoiceTitle": "Ahoana no tianao hidirana ?",
   "authChoiceSubtitle": "Mitondra amin'ny kaonty iray ihany izy roa.",
+  "authChoiceOneAccount": "Kaonty iray, lalana roa",
   "authChoicePhone": "Amin'ny laharako",
   "authChoicePhoneNote": "Kaody amin'ny SMS. Ny laharana no fanalahidin'ny kaontinao.",
   "authChoiceEmail": "Amin'ny adiresy mailaka",

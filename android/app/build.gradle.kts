@@ -34,20 +34,17 @@ android {
     // Kit, pres de 5 Mo par ABI — etaient donc livrees trois fois a chaque
     // utilisateur, dont deux qu'il n'executera jamais.
     //
-    // `splits` produit un APK par ABI, et Play distribue le bon.
+    // Le decoupage par architecture est confie a Flutter, pas a Gradle.
     //
-    // Le bloc est desactive des que Flutter impose lui-meme une architecture
-    // (`--target-platform`, utilise pour les builds de developpement sur
-    // emulateur) : Gradle refuse `splits` et `ndk.abiFilters` ensemble, et
-    // laisser les deux actifs cassait toute compilation de debogage.
-    splits {
-        abi {
-            isEnable = !project.hasProperty("target-platform")
-            reset()
-            include("armeabi-v7a", "arm64-v8a", "x86_64")
-            isUniversalApk = false
-        }
-    }
+    // Un bloc `splits { abi { ... } }` a longtemps figure ici, desactive des que
+    // `target-platform` etait pose. Il ne s'est jamais applique : `flutter build
+    // apk` pose **toujours** cette propriete, avec la liste par defaut des trois
+    // architectures. Le garde-fou desactivait donc le decoupage a chaque
+    // compilation, et l'APK embarquait les trois jeux de bibliotheques natives —
+    // 87 Mo la ou le budget est de 25.
+    //
+    // La bonne commande est `flutter build apk --split-per-abi`, qui produit un
+    // fichier par architecture sans que Gradle ait a s'en meler.
 
     buildTypes {
         debug {

@@ -80,11 +80,16 @@ class MajiChronoApp extends ConsumerWidget {
                     const McNetworkBanner(),
                     Expanded(
                       // Le bandeau a deja consomme l'encoche ; sans cela chaque
-                      // Scaffold enfant reappliquerait la meme marge.
-                      child: MediaQuery.removePadding(
-                        context: inner,
-                        removeTop: true,
-                        child: child ?? const SizedBox.shrink(),
+                      // Scaffold enfant reappliquerait la meme marge. Mais quand
+                      // il se tait il ne consomme rien : la marge doit alors
+                      // revenir a l'ecran, qui peint lui-meme sous la barre
+                      // d'etat.
+                      child: Consumer(
+                        builder: (context, ref, _) => MediaQuery.removePadding(
+                          context: inner,
+                          removeTop: ref.watch(networkBannerVisibleProvider),
+                          child: child ?? const SizedBox.shrink(),
+                        ),
                       ),
                     ),
                   ],

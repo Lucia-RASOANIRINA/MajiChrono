@@ -84,7 +84,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get welcomeTagline =>
-      'Delivrer la confiance, partout, instantanement.';
+      'Délivrer la confiance, partout, instantanément.';
 
   @override
   String get welcomeStart => 'Commencer';
@@ -93,16 +93,16 @@ class AppLocalizationsFr extends AppLocalizations {
   String get welcomeTrustNote => 'Chaque etape, securisee.';
 
   @override
-  String get welcomePillarSpeed => 'Rapidite';
+  String get welcomePillarSpeed => 'Rapidité';
 
   @override
-  String get welcomePillarSender => 'Expediteur';
+  String get welcomePillarSender => 'expéditeur';
 
   @override
-  String get welcomePillarDriver => 'Livreur';
+  String get welcomePillarDriver => 'livreur';
 
   @override
-  String get welcomePillarTrust => 'Confiance';
+  String get welcomePillarTrust => 'Confiance MajiChrono';
 
   @override
   String get authPhoneTitle => 'Votre numero';
@@ -173,6 +173,9 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get authChoiceSubtitle => 'Les deux menent au meme compte.';
+
+  @override
+  String get authChoiceOneAccount => 'Un compte, deux voies';
 
   @override
   String get authChoicePhone => 'Avec mon numero';

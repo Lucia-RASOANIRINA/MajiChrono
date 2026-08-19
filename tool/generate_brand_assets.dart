@@ -64,41 +64,92 @@ Image _icon(
   final mark = monochrome ? _rgb(0xFFFFFFFF) : _rgb(0xFFFFFFFF);
   final trail = monochrome ? _rgb(0xFFFFFFFF) : _rgb(_accent);
 
-  // --- Le colis ---------------------------------------------------------
-  final boxWidth = unit * 0.52;
-  final boxHeight = unit * 0.46;
-  final boxLeft = left + unit * 0.36;
-  final boxTop = top + unit * 0.29;
+  // --- Le scooter porteur ----------------------------------------------
+  //
+  // Le logo et l'indicateur de chargement dessinent desormais **la meme
+  // marque** : un scooter qui porte un colis. Avoir deux symboles — un colis
+  // pour le lanceur, un scooter pour les attentes — obligeait a apprendre deux
+  // fois la meme chose, et aucun des deux ne devenait familier.
   final stroke = math.max(2, unit * 0.055).round();
+
+  // Les deux roues, posees sur une meme ligne.
+  final wheelRadius = unit * 0.15;
+  final wheelY = top + unit * 0.70;
+  final rearX = left + unit * 0.26;
+  final frontX = left + unit * 0.76;
+
+  for (final wheelX in [rearX, frontX]) {
+    // `drawCircle` ne trace qu'un cercle d'un pixel : l'epaisseur s'obtient en
+    // empilant des cercles concentriques. C'est brut, mais l'image est generee
+    // une fois pour toutes, hors execution.
+    for (var r = wheelRadius.round() - stroke; r <= wheelRadius.round(); r++) {
+      drawCircle(
+        image,
+        x: wheelX.round(),
+        y: wheelY.round(),
+        radius: r,
+        color: mark,
+      );
+    }
+  }
+
+  // Le chassis, de la roue arriere au guidon.
+  _roundedBar(
+    image,
+    x: rearX.round(),
+    y: (wheelY - stroke / 2).round(),
+    w: (frontX - rearX).round(),
+    h: stroke,
+    color: mark,
+  );
+  _roundedBar(
+    image,
+    x: (frontX - stroke / 2).round(),
+    y: (top + unit * 0.42).round(),
+    w: stroke,
+    h: (wheelY - top - unit * 0.42).round(),
+    color: mark,
+  );
+  // Le guidon.
+  _roundedBar(
+    image,
+    x: (frontX - unit * 0.13).round(),
+    y: (top + unit * 0.42 - stroke / 2).round(),
+    w: (unit * 0.20).round(),
+    h: stroke,
+    color: mark,
+  );
+
+  // Le colis, sur le porte-bagages arriere : c'est lui qui fait lire
+  // « livraison » et non « deux-roues ».
+  final boxSide = unit * 0.26;
+  final boxLeft = rearX - boxSide * 0.35;
+  final boxTop = wheelY - wheelRadius - boxSide - unit * 0.05;
 
   _roundedBox(
     image,
     x: boxLeft.round(),
     y: boxTop.round(),
-    w: boxWidth.round(),
-    h: boxHeight.round(),
+    w: boxSide.round(),
+    h: boxSide.round(),
     thickness: stroke,
     color: mark,
   );
-
-  // La bande de scellement : c'est elle qui fait lire « colis » et non
-  // « rectangle ».
+  // La bande de scellement du colis.
   fillRect(
     image,
-    x1: (boxLeft + boxWidth * 0.42).round(),
+    x1: (boxLeft + boxSide * 0.40).round(),
     y1: boxTop.round(),
-    x2: (boxLeft + boxWidth * 0.58).round(),
-    y2: (boxTop + boxHeight).round(),
+    x2: (boxLeft + boxSide * 0.60).round(),
+    y2: (boxTop + boxSide).round(),
     color: mark,
   );
 
   // --- Le sillage de vitesse -------------------------------------------
-  // Trois traits decroissants a gauche du colis : le mouvement, sans dessiner
-  // de vehicule qui deviendrait illisible en petit.
   for (var i = 0; i < 3; i++) {
-    final lineY = boxTop + boxHeight * (0.22 + i * 0.28);
-    final lineLength = unit * (0.30 - i * 0.07);
-    final lineLeft = boxLeft - unit * 0.06 - lineLength;
+    final lineY = top + unit * (0.36 + i * 0.14);
+    final lineLength = unit * (0.24 - i * 0.05);
+    final lineLeft = left + unit * 0.02;
 
     _roundedBar(
       image,

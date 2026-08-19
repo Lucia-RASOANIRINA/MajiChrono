@@ -12,6 +12,14 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
+  # --- Animation ---
+  #
+  # `flutter_animate` est en Dart pur et n'embarque aucune ressource. Choisie
+  # contre Lottie et Rive, qui chargent un moteur de rendu et des fichiers
+  # d'animation : plusieurs megaoctets, inacceptables avec un budget d'APK de
+  # 25 Mo deja depasse. Celle-ci n'ajoute que du code, et se retire d'une ligne.
+  flutter_animate: ^4.5.2
+
   # --- Etat / navigation / injection ---
   flutter_riverpod: ^2.6.1
   riverpod_annotation: ^2.6.1

@@ -55,6 +55,20 @@ class AppTheme {
         .apply(bodyColor: scheme.onSurface, displayColor: scheme.onSurface);
 
     return base.copyWith(
+      // Transitions d'ecran : un fondu, et rien d'autre.
+      //
+      // Le defaut de Material 3 fait glisser **et** zoomer la page entrante,
+      // sur trois cents millisecondes. Sur un telephone d'entree de gamme, ce
+      // mouvement se joue a saccades et se lit comme une lenteur, alors qu'un
+      // fondu de meme duree parait instantane : l'oeil n'a rien a suivre. C'est
+      // le meme raisonnement que pour l'accueil — ce qui bouge retient
+      // l'attention, et l'attention est ici du temps percu.
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: _FadePageTransitionsBuilder(),
+          TargetPlatform.iOS: _FadePageTransitionsBuilder(),
+        },
+      ),
       scaffoldBackgroundColor: isLight
           ? AppColors.lightBackground
           : AppColors.darkBackground,
@@ -184,4 +198,25 @@ class AppTheme {
       progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
     );
   }
+}
+
+/// Fondu simple entre deux ecrans.
+///
+/// La courbe demarre vite et finit doucement : la page entrante est deja
+/// lisible a mi-parcours, ce qui raccourcit l'attente ressentie sans raccourcir
+/// l'animation — la raccourcir davantage produirait un a-coup.
+class _FadePageTransitionsBuilder extends PageTransitionsBuilder {
+  const _FadePageTransitionsBuilder();
+
+  @override
+  Widget buildTransitions<T>(
+    PageRoute<T> route,
+    BuildContext context,
+    Animation<double> animation,
+    Animation<double> secondaryAnimation,
+    Widget child,
+  ) => FadeTransition(
+    opacity: CurvedAnimation(parent: animation, curve: Curves.easeOutCubic),
+    child: child,
+  );
 }

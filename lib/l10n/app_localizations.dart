@@ -245,7 +245,7 @@ abstract class AppLocalizations {
   /// No description provided for @welcomeTagline.
   ///
   /// In fr, this message translates to:
-  /// **'Delivrer la confiance, partout, instantanement.'**
+  /// **'Délivrer la confiance, partout, instantanément.'**
   String get welcomeTagline;
 
   /// No description provided for @welcomeStart.
@@ -263,25 +263,25 @@ abstract class AppLocalizations {
   /// No description provided for @welcomePillarSpeed.
   ///
   /// In fr, this message translates to:
-  /// **'Rapidite'**
+  /// **'Rapidité'**
   String get welcomePillarSpeed;
 
   /// No description provided for @welcomePillarSender.
   ///
   /// In fr, this message translates to:
-  /// **'Expediteur'**
+  /// **'expéditeur'**
   String get welcomePillarSender;
 
   /// No description provided for @welcomePillarDriver.
   ///
   /// In fr, this message translates to:
-  /// **'Livreur'**
+  /// **'livreur'**
   String get welcomePillarDriver;
 
   /// No description provided for @welcomePillarTrust.
   ///
   /// In fr, this message translates to:
-  /// **'Confiance'**
+  /// **'Confiance MajiChrono'**
   String get welcomePillarTrust;
 
   /// No description provided for @authPhoneTitle.
@@ -397,6 +397,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Les deux menent au meme compte.'**
   String get authChoiceSubtitle;
+
+  /// No description provided for @authChoiceOneAccount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un compte, deux voies'**
+  String get authChoiceOneAccount;
 
   /// No description provided for @authChoicePhone.
   ///

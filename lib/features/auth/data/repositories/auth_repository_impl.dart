@@ -165,9 +165,16 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<AuthSession?> currentSession() async {
-    final access = await _local.readAccessToken();
-    final refreshToken = await _local.readRefreshToken();
-    final expiries = await _local.readExpiries();
+    // Les trois lectures partent ensemble. Elles sont independantes, et chacune
+    // traverse le Keystore Android : enchainees, elles coutaient trois fois le
+    // meme aller-retour au demarrage, sur le chemin critique du premier ecran
+    // (EXI-P01).
+    final (access, refreshToken, expiries) = await (
+      _local.readAccessToken(),
+      _local.readRefreshToken(),
+      _local.readExpiries(),
+    ).wait;
+
     if (access == null || refreshToken == null || expiries == null) return null;
 
     final session = AuthSession(

@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:majichrono/app/app.dart';
+import 'package:majichrono/app/router/app_router.dart';
 import 'package:majichrono/core/config/app_config.dart';
 import 'package:majichrono/core/network/data_meter.dart';
 import 'package:majichrono/core/network/network_profile.dart';
@@ -78,6 +79,10 @@ void main() {
         // affiche un squelette qui s'anime en boucle, et `pumpAndSettle`
         // n'atteint jamais l'etat stable qu'il attend.
         deliveriesProvider.overrideWith((ref) => Stream.value(const [])),
+        // Le plancher d'affichage de la marque animee est leve : ces tests
+        // portent sur les redirections, pas sur la duree du logo, et l'attendre
+        // ajouterait neuf cents millisecondes a chacun d'eux.
+        splashHoldProvider.overrideWith((ref) => Future<void>.value()),
         authControllerProvider.overrideWith(() => _FixedAuthController(auth)),
       ],
       child: const MajiChronoApp(),
@@ -97,10 +102,38 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('MajiChrono'), findsWidgets);
-    expect(find.text('Commencer'), findsOneWidget);
-    // Les quatre piliers sont tous montes, meme ceux qui sont au fond.
-    expect(find.text('Rapidite'), findsOneWidget);
-    expect(find.text('Confiance'), findsOneWidget);
+    // La maquette ne porte ni bouton ni mention de bas de page : le nom, la
+    // promesse, et les quatre elements. Rien d'autre.
+    expect(find.text('Commencer'), findsNothing);
+    expect(find.text('Chaque etape, securisee.'), findsNothing);
+    // Les quatre elements sont tous montes, y compris ceux qui sont au fond.
+    // Les quatre libelles sont ceux de la maquette, **au caractere pres** —
+    // accents compris, et minuscules comprises pour « livreur » et
+    // « expediteur ». Ce test les fige : une reformulation bien intentionnee
+    // s'ecarterait sinon du dessin valide sans que personne ne le voie.
+    expect(find.text('Rapidité'), findsOneWidget);
+    expect(find.text('expéditeur'), findsOneWidget);
+    expect(find.text('livreur'), findsOneWidget);
+    expect(find.text('Confiance MajiChrono'), findsOneWidget);
+    expect(
+      find.text('Délivrer la confiance, partout, instantanément.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('un toucher n importe ou ouvre le choix de la porte d entree',
+      (tester) async {
+    // L'ecran n'a pas de bouton : sans cette issue, il n'en aurait aucune.
+    await tester.pumpWidget(
+      await buildApp(tester: tester, auth: const AuthUnauthenticated()),
+    );
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
+
+    await tester.tap(find.text('MajiChrono').first);
+    await tester.pumpAndSettle();
+
+    expect(find.text('Comment voulez-vous continuer ?'), findsOneWidget);
   });
 
   testWidgets('la bascule de langue est immediate, sans redemarrage (EXI-T05)',
@@ -114,9 +147,9 @@ void main() {
     await tester.pump(const Duration(milliseconds: 300));
 
     // Le selecteur de langue vit sur l'ecran du numero, pas sur l'accueil :
-    // celui-ci ne porte qu'une promesse et un bouton. On traverse donc le choix
-    // de la porte d'entree.
-    await tester.tap(find.text('Commencer'));
+    // celui-ci ne porte que la promesse et les quatre elements. On traverse donc
+    // l'accueil puis le choix de la porte d'entree.
+    await tester.tap(find.text('MajiChrono').first);
     await tester.pumpAndSettle();
 
     expect(find.text('Comment voulez-vous continuer ?'), findsOneWidget);

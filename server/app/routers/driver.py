@@ -1,0 +1,217 @@
+"""Livreur : disponibilite, offres, positions, gains.
+
+Le fil conducteur de ce fichier est le **hors ligne**. Un livreur d'Antananarivo
+passe une partie de sa journee sans reseau : il accepte une course dans une rue
+couverte, l'execute dans une zone qui ne l'est pas, et tout remonte a la
+reconnexion. Les routes sont donc concues pour recevoir des paquets tardifs,
+desordonnes et parfois doubles, sans jamais compter deux fois.
+"""
+
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+
+from fastapi import APIRouter, Depends
+from pydantic import BaseModel, Field
+from sqlalchemy import select
+from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import Session
+
+from app.core.deps import current_account, require_role
+from app.core.errors import forbidden
+from app.db import get_db
+from app.models import (
+    Account,
+    Delivery,
+    DeliveryStatus,
+    DriverState,
+    KycStatus,
+    PositionSample,
+    UserRole,
+    as_utc,
+)
+
+router = APIRouter(prefix="/driver", tags=["driver"])
+
+# Au-dela de cet age, une position ne dit plus ou est le livreur, seulement ou
+# il etait. L'exploitation doit voir la difference (EXI-A02).
+POSITION_FRESHNESS = timedelta(minutes=3)
+
+
+class OnlineToggle(BaseModel):
+    online: bool
+
+
+class PositionIn(BaseModel):
+    lat: float
+    lng: float
+    accuracyM: float | None = None
+    fixedAt: datetime
+    deliveryId: str | None = None
+
+
+class PositionBatch(BaseModel):
+    # Un paquet, pas un point : envoyer chaque position separement sur 2G
+    # couterait plus en entetes qu'en donnees utiles.
+    samples: list[PositionIn] = Field(default_factory=list)
+
+
+def _state(db: Session, account: Account) -> DriverState:
+    state = db.get(DriverState, account.id)
+    if state is None:
+        state = DriverState(account_id=account.id)
+        db.add(state)
+        db.commit()
+    return state
+
+
+@router.post("/status")
+async def set_online(
+    body: OnlineToggle,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    # Un livreur ne peut pas travailler tant que son dossier n'est pas valide
+    # (EXI-L01). Le refus est porte ici, au seul endroit ou l'on passe en ligne,
+    # plutot que replique sur chaque route d'execution.
+    if body.online and account.kyc_status is not KycStatus.approved:
+        raise forbidden("kyc_not_approved", "Votre dossier n'est pas encore valide")
+
+    state = _state(db, account)
+    state.online = body.online
+    state.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return state.to_json()
+
+
+@router.get("/offers")
+async def list_offers(
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Courses libres, proposees au livreur.
+
+    Elles ne sont servies qu'a un livreur **en ligne et valide** : proposer une
+    course a quelqu'un qui ne peut pas l'accepter produit une frustration et un
+    refus serveur, pas une livraison.
+    """
+    state = _state(db, account)
+    if not state.online or account.kyc_status is not KycStatus.approved:
+        return {"items": []}
+
+    offers = db.scalars(
+        select(Delivery)
+        .where(
+            Delivery.status == DeliveryStatus.pending,
+            Delivery.driver_id.is_(None),
+        )
+        .order_by(Delivery.created_at)
+    ).all()
+
+    # L'adresse exacte du destinataire n'est pas donnee avant acceptation : le
+    # livreur a besoin du quartier pour decider, pas du numero de porte de
+    # quelqu'un qui n'a rien demande.
+    return {
+        "items": [
+            {
+                "id": offer.id,
+                "kind": offer.kind,
+                "pickup": _summary_only(offer.pickup_json),
+                "dropoff": _summary_only(offer.dropoff_json),
+                "package": _json(offer.package_json),
+                "price": offer.price_ariary,
+                "createdAt": as_utc(offer.created_at).isoformat(),
+            }
+            for offer in offers
+        ]
+    }
+
+
+@router.post("/positions")
+async def push_positions(
+    body: PositionBatch,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Recoit un paquet de positions tamponnees hors ligne (EXI-L09).
+
+    Deux proprietes rendent l'envoi sur reprise inoffensif. Les doublons sont
+    ignores un a un — le renvoi d'un paquet deja recu ne cree rien. Et seule la
+    position **la plus recente par sa mesure** met a jour l'etat courant : un
+    paquet ancien arrivant apres un recent ne fait pas reculer le livreur sur la
+    carte de l'exploitation.
+    """
+    accepted = 0
+    for sample in body.samples:
+        entry = PositionSample(
+            driver_id=account.id,
+            delivery_id=sample.deliveryId,
+            lat=sample.lat,
+            lng=sample.lng,
+            accuracy_m=sample.accuracyM,
+            fixed_at=sample.fixedAt,
+        )
+        db.add(entry)
+        try:
+            db.commit()
+            accepted += 1
+        except IntegrityError:
+            # Meme livreur, meme instant : point deja recu. On repart proprement
+            # et on continue le paquet — un doublon n'invalide pas les autres.
+            db.rollback()
+
+    state = _state(db, account)
+    latest = max(body.samples, key=lambda s: s.fixedAt, default=None)
+    if latest is not None:
+        known = as_utc(state.fixed_at) if state.fixed_at else None
+        if known is None or as_utc(latest.fixedAt) > known:
+            state.lat = latest.lat
+            state.lng = latest.lng
+            state.fixed_at = latest.fixedAt
+            state.updated_at = datetime.now(timezone.utc)
+            db.commit()
+
+    return {"accepted": accepted, "received": len(body.samples)}
+
+
+@router.get("/earnings")
+async def read_earnings(
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Gains du livreur, sur ses courses **remises**.
+
+    Une course acceptee n'est pas un gain, et une course annulee non plus.
+    Compter autrement afficherait un montant que le livreur ne touchera pas —
+    la premiere cause de defiance envers une application de livraison.
+    """
+    delivered = db.scalars(
+        select(Delivery).where(
+            Delivery.driver_id == account.id,
+            Delivery.status == DeliveryStatus.delivered,
+        )
+    ).all()
+
+    today = datetime.now(timezone.utc).date()
+    total = sum(d.price_ariary or 0 for d in delivered)
+    today_total = sum(
+        d.price_ariary or 0
+        for d in delivered
+        if as_utc(d.updated_at).date() == today
+    )
+
+    return {
+        "deliveredCount": len(delivered),
+        "totalAriary": total,
+        "todayAriary": today_total,
+    }
+
+
+def _json(raw: str) -> dict:
+    import json
+
+    return json.loads(raw)
+
+
+def _summary_only(raw: str) -> dict:
+    return {"summary": _json(raw).get("summary", "")}

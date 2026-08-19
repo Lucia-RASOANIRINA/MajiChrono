@@ -1,0 +1,27 @@
+# Serveur MajiChrono — dependances de production.
+#
+# Versions epinglees au majeur : une montee de version doit etre un acte
+# volontaire, verifie par la suite de tests, jamais une surprise de deploiement.
+
+fastapi==0.115.6
+uvicorn[standard]==0.34.0
+pydantic==2.10.4
+pydantic-settings==2.7.0
+
+# Base de donnees. `psycopg` v3 en binaire : pas de compilation a l'installation,
+# ce qui compte sur un serveur modeste.
+sqlalchemy==2.0.36
+alembic==1.14.0
+psycopg[binary]==3.2.3
+
+# Empreintes de mots de passe et de codes. Argon2 est le choix du §8.4 : il
+# resiste aux attaques par materiel dedie mieux que bcrypt.
+argon2-cffi==23.1.0
+pyjwt==2.10.1
+
+# Client HTTP, pour les tests. L'envoi d'e-mail passe par le module `smtplib`
+# livre avec Python : aucun fournisseur n'est cable en dur, et changer
+# d'expediteur ne coute que quatre variables d'environnement.
+httpx==0.28.1
+
+python-multipart==0.0.20
