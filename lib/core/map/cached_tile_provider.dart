@@ -90,7 +90,7 @@ class CachedTileProvider extends TileProvider {
       // OpenStreetMap exige un agent identifiant l'application.
       request.headers.set(HttpHeaders.userAgentHeader, 'MajiChrono/1.0 (mg)');
       final response = await request.close();
-      if (response.statusCode != 200) return _fallback(file);
+      if (response.statusCode != 200) return await _fallback(file);
 
       final bytes = await consolidateHttpClientResponseBytes(response);
       dataMeter.record(DataCategory.maps, received: bytes.length);

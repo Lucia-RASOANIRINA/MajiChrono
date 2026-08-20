@@ -203,7 +203,10 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(find.text('Accueil livreur'), findsOneWidget);
+    // L'accueil livreur porte desormais un bandeau de salutation (« Bonjour
+    // Naina ») a la place du titre d'AppBar, et l'onglet « Gains » de la
+    // coquille livreur.
+    expect(find.text('Bonjour Naina'), findsWidgets);
     expect(find.text('Gains'), findsOneWidget);
   });
 

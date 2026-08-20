@@ -11,6 +11,7 @@ import 'package:majichrono/features/auth/presentation/controllers/auth_state.dar
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_loader.dart';
+import 'package:majichrono/shared/widgets/mc_patterns.dart';
 
 /// Ecran de profil, partage par l'expediteur et l'exploitation.
 ///
@@ -30,7 +31,6 @@ class ProfileScreen extends ConsumerWidget {
     final auth = ref.watch(authControllerProvider);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.navProfile)),
       body: auth.when(
         loading: () => const Center(child: McLoader()),
         error: (_, _) => Center(child: Text(l10n.errorUnknown)),
@@ -54,115 +54,70 @@ class _Body extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     // L'adresse du compte, ou celle qui attend d'y etre rattachee — la seconde
     // n'existe qu'entre la verification de la boite mail et la confirmation du
     // numero, et il serait deroutant de ne rien montrer pendant ce temps-la.
     final linkedEmail = account.email ?? ref.watch(pendingEmailLinkProvider);
 
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.lg),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Row(
-          children: [
-            CircleAvatar(
-              radius: 32,
-              backgroundColor: AppColors.primary,
-              foregroundImage: account.avatarUrl == null
-                  ? null
-                  : NetworkImage(account.avatarUrl!),
-              child: Text(
-                account.displayName.isEmpty
-                    ? '?'
-                    : account.displayName.substring(0, 1).toUpperCase(),
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.w700,
+        _ProfileHeader(
+          account: account,
+          roleLabel: _roleLabel(l10n, account.role),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            children: [
+              _Section(title: l10n.profileAccount),
+              _Tile(
+                icon: Icons.badge_outlined,
+                title: _roleLabel(l10n, account.role),
+                subtitle: l10n.profileMemberSince(_month(account.createdAt)),
+              ),
+              _Tile(
+                icon: Icons.alternate_email,
+                title: linkedEmail ?? l10n.profileEmailNone,
+                subtitle: linkedEmail == null ? null : l10n.profileEmailLinked,
+              ),
+
+              const SizedBox(height: AppSpacing.lg),
+              _Section(title: l10n.profileSecurity),
+              FutureBuilder<bool>(
+                future: ref.read(authRepositoryProvider).hasPin(),
+                builder: (context, snapshot) {
+                  final hasPin = snapshot.data ?? false;
+                  return _Tile(
+                    icon: hasPin
+                        ? Icons.lock_outline
+                        : Icons.lock_open_outlined,
+                    title: hasPin ? l10n.profilePinOn : l10n.profilePinOff,
+                    subtitle: hasPin
+                        ? l10n.profilePinChange
+                        : l10n.profilePinSet,
+                    onTap: () => context.push(AppRoutes.authPin),
+                  );
+                },
+              ),
+              _Tile(
+                icon: Icons.settings_outlined,
+                title: l10n.settingsTitle,
+                onTap: () => context.push(AppRoutes.settings),
+              ),
+
+              const SizedBox(height: AppSpacing.xl),
+              OutlinedButton.icon(
+                onPressed: () => _confirmSignOut(context, ref),
+                icon: const Icon(Icons.logout),
+                label: Text(l10n.authSignOut),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: AppColors.danger,
+                  side: const BorderSide(color: AppColors.danger),
+                  minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
                 ),
               ),
-            ),
-            const SizedBox(width: AppSpacing.lg),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    account.displayName.isEmpty
-                        ? l10n.navProfile
-                        : account.displayName,
-                    style: theme.textTheme.titleLarge,
-                  ),
-                  const SizedBox(height: 2),
-                  // Le numero complet, pas la forme masquee : c'est **son**
-                  // numero, sur **son** telephone. Le masque (EXI-T10) protege
-                  // l'autre partie, pas soi-meme.
-                  Text(
-                    account.phone.displayNational,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  if (account.rating != null)
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.star_rounded,
-                          size: 18,
-                          color: AppColors.accent,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(account.rating!.toStringAsFixed(1)),
-                      ],
-                    ),
-                ],
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-
-        _Section(title: l10n.profileAccount),
-        _Tile(
-          icon: Icons.badge_outlined,
-          title: _roleLabel(l10n, account.role),
-          subtitle: l10n.profileMemberSince(_month(account.createdAt)),
-        ),
-        _Tile(
-          icon: Icons.alternate_email,
-          title: linkedEmail ?? l10n.profileEmailNone,
-          subtitle: linkedEmail == null ? null : l10n.profileEmailLinked,
-        ),
-
-        const SizedBox(height: AppSpacing.lg),
-        _Section(title: l10n.profileSecurity),
-        FutureBuilder<bool>(
-          future: ref.read(authRepositoryProvider).hasPin(),
-          builder: (context, snapshot) {
-            final hasPin = snapshot.data ?? false;
-            return _Tile(
-              icon: hasPin ? Icons.lock_outline : Icons.lock_open_outlined,
-              title: hasPin ? l10n.profilePinOn : l10n.profilePinOff,
-              subtitle: hasPin ? l10n.profilePinChange : l10n.profilePinSet,
-              onTap: () => context.push(AppRoutes.authPin),
-            );
-          },
-        ),
-        _Tile(
-          icon: Icons.settings_outlined,
-          title: l10n.settingsTitle,
-          onTap: () => context.push(AppRoutes.settings),
-        ),
-
-        const SizedBox(height: AppSpacing.xl),
-        OutlinedButton.icon(
-          onPressed: () => _confirmSignOut(context, ref),
-          icon: const Icon(Icons.logout),
-          label: Text(l10n.authSignOut),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.danger,
-            side: const BorderSide(color: AppColors.danger),
-            minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
+            ],
           ),
         ),
       ],
@@ -206,6 +161,132 @@ class _Body extends ConsumerWidget {
     if (confirmed ?? false) {
       await ref.read(authControllerProvider.notifier).signOut();
     }
+  }
+}
+
+/// En-tete de profil : un bandeau bleu de la charte, avatar centre, nom et
+/// role. Il reprend le langage des dashboards (bleu + trame technique) pour que
+/// le profil appartienne visiblement a la meme application.
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({required this.account, required this.roleLabel});
+
+  final UserAccount account;
+  final String roleLabel;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final initial = account.displayName.isEmpty
+        ? '?'
+        : account.displayName.substring(0, 1).toUpperCase();
+
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(bottom: AppRadii.sheet),
+      child: Stack(
+        children: [
+          const Positioned.fill(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFF2A3894), AppColors.primary],
+                ),
+              ),
+            ),
+          ),
+          Positioned.fill(
+            child: CustomPaint(
+              painter: TechPatternPainter(
+                color: Colors.white.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+          SafeArea(
+            bottom: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.lg,
+                AppSpacing.xl,
+                AppSpacing.lg,
+                AppSpacing.xl,
+              ),
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(3),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        width: 2,
+                      ),
+                    ),
+                    child: CircleAvatar(
+                      radius: AppSizes.avatarLg / 2,
+                      backgroundColor: Colors.white,
+                      foregroundImage: account.avatarUrl == null
+                          ? null
+                          : NetworkImage(account.avatarUrl!),
+                      child: Text(
+                        initial,
+                        style: const TextStyle(
+                          color: AppColors.primary,
+                          fontSize: 30,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    account.displayName.isEmpty
+                        ? roleLabel
+                        : account.displayName,
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    // Numero complet : c'est son telephone. Le masque (EXI-T10)
+                    // protege l'autre partie, pas soi-meme.
+                    '$roleLabel · ${account.phone.displayNational}',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: Colors.white.withValues(alpha: 0.8),
+                    ),
+                  ),
+                  if (account.rating != null) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.star_rounded,
+                          size: 18,
+                          color: AppColors.accent,
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          account.rating!.toStringAsFixed(1),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }
 

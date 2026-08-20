@@ -1,20 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!--
-      Android 12 et au-dela imposent leur propre ecran de demarrage et y posent
-      d'office l'icone de l'application. On la rend transparente : il ne reste
-      qu'un aplat au bleu de l'accueil.
-
-      Pourquoi aucun logo : l'accueil **est** l'ecran d'entree. Un logo affiche
-      avant lui ajoute une etape a regarder pour ne rien apprendre — le nom
-      MajiChrono figure deja en grand sur l'accueil, deux fois plus lisible.
-      L'aplat bleu porte la meme couleur que l'accueil, donc rien ne clignote :
-      l'ecran se remplit, il ne se remplace pas.
+      Android 12 et au-dela imposent leur propre ecran de demarrage. On y pose
+      le logo MajiChrono (le meme scooter que l'icone de lanceur) sur le bleu de
+      la charte. Le cercle d'icone est peint du meme bleu que le fond, donc le
+      logo semble flotter sur l'aplat, sans pastille contrastee : l'ecran se
+      remplit d'un bloc au lieu de montrer un bleu nu pendant l'init du moteur.
     -->
     <style name="LaunchTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">@drawable/launch_background</item>
         <item name="android:windowSplashScreenBackground">@color/brand_blue</item>
-        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_none</item>
+        <item name="android:windowSplashScreenAnimatedIcon">@drawable/splash_logo</item>
         <item name="android:windowSplashScreenIconBackgroundColor">@color/brand_blue</item>
     </style>
 

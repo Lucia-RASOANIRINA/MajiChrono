@@ -45,6 +45,40 @@ class AppLocalizationsMg extends AppLocalizations {
   String get commonLoading => 'Miandrasa kely...';
 
   @override
+  String get commonSeeAll => 'Hijery ny rehetra';
+
+  @override
+  String get notifChannelCoursesName => 'Dia';
+
+  @override
+  String get notifChannelCoursesDesc =>
+      'Fanekena, fahatongavan\'ny mpanatitra, fanolorana entana';
+
+  @override
+  String get notifChannelPaymentName => 'Fandoavam-bola';
+
+  @override
+  String get notifChannelPaymentDesc => 'Valin\'ny fandoavam-bolanao';
+
+  @override
+  String get notifChannelIncidentsName => 'Olana';
+
+  @override
+  String get notifChannelIncidentsDesc => 'Olana voalaza amin\'ny dia';
+
+  @override
+  String get notifChannelCommercialName => 'Tolotra';
+
+  @override
+  String get notifChannelCommercialDesc => 'Zava-baovao sy tolotra';
+
+  @override
+  String get notifSettingsCommercial => 'Handray ny tolotra ara-barotra';
+
+  @override
+  String get notifTestButton => 'Hanandrana fampandrenesana';
+
+  @override
   String get langFrench => 'Frantsay';
 
   @override

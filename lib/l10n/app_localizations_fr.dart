@@ -45,6 +45,40 @@ class AppLocalizationsFr extends AppLocalizations {
   String get commonLoading => 'Chargement...';
 
   @override
+  String get commonSeeAll => 'Tout voir';
+
+  @override
+  String get notifChannelCoursesName => 'Courses';
+
+  @override
+  String get notifChannelCoursesDesc =>
+      'Acceptation, arrivee du livreur, remise du colis';
+
+  @override
+  String get notifChannelPaymentName => 'Paiement';
+
+  @override
+  String get notifChannelPaymentDesc => 'Resultat de vos paiements';
+
+  @override
+  String get notifChannelIncidentsName => 'Incidents';
+
+  @override
+  String get notifChannelIncidentsDesc => 'Problemes signales sur une course';
+
+  @override
+  String get notifChannelCommercialName => 'Offres';
+
+  @override
+  String get notifChannelCommercialDesc => 'Nouveautes et promotions';
+
+  @override
+  String get notifSettingsCommercial => 'Recevoir les offres commerciales';
+
+  @override
+  String get notifTestButton => 'Tester une notification';
+
+  @override
   String get langFrench => 'Francais';
 
   @override

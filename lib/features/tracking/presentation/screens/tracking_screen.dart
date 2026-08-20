@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
@@ -14,8 +13,33 @@ import 'package:majichrono/features/tracking/domain/entities/tracking.dart';
 import 'package:majichrono/features/tracking/presentation/providers/tracking_providers.dart';
 import 'package:majichrono/features/tracking/presentation/widgets/delivery_map.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
+import 'package:majichrono/shared/widgets/mc_card.dart';
+import 'package:majichrono/shared/widgets/mc_driver_card.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
+import 'package:majichrono/shared/widgets/mc_section_header.dart';
 import 'package:majichrono/shared/widgets/mc_skeleton.dart';
+import 'package:majichrono/shared/widgets/mc_status_badge.dart';
+import 'package:majichrono/shared/widgets/mc_step_trail.dart';
+
+/// Etape de la frise horizontale (0 = pris en charge, 1 = en transit,
+/// 2 = livre) deduite du statut de la course.
+int trackingStage(DeliveryStatus status) => switch (status) {
+  DeliveryStatus.draft ||
+  DeliveryStatus.pending ||
+  DeliveryStatus.accepted ||
+  DeliveryStatus.atPickup ||
+  DeliveryStatus.cancelled => 0,
+  DeliveryStatus.pickedUp ||
+  DeliveryStatus.inTransit ||
+  DeliveryStatus.atDestination => 1,
+  DeliveryStatus.delivered ||
+  DeliveryStatus.deliveredWithReserves ||
+  DeliveryStatus.refused ||
+  DeliveryStatus.returning ||
+  DeliveryStatus.paid ||
+  DeliveryStatus.disputed ||
+  DeliveryStatus.closed => 2,
+};
 
 /// Suivi d'une course pour l'expediteur (EXI-C20 a EXI-C24).
 class TrackingScreen extends ConsumerWidget {
@@ -82,24 +106,44 @@ class TrackingScreen extends ConsumerWidget {
         children: [
           // Le statut d'abord : c'est la reponse a « ou en est mon colis ? ».
           // La carte le precise, elle ne le remplace pas.
-          Card(
-            child: Padding(
-              padding: AppSpacing.card,
-              child: Row(
+          Builder(
+            builder: (context) {
+              final status = snapshot?.status ?? delivery.status;
+              return Column(
                 children: [
-                  Expanded(
-                    child: StatusBadge(
-                      status: snapshot?.status ?? delivery.status,
+                  McCard(
+                    child: Row(
+                      children: [
+                        McStatusBadge(
+                          label: statusLabel(l10n, status),
+                          icon: statusIcon(status),
+                          tone: statusTone(status),
+                        ),
+                        const Spacer(),
+                        if (snapshot?.etaMinutes != null)
+                          Text(
+                            l10n.trackingEta(snapshot!.etaMinutes!),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                      ],
                     ),
                   ),
-                  if (snapshot?.etaMinutes != null)
-                    Text(
-                      l10n.trackingEta(snapshot!.etaMinutes!),
-                      style: Theme.of(context).textTheme.bodyMedium,
+                  const SizedBox(height: AppSpacing.md),
+                  // Resume horizontal de l'avancement (comme la maquette).
+                  McCard(
+                    child: McStepTrail(
+                      labels: [
+                        l10n.statusPickedUp,
+                        l10n.statusInTransit,
+                        l10n.statusDelivered,
+                      ],
+                      currentIndex: trackingStage(status),
                     ),
+                  ),
                 ],
-              ),
-            ),
+              );
+            },
           ),
           const SizedBox(height: AppSpacing.lg),
           DeliveryMap(
@@ -144,101 +188,54 @@ class _DriverCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Card(
-      child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(l10n.trackingDriver, style: theme.textTheme.titleMedium),
-            const SizedBox(height: AppSpacing.md),
-            Row(
-              children: [
-                CircleAvatar(
-                  radius: AppSizes.avatarMd / 2,
-                  backgroundColor: theme.colorScheme.primaryContainer,
-                  child: Icon(
-                    Icons.person,
-                    color: theme.colorScheme.onPrimaryContainer,
+    return McCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          McSectionHeader(title: l10n.trackingDriver),
+          const SizedBox(height: AppSpacing.md),
+          McDriverCard(
+            compact: true,
+            name: driver.displayName,
+            rating: driver.rating,
+            vehicle: driver.vehicleModel,
+            plate: driver.plate,
+          ),
+          const Divider(height: AppSpacing.xl),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: () {},
+                  icon: const Icon(Icons.phone_outlined),
+                  label: Text('${l10n.trackingCall} ${driver.maskedPhone}'),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Icon(
+                Icons.shield_outlined,
+                size: 16,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: AppSpacing.xs),
+              Expanded(
+                child: Text(
+                  // EXI-C23 : les numeros sont masques des deux cotes. On le
+                  // dit a l'utilisateur, sinon un numero masque passe pour un
+                  // defaut d'affichage.
+                  l10n.trackingCallMasked,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
-                const SizedBox(width: AppSpacing.lg),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        driver.displayName,
-                        style: theme.textTheme.titleMedium,
-                      ),
-                      if (driver.rating != null)
-                        Row(
-                          children: [
-                            const Icon(
-                              Icons.star,
-                              size: 16,
-                              color: AppColors.accent,
-                            ),
-                            const SizedBox(width: AppSpacing.xs),
-                            Text(
-                              l10n.trackingRating(
-                                driver.rating!.toStringAsFixed(1),
-                              ),
-                              style: theme.textTheme.bodyMedium,
-                            ),
-                          ],
-                        ),
-                      if (driver.plate != null || driver.vehicleModel != null)
-                        Text(
-                          [
-                            driver.vehicleModel,
-                            driver.plate,
-                          ].whereType<String>().join(' · '),
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-            const Divider(height: AppSpacing.xl),
-            Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: () {},
-                    icon: const Icon(Icons.phone_outlined),
-                    label: Text('${l10n.trackingCall} ${driver.maskedPhone}'),
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Row(
-              children: [
-                Icon(
-                  Icons.shield_outlined,
-                  size: 16,
-                  color: theme.colorScheme.onSurfaceVariant,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Expanded(
-                  child: Text(
-                    // EXI-C23 : les numeros sont masques des deux cotes. On le
-                    // dit a l'utilisateur, sinon un numero masque passe pour un
-                    // defaut d'affichage.
-                    l10n.trackingCallMasked,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }
@@ -258,7 +255,8 @@ class _ShareTrackingCard extends StatelessWidget {
     final theme = Theme.of(context);
     final url = '$publicHost/$token';
 
-    return Card(
+    return McCard(
+      padding: EdgeInsets.zero,
       child: ListTile(
         leading: const Icon(Icons.share_outlined),
         title: Text(l10n.trackingShare),
@@ -305,19 +303,16 @@ class _Timeline extends StatelessWidget {
       );
     }
 
-    return Card(
-      child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          children: [
-            for (var i = 0; i < entries.length; i++)
-              _TimelineRow(
-                entry: entries[i],
-                isFirst: i == 0,
-                isLast: i == entries.length - 1,
-              ),
-          ],
-        ),
+    return McCard(
+      child: Column(
+        children: [
+          for (var i = 0; i < entries.length; i++)
+            _TimelineRow(
+              entry: entries[i],
+              isFirst: i == 0,
+              isLast: i == entries.length - 1,
+            ),
+        ],
       ),
     );
   }
@@ -337,6 +332,7 @@ class _TimelineRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final l10n = AppLocalizations.of(context);
     final time =
         '${entry.at.hour.toString().padLeft(2, '0')}:${entry.at.minute.toString().padLeft(2, '0')}';
 
@@ -390,7 +386,11 @@ class _TimelineRow extends StatelessWidget {
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                StatusBadge(status: entry.status),
+                McStatusBadge(
+                  label: statusLabel(l10n, entry.status),
+                  icon: statusIcon(entry.status),
+                  tone: statusTone(entry.status),
+                ),
                 Text(
                   time,
                   style: theme.textTheme.bodyMedium?.copyWith(

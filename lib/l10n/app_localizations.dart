@@ -170,6 +170,72 @@ abstract class AppLocalizations {
   /// **'Chargement...'**
   String get commonLoading;
 
+  /// No description provided for @commonSeeAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout voir'**
+  String get commonSeeAll;
+
+  /// No description provided for @notifChannelCoursesName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Courses'**
+  String get notifChannelCoursesName;
+
+  /// No description provided for @notifChannelCoursesDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Acceptation, arrivee du livreur, remise du colis'**
+  String get notifChannelCoursesDesc;
+
+  /// No description provided for @notifChannelPaymentName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement'**
+  String get notifChannelPaymentName;
+
+  /// No description provided for @notifChannelPaymentDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resultat de vos paiements'**
+  String get notifChannelPaymentDesc;
+
+  /// No description provided for @notifChannelIncidentsName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents'**
+  String get notifChannelIncidentsName;
+
+  /// No description provided for @notifChannelIncidentsDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Problemes signales sur une course'**
+  String get notifChannelIncidentsDesc;
+
+  /// No description provided for @notifChannelCommercialName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Offres'**
+  String get notifChannelCommercialName;
+
+  /// No description provided for @notifChannelCommercialDesc.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveautes et promotions'**
+  String get notifChannelCommercialDesc;
+
+  /// No description provided for @notifSettingsCommercial.
+  ///
+  /// In fr, this message translates to:
+  /// **'Recevoir les offres commerciales'**
+  String get notifSettingsCommercial;
+
+  /// No description provided for @notifTestButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tester une notification'**
+  String get notifTestButton;
+
   /// No description provided for @langFrench.
   ///
   /// In fr, this message translates to:

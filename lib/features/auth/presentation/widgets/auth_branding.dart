@@ -6,7 +6,7 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
-import 'package:majichrono/shared/widgets/mc_brand_mark.dart';
+import 'package:majichrono/shared/widgets/mc_patterns.dart';
 
 /// Fournisseur d'identite propose a cote du mot de passe.
 ///
@@ -268,26 +268,20 @@ class McAuthScaffold extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Scaffold(
+      // Fond d'une seule couleur, a plat : le degrade a trois bleus est
+      // remplace par le bleu unique de la charte. La trame technique en
+      // filigrane — la meme que l'ecran de choix — donne le style sans ajouter
+      // de seconde couleur de fond.
       backgroundColor: AppColors.primary,
       body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF2A3894), AppColors.primary, Color(0xFF151E5E)],
-          ),
-        ),
+        decoration: const BoxDecoration(color: AppColors.primary),
         child: Stack(
           children: [
-            // Madagascar en filigrane, tres pale, derriere le degrade. Il
-            // ancre l'ecran dans le pays sans rien ajouter a lire — a cette
-            // opacite il se percoit plutot qu'il ne se regarde.
-            Positioned(
-              right: -40,
-              top: 20,
-              child: MadagascarMark(
-                height: 260,
-                color: Colors.white.withValues(alpha: 0.055),
+            Positioned.fill(
+              child: CustomPaint(
+                painter: TechPatternPainter(
+                  color: Colors.white.withValues(alpha: 0.05),
+                ),
               ),
             ),
             SafeArea(

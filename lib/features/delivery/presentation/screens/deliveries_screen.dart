@@ -9,8 +9,10 @@ import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
+import 'package:majichrono/shared/widgets/mc_delivery_card.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_skeleton.dart';
+import 'package:majichrono/shared/widgets/mc_status_badge.dart';
 
 /// Historique des courses (EXI-C33).
 ///
@@ -58,7 +60,13 @@ class DeliveriesScreen extends ConsumerWidget {
   }
 }
 
-/// Carte resumant une course.
+/// Carte resumant une course, batie sur le composant partage `McDeliveryCard` :
+/// le meme dessin de course sert ici, sur l'accueil et dans la supervision.
+///
+/// Une course non transmise (`pendingSync`) porte un lisere ardoise et un fait
+/// « en attente » plutot qu'un lien : elle existe pour l'utilisateur, mais
+/// aucun livreur ne l'a encore vue (EXI-C13), et ouvrir son suivi ne donnerait
+/// rien a suivre.
 class DeliveryCard extends StatelessWidget {
   const DeliveryCard({required this.delivery, super.key});
 
@@ -69,110 +77,45 @@ class DeliveryCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return Card(
-      child: InkWell(
-        // Une course non transmise n'a pas d'existence serveur : ouvrir son
-        // suivi ne donnerait rien a suivre.
-        onTap: delivery.pendingSync
-            ? null
-            : () => context.push(AppRoutes.clientTracking(delivery.id)),
-        child: Padding(
-          padding: AppSpacing.card,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Expanded(child: StatusBadge(status: delivery.status)),
-                  if (delivery.priceAriary != null)
-                    Text(
-                      formatAriary(delivery.priceAriary!),
-                      style: theme.textTheme.titleMedium,
-                    ),
-                ],
+    return McDeliveryCard(
+      statusLabel: statusLabel(l10n, delivery.status),
+      statusIcon: statusIcon(delivery.status),
+      statusTone: statusTone(delivery.status),
+      // Emplacement photo (EXI-C09) : la vraie photo du colis des que la chaine
+      // photo l'a capturee, sinon une pastille au type du colis. Le chemin local
+      // est resolu par le referentiel photo quand il existe.
+      leading: McDeliveryThumb(icon: kindIcon(delivery.kind)),
+      origin: delivery.pickup.summary,
+      destination: delivery.dropoff.summary,
+      accent: delivery.pendingSync ? AppColors.offline : null,
+      trailing: delivery.priceAriary != null
+          ? Text(
+              formatAriary(delivery.priceAriary!),
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w700,
               ),
-              const SizedBox(height: AppSpacing.md),
-              _AddressLine(
-                icon: Icons.trip_origin,
-                text: delivery.pickup.summary,
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              _AddressLine(
-                icon: Icons.place_outlined,
-                text: delivery.dropoff.summary,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Row(
-                children: [
-                  Icon(
-                    Icons.straighten,
-                    size: 16,
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Text(
-                    l10n.deliveryDistance(
-                      delivery.distanceKm.toStringAsFixed(1),
-                    ),
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                  ),
-                  const Spacer(),
-                  if (delivery.pendingSync)
-                    // Une course non transmise est signalee explicitement : elle
-                    // existe pour l'utilisateur, mais aucun livreur ne l'a encore
-                    // vue (EXI-C13).
-                    Row(
-                      children: [
-                        const Icon(
-                          Icons.cloud_upload_outlined,
-                          size: 16,
-                          color: AppColors.offline,
-                        ),
-                        const SizedBox(width: AppSpacing.xs),
-                        Text(
-                          l10n.deliveryPendingSync,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: AppColors.offline,
-                          ),
-                        ),
-                      ],
-                    ),
-                ],
-              ),
-            ],
-          ),
+            )
+          : null,
+      facts: [
+        McDeliveryFact(
+          Icons.straighten,
+          l10n.deliveryDistance(delivery.distanceKm.toStringAsFixed(1)),
         ),
-      ),
-    );
-  }
-}
-
-class _AddressLine extends StatelessWidget {
-  const _AddressLine({required this.icon, required this.text});
-
-  final IconData icon;
-  final String text;
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: theme.colorScheme.primary),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(child: Text(text, style: theme.textTheme.bodyLarge)),
+        if (delivery.pendingSync)
+          McDeliveryFact(Icons.cloud_upload_outlined, l10n.deliveryPendingSync),
       ],
+      onTap: delivery.pendingSync
+          ? null
+          : () => context.push(AppRoutes.clientTracking(delivery.id)),
     );
   }
 }
 
-/// Pastille de statut.
+/// Pastille de statut, batie sur le composant partage `McStatusBadge` : icone
+/// **et** libelle dans une pilule teintee, jamais la couleur seule (EXI-T09).
 ///
-/// Couleur **et** libelle : la couleur seule serait illisible en plein soleil et
-/// pour un daltonisme (EXI-T09).
+/// Alignee a gauche, elle reste compacte meme placee dans un `Expanded` — la
+/// pilule ne s'etire pas sur toute la largeur.
 class StatusBadge extends StatelessWidget {
   const StatusBadge({required this.status, super.key});
 
@@ -181,29 +124,13 @@ class StatusBadge extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
-
-    final color = statusColor(status);
-    final label = statusLabel(l10n, status);
-
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Container(
-          height: 10,
-          width: 10,
-          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Flexible(
-          child: Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ],
+    return Align(
+      alignment: Alignment.centerLeft,
+      child: McStatusBadge(
+        label: statusLabel(l10n, status),
+        icon: statusIcon(status),
+        tone: statusTone(status),
+      ),
     );
   }
 }
@@ -231,6 +158,55 @@ String statusLabel(AppLocalizations l10n, DeliveryStatus status) =>
       DeliveryStatus.cancelled => l10n.statusCancelled,
       DeliveryStatus.closed => l10n.statusClosed,
     };
+
+/// Ton du statut pour la pastille du design system (`McStatusBadge`). Il suit
+/// le meme regroupement que [statusColor] : une seule lecture des statuts, que
+/// ce soit une couleur ou un ton.
+McStatusTone statusTone(DeliveryStatus status) => switch (status) {
+  DeliveryStatus.draft ||
+  DeliveryStatus.cancelled ||
+  DeliveryStatus.closed => McStatusTone.neutral,
+  DeliveryStatus.pending ||
+  DeliveryStatus.deliveredWithReserves ||
+  DeliveryStatus.returning => McStatusTone.warning,
+  DeliveryStatus.accepted ||
+  DeliveryStatus.atPickup ||
+  DeliveryStatus.pickedUp ||
+  DeliveryStatus.inTransit ||
+  DeliveryStatus.atDestination => McStatusTone.info,
+  DeliveryStatus.delivered || DeliveryStatus.paid => McStatusTone.success,
+  DeliveryStatus.refused || DeliveryStatus.disputed => McStatusTone.danger,
+};
+
+/// Icone d'un statut. Elle double le libelle partout ou le statut s'affiche, la
+/// couleur ne portant jamais seule l'information (EXI-T09).
+IconData statusIcon(DeliveryStatus status) => switch (status) {
+  DeliveryStatus.draft => Icons.edit_note,
+  DeliveryStatus.pending => Icons.hourglass_empty,
+  DeliveryStatus.accepted => Icons.assignment_turned_in_outlined,
+  DeliveryStatus.atPickup => Icons.storefront_outlined,
+  DeliveryStatus.pickedUp => Icons.inventory_2_outlined,
+  DeliveryStatus.inTransit => Icons.local_shipping_outlined,
+  DeliveryStatus.atDestination => Icons.flag_outlined,
+  DeliveryStatus.delivered => Icons.check_circle_outline,
+  DeliveryStatus.deliveredWithReserves => Icons.fact_check_outlined,
+  DeliveryStatus.refused => Icons.cancel_outlined,
+  DeliveryStatus.returning => Icons.keyboard_return,
+  DeliveryStatus.paid => Icons.paid_outlined,
+  DeliveryStatus.disputed => Icons.gavel_outlined,
+  DeliveryStatus.cancelled => Icons.cancel_outlined,
+  DeliveryStatus.closed => Icons.lock_outline,
+};
+
+/// Icone du type de colis, pour la vignette de la course quand aucune photo
+/// n'est encore disponible.
+IconData kindIcon(DeliveryKind kind) => switch (kind) {
+  DeliveryKind.standard => Icons.inventory_2_outlined,
+  DeliveryKind.document => Icons.description_outlined,
+  DeliveryKind.fragile => Icons.egg_outlined,
+  DeliveryKind.food => Icons.restaurant_outlined,
+  DeliveryKind.shopping => Icons.shopping_bag_outlined,
+};
 
 /// Couleur d'un statut. Elle double toujours le libelle, jamais l'inverse
 /// (EXI-T09 : la couleur seule serait illisible en plein soleil).

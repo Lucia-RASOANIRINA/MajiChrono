@@ -9,11 +9,16 @@ import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/network/network_profile.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
+import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
+import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
 import 'package:majichrono/features/driver/presentation/widgets/available_delivery_card.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
+import 'package:majichrono/shared/widgets/mc_app_header.dart';
+import 'package:majichrono/shared/widgets/mc_delivery_card.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
+import 'package:majichrono/shared/widgets/mc_section_header.dart';
 import 'package:majichrono/shared/widgets/mc_skeleton.dart';
 
 /// Accueil livreur : interrupteur de service, course en cours, file d'attente.
@@ -96,107 +101,130 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       );
     }
 
+    final network = ref.watch(networkStatusProvider);
+    final connected = network.valueOrNull?.isOnline ?? false;
+    final pending = ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
+    final name = _driverName(ref);
+
     return Scaffold(
-      appBar: AppBar(
-        title: Text(l10n.driverHomeTitle),
-        actions: [
-          IconButton(
-            tooltip: l10n.settingsTitle,
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () => context.push(AppRoutes.settings),
+      body: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          McAppHeader(
+            greeting: name != null
+                ? l10n.authWelcome(name)
+                : l10n.driverHomeTitle,
+            subtitle: l10n.roleDriver,
+            statusLabel: connected
+                ? l10n.networkOnline
+                : (pending > 0
+                      ? l10n.networkOfflinePending(pending)
+                      : l10n.networkOfflineNoPending),
+            statusIcon: connected
+                ? Icons.cloud_done_outlined
+                : Icons.cloud_off_outlined,
+            statusOnline: connected,
+            actions: [
+              IconButton(
+                tooltip: l10n.settingsTitle,
+                icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                onPressed: () => context.push(AppRoutes.settings),
+              ),
+            ],
+          ),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async =>
+                  ref.invalidate(availableDeliveriesProvider),
+              child: ListView(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                children: [
+                  const _OnlineSwitch(),
+                  const SizedBox(height: AppSpacing.lg),
+                  if (active != null) ...[
+                    McSectionHeader(title: l10n.driverActiveDelivery),
+                    const SizedBox(height: AppSpacing.sm),
+                    McDeliveryCard(
+                      statusLabel: statusLabel(l10n, active.status),
+                      statusIcon: statusIcon(active.status),
+                      statusTone: statusTone(active.status),
+                      origin: active.pickup.summary,
+                      destination: active.dropoff.summary,
+                      accent: AppColors.primaryLight,
+                      onTap: () =>
+                          context.push(AppRoutes.driverActive(active.id)),
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                  ],
+                  McSectionHeader(title: l10n.driverAvailable),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (!online)
+                    SizedBox(
+                      height: 220,
+                      child: Card(
+                        child: McEmptyState(
+                          icon: Icons.toggle_off_outlined,
+                          title: l10n.driverOfflineEmpty,
+                          message: l10n.driverOfflineHelp,
+                        ),
+                      ),
+                    )
+                  else
+                    offers.when(
+                      loading: () =>
+                          const McSkeletonList(itemCount: 2, nested: true),
+                      error: (_, _) => SizedBox(
+                        height: 200,
+                        child: Card(
+                          child: McEmptyState(
+                            icon: Icons.cloud_off_outlined,
+                            title: l10n.driverNoOffers,
+                            message: l10n.errorNetwork,
+                          ),
+                        ),
+                      ),
+                      data: (items) => items.isEmpty
+                          ? SizedBox(
+                              height: 220,
+                              child: Card(
+                                child: McEmptyState(
+                                  icon: Icons.inbox_outlined,
+                                  title: l10n.driverNoOffers,
+                                  message: l10n.driverNoOffersHelp,
+                                ),
+                              ),
+                            )
+                          : Column(
+                              children: [
+                                for (final offer in items) ...[
+                                  AvailableDeliveryCard(
+                                    key: ValueKey(
+                                      '${offer.delivery.id}_$_cycle',
+                                    ),
+                                    offer: offer,
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                ],
+                              ],
+                            ),
+                    ),
+                ],
+              ),
+            ),
           ),
         ],
       ),
-      body: RefreshIndicator(
-        onRefresh: () async => ref.invalidate(availableDeliveriesProvider),
-        child: ListView(
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            const _OnlineSwitch(),
-            const SizedBox(height: AppSpacing.lg),
-            if (active != null) ...[
-              Text(
-                l10n.driverActiveDelivery,
-                style: Theme.of(context).textTheme.titleMedium,
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              Card(
-                child: InkWell(
-                  onTap: () => context.push(AppRoutes.driverActive(active.id)),
-                  child: Padding(
-                    padding: AppSpacing.card,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        StatusBadge(status: active.status),
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          active.dropoff.summary,
-                          style: Theme.of(context).textTheme.bodyLarge,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-            ],
-            Text(
-              l10n.driverAvailable,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (!online)
-              SizedBox(
-                height: 220,
-                child: Card(
-                  child: McEmptyState(
-                    icon: Icons.toggle_off_outlined,
-                    title: l10n.driverOfflineEmpty,
-                    message: l10n.driverOfflineHelp,
-                  ),
-                ),
-              )
-            else
-              offers.when(
-                loading: () => const McSkeletonList(itemCount: 2, nested: true),
-                error: (_, _) => SizedBox(
-                  height: 200,
-                  child: Card(
-                    child: McEmptyState(
-                      icon: Icons.cloud_off_outlined,
-                      title: l10n.driverNoOffers,
-                      message: l10n.errorNetwork,
-                    ),
-                  ),
-                ),
-                data: (items) => items.isEmpty
-                    ? SizedBox(
-                        height: 220,
-                        child: Card(
-                          child: McEmptyState(
-                            icon: Icons.inbox_outlined,
-                            title: l10n.driverNoOffers,
-                            message: l10n.driverNoOffersHelp,
-                          ),
-                        ),
-                      )
-                    : Column(
-                        children: [
-                          for (final offer in items) ...[
-                            AvailableDeliveryCard(
-                              key: ValueKey('${offer.delivery.id}_$_cycle'),
-                              offer: offer,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                          ],
-                        ],
-                      ),
-              ),
-          ],
-        ),
-      ),
     );
+  }
+
+  /// Nom affichable du compte livreur, quand la session en porte un.
+  String? _driverName(WidgetRef ref) {
+    final auth = ref.watch(authControllerProvider).valueOrNull;
+    return switch (auth) {
+      AuthAuthenticated(:final account) => account.displayName,
+      AuthLocked(:final account) => account.displayName,
+      _ => null,
+    };
   }
 }
 

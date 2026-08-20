@@ -10,6 +10,7 @@ import 'package:majichrono/core/i18n/mg_material_localizations.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/sync/sync_gate.dart';
 import 'package:majichrono/features/auth/presentation/widgets/inactivity_lock.dart';
+import 'package:majichrono/features/notifications/presentation/notification_initializer.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
@@ -65,34 +66,39 @@ class MajiChronoApp extends ConsumerWidget {
             ),
           ),
           child: Builder(
-            builder: (inner) => SyncGate(
-              messengerKey: messengerKey,
-              child: InactivityLock(
-                child: Column(
-                  children: [
-                    // Le bandeau reseau est pose **au-dessus du Navigator**, et non
-                    // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
-                    // sens litteral : il survit a tout ecran empile — reglages,
-                    // constat, paiement — alors qu'un bandeau porte par la coquille
-                    // disparaitrait des le premier `push`. Or c'est precisement
-                    // pendant un constat ou un paiement que savoir si le reseau est
-                    // tombe change le comportement de l'utilisateur (§15.2.5).
-                    const McNetworkBanner(),
-                    Expanded(
-                      // Le bandeau a deja consomme l'encoche ; sans cela chaque
-                      // Scaffold enfant reappliquerait la meme marge. Mais quand
-                      // il se tait il ne consomme rien : la marge doit alors
-                      // revenir a l'ecran, qui peint lui-meme sous la barre
-                      // d'etat.
-                      child: Consumer(
-                        builder: (context, ref, _) => MediaQuery.removePadding(
-                          context: inner,
-                          removeTop: ref.watch(networkBannerVisibleProvider),
-                          child: child ?? const SizedBox.shrink(),
+            builder: (inner) => NotificationInitializer(
+              child: SyncGate(
+                messengerKey: messengerKey,
+                child: InactivityLock(
+                  child: Column(
+                    children: [
+                      // Le bandeau reseau est pose **au-dessus du Navigator**, et non
+                      // dans la coquille de role. C'est ce qui rend EXI-T06 tenable au
+                      // sens litteral : il survit a tout ecran empile — reglages,
+                      // constat, paiement — alors qu'un bandeau porte par la coquille
+                      // disparaitrait des le premier `push`. Or c'est precisement
+                      // pendant un constat ou un paiement que savoir si le reseau est
+                      // tombe change le comportement de l'utilisateur (§15.2.5).
+                      const McNetworkBanner(),
+                      Expanded(
+                        // Le bandeau a deja consomme l'encoche ; sans cela chaque
+                        // Scaffold enfant reappliquerait la meme marge. Mais quand
+                        // il se tait il ne consomme rien : la marge doit alors
+                        // revenir a l'ecran, qui peint lui-meme sous la barre
+                        // d'etat.
+                        child: Consumer(
+                          builder: (context, ref, _) =>
+                              MediaQuery.removePadding(
+                                context: inner,
+                                removeTop: ref.watch(
+                                  networkBannerVisibleProvider,
+                                ),
+                                child: child ?? const SizedBox.shrink(),
+                              ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
