@@ -82,6 +82,7 @@ class _EmailCodeScreenState extends ConsumerState<EmailCodeScreen>
         _focusNode.requestFocus();
         // Forcer l'affichage du clavier
         FocusScope.of(context).requestFocus(_focusNode);
+        SystemChannels.textInput.invokeMethod('TextInput.show');
       }
     });
   }
@@ -620,7 +621,7 @@ class _EmailCodeScreenState extends ConsumerState<EmailCodeScreen>
 }
 
 // ============================================================
-// CHAMP DE SAISIE DU CODE AVEC CURSEUR VISIBLE
+// CHAMP DE SAISIE DU CODE AVEC CURSEUR VISIBLE (CORRIGÉ)
 // ============================================================
 
 class _CodeInputField extends StatefulWidget {
@@ -666,101 +667,131 @@ class _CodeInputFieldState extends State<_CodeInputField> {
     final isFocused = widget.focusNode.hasFocus;
     final textLength = widget.controller.text.length;
 
-    return GestureDetector(
-      onTap: () {
-        widget.focusNode.requestFocus();
-        // Forcer l'ouverture du clavier
-        FocusScope.of(context).requestFocus(widget.focusNode);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (index) {
-            final hasValue = textLength > index;
-            final isActive = isFocused && textLength == index;
-            final isFilled = hasValue;
-
-            Color borderColor;
-            double borderWidth;
-            Color? backgroundColor;
-
-            if (isFilled) {
-              borderColor = AppColors.primary;
-              borderWidth = 2;
-              backgroundColor = AppColors.primary.withValues(alpha: 0.04);
-            } else if (isActive) {
-              borderColor = AppColors.primary;
-              borderWidth = 2.5;
-              backgroundColor = AppColors.primary.withValues(alpha: 0.06);
-            } else {
-              borderColor = Colors.grey.shade200;
-              borderWidth = 1;
-              backgroundColor = const Color(0xFFF8FAFC);
-            }
-
-            return GestureDetector(
-              onTap: () {
-                widget.focusNode.requestFocus();
-                FocusScope.of(context).requestFocus(widget.focusNode);
+    return Stack(
+      children: [
+        // TextField invisible pour la saisie réelle
+        Opacity(
+          opacity: 0,
+          child: SizedBox(
+            width: 1,
+            height: 1,
+            child: TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              enabled: widget.enabled,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              onChanged: (value) {
+                setState(() {});
+                widget.onChanged(value);
               },
-              child: Container(
-                width: 44,
-                height: 56,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: borderColor,
-                    width: borderWidth,
-                  ),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            blurRadius: 12,
-                            spreadRadius: 0,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      // Chiffre
-                      Text(
-                        hasValue ? widget.controller.text[index] : '',
-                        style: widget.theme.textTheme.displaySmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 24,
-                        ),
-                      ),
-                      // Curseur clignotant (uniquement sur la case active)
-                      if (isActive)
-                        AnimatedBuilder(
-                          animation: widget.cursorController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: widget.cursorController.value,
-                              child: Container(
-                                width: 2.5,
-                                height: 28,
-                                color: AppColors.primary,
-                              ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: '',
               ),
-            );
-          }),
+            ),
+          ),
         ),
-      ),
+        // Interface visuelle des cases
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            widget.focusNode.requestFocus();
+            // Forcer l'ouverture du clavier
+            FocusScope.of(context).requestFocus(widget.focusNode);
+            // Forcer le clavier à s'afficher (important sur certains appareils)
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(6, (index) {
+                final hasValue = textLength > index;
+                final isActive = isFocused && textLength == index;
+                final isFilled = hasValue;
+
+                Color borderColor;
+                double borderWidth;
+                Color? backgroundColor;
+
+                if (isFilled) {
+                  borderColor = AppColors.primary;
+                  borderWidth = 2;
+                  backgroundColor = AppColors.primary.withValues(alpha: 0.04);
+                } else if (isActive) {
+                  borderColor = AppColors.primary;
+                  borderWidth = 2.5;
+                  backgroundColor = AppColors.primary.withValues(alpha: 0.06);
+                } else {
+                  borderColor = Colors.grey.shade200;
+                  borderWidth = 1;
+                  backgroundColor = const Color(0xFFF8FAFC);
+                }
+
+                return Container(
+                  width: 44,
+                  height: 56,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: borderColor,
+                      width: borderWidth,
+                    ),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Chiffre
+                        Text(
+                          hasValue ? widget.controller.text[index] : '',
+                          style: widget.theme.textTheme.displaySmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 24,
+                          ),
+                        ),
+                        // Curseur clignotant (uniquement sur la case active)
+                        if (isActive)
+                          AnimatedBuilder(
+                            animation: widget.cursorController,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: widget.cursorController.value,
+                                child: Container(
+                                  width: 2.5,
+                                  height: 28,
+                                  color: AppColors.primary,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

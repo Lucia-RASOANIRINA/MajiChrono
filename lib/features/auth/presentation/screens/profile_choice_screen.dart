@@ -152,28 +152,7 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
                       mainAxisSize: MainAxisSize.min,
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Flèche retour
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                            onPressed: () {
-                              context.go(AppRoutes.authPhone);
-                            },
-                            icon: const Icon(
-                              Icons.arrow_back,
-                              color: Colors.white,
-                              size: 26,
-                            ),
-                            padding: EdgeInsets.zero,
-                            constraints: const BoxConstraints(
-                              minWidth: 44,
-                              minHeight: 44,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-
-                        // En-tête
+                        // En-tête (sans bouton de retour)
                         _ProfileHeader(
                           title: l10n.authProfileTitle,
                           subtitle: l10n.authProfileSubtitle,
@@ -223,16 +202,20 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
                               ),
                               const SizedBox(height: AppSpacing.md),
 
-                              // Note admin
+                              // Note admin - sans orange
                               Container(
                                 padding: const EdgeInsets.all(
                                   AppSpacing.sm,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.amber.shade50,
+                                  color: AppColors.primary.withValues(
+                                    alpha: 0.05,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: Colors.amber.shade200,
+                                    color: AppColors.primary.withValues(
+                                      alpha: 0.1,
+                                    ),
                                     width: 1,
                                   ),
                                 ),
@@ -241,7 +224,7 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
                                     Icon(
                                       Icons.info_outline,
                                       size: 18,
-                                      color: Colors.amber.shade700,
+                                      color: AppColors.primary,
                                     ),
                                     const SizedBox(width: AppSpacing.sm),
                                     Expanded(
@@ -249,7 +232,7 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
                                         l10n.authProfileAdminNote,
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                          color: Colors.amber.shade700,
+                                          color: AppColors.primary,
                                           fontSize: 12,
                                         ),
                                       ),
@@ -403,6 +386,10 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
                         // Icônes de confiance
                         const SizedBox(height: AppSpacing.sm),
                         _TrustIcons(),
+
+                        // Camion de livraison animé
+                        const SizedBox(height: AppSpacing.md),
+                        _MovingTruck(),
                       ],
                     ),
                   ),
@@ -412,6 +399,125 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
           ),
         ],
       ),
+    );
+  }
+}
+
+// ============================================================
+// CAMION DE LIVRAISON ANIMÉ
+// ============================================================
+
+class _MovingTruck extends StatefulWidget {
+  const _MovingTruck();
+
+  @override
+  State<_MovingTruck> createState() => _MovingTruckState();
+}
+
+class _MovingTruckState extends State<_MovingTruck>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _positionAnimation;
+  late Animation<double> _bounceAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 5),
+      vsync: this,
+    )..repeat();
+
+    _positionAnimation = Tween<double>(
+      begin: -0.3,
+      end: 1.3,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.linear,
+    ));
+
+    _bounceAnimation = Tween<double>(
+      begin: 0,
+      end: 0.3,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    ));
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return SizedBox(
+          height: 55,
+          child: Stack(
+            children: [
+              // Ligne de route
+              Positioned(
+                bottom: 8,
+                left: 20,
+                right: 20,
+                child: Container(
+                  height: 2,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0),
+                        Colors.white.withValues(alpha: 0.25),
+                        Colors.white.withValues(alpha: 0),
+                      ],
+                      stops: const [0.0, 0.5, 1.0],
+                    ),
+                  ),
+                ),
+              ),
+
+              // Camion qui se déplace
+              Positioned(
+                left: MediaQuery.of(context).size.width * _positionAnimation.value - 45,
+                bottom: 8 + _bounceAnimation.value * 6,
+                child: Transform.rotate(
+                  angle: _bounceAnimation.value * 0.03,
+                  child: const Icon(
+                    Icons.local_shipping,
+                    size: 42,
+                    color: Colors.white,
+                  ),
+                ),
+              ),
+
+              // Traînée lumineuse derrière le camion
+              Positioned(
+                left: MediaQuery.of(context).size.width * _positionAnimation.value - 65,
+                bottom: 12 + _bounceAnimation.value * 6,
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        Colors.white.withValues(alpha: 0.12),
+                        Colors.transparent,
+                      ],
+                      radius: 1.0,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

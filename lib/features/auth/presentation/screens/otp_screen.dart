@@ -79,6 +79,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       if (mounted) {
         _focusNode.requestFocus();
         FocusScope.of(context).requestFocus(_focusNode);
+        SystemChannels.textInput.invokeMethod('TextInput.show');
       }
     });
   }
@@ -453,7 +454,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                               ],
                               const SizedBox(height: AppSpacing.lg),
 
-                              // Champ de saisie du code
+                              // Champ de saisie du code (CORRIGÉ)
                               _OtpInputField(
                                 controller: _controller,
                                 focusNode: _focusNode,
@@ -594,7 +595,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
 }
 
 // ============================================================
-// CHAMP DE SAISIE OTP
+// CHAMP DE SAISIE OTP (CORRIGÉ)
 // ============================================================
 
 class _OtpInputField extends StatefulWidget {
@@ -640,97 +641,126 @@ class _OtpInputFieldState extends State<_OtpInputField> {
     final isFocused = widget.focusNode.hasFocus;
     final textLength = widget.controller.text.length;
 
-    return GestureDetector(
-      onTap: () {
-        widget.focusNode.requestFocus();
-        FocusScope.of(context).requestFocus(widget.focusNode);
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: List.generate(6, (index) {
-            final hasValue = textLength > index;
-            final isActive = isFocused && textLength == index;
-
-            Color borderColor;
-            double borderWidth;
-            Color? backgroundColor;
-
-            if (hasValue) {
-              borderColor = AppColors.primary;
-              borderWidth = 2;
-              backgroundColor = AppColors.primary.withValues(alpha: 0.04);
-            } else if (isActive) {
-              borderColor = AppColors.primary;
-              borderWidth = 2.5;
-              backgroundColor = AppColors.primary.withValues(alpha: 0.06);
-            } else {
-              borderColor = Colors.grey.shade200;
-              borderWidth = 1;
-              backgroundColor = const Color(0xFFF8FAFC);
-            }
-
-            return GestureDetector(
-              onTap: () {
-                widget.focusNode.requestFocus();
-                FocusScope.of(context).requestFocus(widget.focusNode);
+    return Stack(
+      children: [
+        // TextField invisible pour la saisie réelle
+        Opacity(
+          opacity: 0,
+          child: SizedBox(
+            width: 1,
+            height: 1,
+            child: TextField(
+              controller: widget.controller,
+              focusNode: widget.focusNode,
+              enabled: widget.enabled,
+              keyboardType: TextInputType.number,
+              inputFormatters: [
+                FilteringTextInputFormatter.digitsOnly,
+                LengthLimitingTextInputFormatter(6),
+              ],
+              onChanged: (value) {
+                setState(() {});
+                widget.onChanged(value);
               },
-              child: Container(
-                width: 44,
-                height: 56,
-                margin: const EdgeInsets.symmetric(horizontal: 4),
-                decoration: BoxDecoration(
-                  color: backgroundColor,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: borderColor,
-                    width: borderWidth,
-                  ),
-                  boxShadow: isActive
-                      ? [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            blurRadius: 12,
-                            spreadRadius: 0,
-                          ),
-                        ]
-                      : null,
-                ),
-                child: Center(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Text(
-                        hasValue ? widget.controller.text[index] : '',
-                        style: widget.theme.textTheme.displaySmall?.copyWith(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w700,
-                          fontSize: 24,
-                        ),
-                      ),
-                      if (isActive)
-                        AnimatedBuilder(
-                          animation: widget.cursorController,
-                          builder: (context, child) {
-                            return Opacity(
-                              opacity: widget.cursorController.value,
-                              child: Container(
-                                width: 2.5,
-                                height: 28,
-                                color: AppColors.primary,
-                              ),
-                            );
-                          },
-                        ),
-                    ],
-                  ),
-                ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontSize: 24),
+              decoration: const InputDecoration(
+                border: InputBorder.none,
+                hintText: '',
               ),
-            );
-          }),
+            ),
+          ),
         ),
-      ),
+        // Interface visuelle des cases
+        GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () {
+            widget.focusNode.requestFocus();
+            FocusScope.of(context).requestFocus(widget.focusNode);
+            SystemChannels.textInput.invokeMethod('TextInput.show');
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(6, (index) {
+                final hasValue = textLength > index;
+                final isActive = isFocused && textLength == index;
+
+                Color borderColor;
+                double borderWidth;
+                Color? backgroundColor;
+
+                if (hasValue) {
+                  borderColor = AppColors.primary;
+                  borderWidth = 2;
+                  backgroundColor = AppColors.primary.withValues(alpha: 0.04);
+                } else if (isActive) {
+                  borderColor = AppColors.primary;
+                  borderWidth = 2.5;
+                  backgroundColor = AppColors.primary.withValues(alpha: 0.06);
+                } else {
+                  borderColor = Colors.grey.shade200;
+                  borderWidth = 1;
+                  backgroundColor = const Color(0xFFF8FAFC);
+                }
+
+                return Container(
+                  width: 44,
+                  height: 56,
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  decoration: BoxDecoration(
+                    color: backgroundColor,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: borderColor,
+                      width: borderWidth,
+                    ),
+                    boxShadow: isActive
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.15),
+                              blurRadius: 12,
+                              spreadRadius: 0,
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Center(
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Text(
+                          hasValue ? widget.controller.text[index] : '',
+                          style: widget.theme.textTheme.displaySmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 24,
+                          ),
+                        ),
+                        if (isActive)
+                          AnimatedBuilder(
+                            animation: widget.cursorController,
+                            builder: (context, child) {
+                              return Opacity(
+                                opacity: widget.cursorController.value,
+                                child: Container(
+                                  width: 2.5,
+                                  height: 28,
+                                  color: AppColors.primary,
+                                ),
+                              );
+                            },
+                          ),
+                      ],
+                    ),
+                  ),
+                );
+              }),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

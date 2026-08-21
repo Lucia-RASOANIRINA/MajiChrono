@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
+import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/features/delivery/domain/entities/address.dart';
@@ -18,12 +20,6 @@ import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_primary_action.dart';
 
-/// Assistant de creation de course.
-///
-/// Trois etapes, et une seule action principale par ecran (§15.2.1). Le
-/// decoupage suit l'ordre dans lequel l'expediteur pense sa course : d'ou a ou,
-/// puis quoi, puis combien — et le prix n'apparait qu'a la fin, ventile, avant
-/// confirmation (EXI-C10).
 class CreateDeliveryScreen extends ConsumerStatefulWidget {
   const CreateDeliveryScreen({super.key});
 
@@ -44,7 +40,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   final TextEditingController _value = TextEditingController();
   final TextEditingController _description = TextEditingController();
 
-  // Differenciants (module 9).
   Payer _payer = Payer.sender;
   List<ShoppingItem> _items = const [];
   String? _relayPointId;
@@ -62,8 +57,6 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     super.dispose();
   }
 
-  /// Une course d'achat pour compte n'avance pas sans liste ni plafond : le
-  /// livreur ne saurait pas quoi acheter, ni jusqu'ou aller.
   ShoppingOrder? get _shopping {
     if (_kind != DeliveryKind.shopping) return null;
     return ShoppingOrder(
@@ -123,19 +116,27 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
 
       messenger.showSnackBar(
         SnackBar(
-          // Le message distingue les deux cas : une course transmise et une
-          // course en attente ne sont pas la meme chose pour l'utilisateur
-          // (EXI-C13). Annoncer « creee » alors que rien n'est parti serait
-          // exactement le mensonge que le mode hors ligne doit eviter.
           content: Text(
             delivery.pendingSync ? l10n.deliveryQueued : l10n.deliveryCreated,
+          ),
+          backgroundColor: Colors.green.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
           ),
         ),
       );
       router.pop();
     } on Failure catch (failure) {
       messenger.showSnackBar(
-        SnackBar(content: Text(failure.localizedMessage(l10n))),
+        SnackBar(
+          content: Text(failure.localizedMessage(l10n)),
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
       );
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -154,30 +155,49 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: Text(l10n.newDeliveryTitle),
+        title: Text(
+          l10n.newDeliveryTitle,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        centerTitle: false,
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(4),
-          child: LinearProgressIndicator(value: (_step + 1) / 4, minHeight: 4),
+          child: LinearProgressIndicator(
+            value: (_step + 1) / 4,
+            minHeight: 4,
+            backgroundColor: Colors.grey.shade200,
+            valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
+          ),
         ),
       ),
       body: Column(
         children: [
+          // Étapes
           Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
+            padding: const EdgeInsets.all(AppSpacing.md),
             child: Row(
               children: [
                 for (var i = 0; i < titles.length; i++) ...[
-                  if (i > 0) const SizedBox(width: AppSpacing.sm),
+                  if (i > 0) const SizedBox(width: AppSpacing.xs),
                   Expanded(
-                    child: _StepChip(label: titles[i], active: i <= _step),
+                    child: _ModernStepChip(
+                      number: i + 1,
+                      label: titles[i],
+                      active: i <= _step,
+                    ),
                   ),
                 ],
               ],
             ),
           ),
           Expanded(child: _buildStep(l10n)),
-          McPrimaryAction(
+          _BottomActionBar(
             label: _step == 3 ? l10n.confirmDelivery : l10n.commonContinue,
             busy: _busy,
             onPressed: !_canContinue
@@ -189,6 +209,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
                       _submit();
                     }
                   },
+            isLastStep: _step == 3,
           ),
         ],
       ),
@@ -239,36 +260,149 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   };
 }
 
-class _StepChip extends StatelessWidget {
-  const _StepChip({required this.label, required this.active});
+// ============================================================
+// BARRE D'ACTION EN BAS
+// ============================================================
+
+class _BottomActionBar extends StatelessWidget {
+  const _BottomActionBar({
+    required this.label,
+    required this.busy,
+    required this.onPressed,
+    required this.isLastStep,
+  });
 
   final String label;
-  final bool active;
+  final bool busy;
+  final VoidCallback? onPressed;
+  final bool isLastStep;
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
     return Container(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: active
-            ? scheme.primaryContainer
-            : scheme.surfaceContainerHighest,
-        borderRadius: AppRadii.componentAll,
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, -4),
+          ),
+        ],
       ),
-      child: Text(
-        label,
-        textAlign: TextAlign.center,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-          fontWeight: active ? FontWeight.w600 : FontWeight.w400,
-          color: active ? scheme.onPrimaryContainer : scheme.onSurfaceVariant,
+      child: SizedBox(
+        height: 52,
+        child: ElevatedButton(
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: isLastStep ? AppColors.primary : AppColors.primary,
+            foregroundColor: Colors.white,
+            disabledBackgroundColor: Colors.grey.shade300,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(14),
+            ),
+            elevation: 0,
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              if (isLastStep && onPressed != null)
+                const Icon(Icons.check, size: 20),
+              if (isLastStep && onPressed != null)
+                const SizedBox(width: 8),
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              if (!isLastStep && onPressed != null) ...[
+                const SizedBox(width: 8),
+                const Icon(Icons.arrow_forward_rounded, size: 20),
+              ],
+            ],
+          ),
         ),
       ),
     );
   }
 }
 
-// --- Etape 1 : adresses -------------------------------------------------
+// ============================================================
+// ÉTAPE MODERNE
+// ============================================================
+
+class _ModernStepChip extends StatelessWidget {
+  const _ModernStepChip({
+    required this.number,
+    required this.label,
+    required this.active,
+  });
+
+  final int number;
+  final String label;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        vertical: AppSpacing.xs,
+        horizontal: AppSpacing.sm,
+      ),
+      decoration: BoxDecoration(
+        color: active ? AppColors.primary : Colors.grey.shade100,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: active ? AppColors.primary : Colors.transparent,
+          width: 1.5,
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 20,
+            height: 20,
+            decoration: BoxDecoration(
+              color: active ? Colors.white : Colors.grey.shade400,
+              shape: BoxShape.circle,
+            ),
+            child: Center(
+              child: Text(
+                '$number',
+                style: TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  color: active ? AppColors.primary : Colors.white,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 4),
+          Flexible(
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                fontWeight: active ? FontWeight.w700 : FontWeight.w500,
+                color: active ? Colors.white : Colors.grey.shade600,
+              ),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ÉTAPE 1 : ADRESSES
+// ============================================================
 
 class _AddressStep extends ConsumerWidget {
   const _AddressStep({
@@ -287,17 +421,20 @@ class _AddressStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        _SectionHeader(title: l10n.addrPickupTitle, icon: Icons.trip_origin),
-        const SizedBox(height: AppSpacing.md),
+        _ModernSectionHeader(
+          title: l10n.addrPickupTitle,
+          icon: Icons.trip_origin,
+        ),
+        const SizedBox(height: AppSpacing.sm),
         AddressForm(initial: pickup, onChanged: onPickup),
-        const SizedBox(height: AppSpacing.xxl),
-        _SectionHeader(
+        const SizedBox(height: AppSpacing.xl),
+        _ModernSectionHeader(
           title: l10n.addrDropoffTitle,
           icon: Icons.place_outlined,
         ),
-        const SizedBox(height: AppSpacing.md),
+        const SizedBox(height: AppSpacing.sm),
         AddressForm(initial: dropoff, onChanged: onDropoff),
         const SizedBox(height: AppSpacing.xl),
       ],
@@ -305,26 +442,49 @@ class _AddressStep extends ConsumerWidget {
   }
 }
 
-class _SectionHeader extends StatelessWidget {
-  const _SectionHeader({required this.title, required this.icon});
+// ============================================================
+// SECTION HEADER MODERNE
+// ============================================================
+
+class _ModernSectionHeader extends StatelessWidget {
+  const _ModernSectionHeader({required this.title, required this.icon});
 
   final String title;
   final IconData icon;
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return Row(
       children: [
-        Icon(icon, color: theme.colorScheme.primary),
+        Container(
+          padding: const EdgeInsets.all(6),
+          decoration: BoxDecoration(
+            color: AppColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            size: 20,
+            color: AppColors.primary,
+          ),
+        ),
         const SizedBox(width: AppSpacing.sm),
-        Text(title, style: theme.textTheme.titleMedium),
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: Color(0xFF1A1A2E),
+          ),
+        ),
       ],
     );
   }
 }
 
-// --- Etape 2 : colis, creneau, paiement ----------------------------------
+// ============================================================
+// ÉTAPE 2 : COLIS, CRÉNEAU, PAIEMENT
+// ============================================================
 
 class _PackageStep extends StatelessWidget {
   const _PackageStep({
@@ -371,143 +531,255 @@ class _PackageStep extends StatelessWidget {
       WeightCategory.over15 => l10n.pkgWeightGt15,
     };
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      children: [
-        Text(l10n.kindTitle, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        Wrap(
-          spacing: AppSpacing.sm,
-          runSpacing: AppSpacing.sm,
-          children: [
-            for (final k in DeliveryKind.values)
-              ChoiceChip(
-                label: Text(kindLabel(k)),
-                selected: kind == k,
-                onSelected: (_) => onKind(k),
-              ),
-          ],
-        ),
-        // L'achat pour compte se poursuit au pas « Options » : liste
-        // d'articles et plafond de depense (EXI-C07).
-        if (kind == DeliveryKind.shopping)
-          Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
-            child: Text(
-              l10n.shoppingHelp,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurfaceVariant,
-              ),
-            ),
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _ModernSectionHeader(
+            title: l10n.kindTitle,
+            icon: Icons.category_outlined,
           ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(l10n.pkgWeight, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        Column(
-          children: [
-            for (final w in WeightCategory.values)
-              RadioListTileTile(
-                label: weightLabel(w),
-                selected: weight == w,
-                onTap: () => onWeight(w),
-              ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        TextField(
-          controller: value,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: '${l10n.pkgValue} (${l10n.addrOptional})',
-            prefixIcon: const Icon(Icons.payments_outlined),
-            suffixText: 'Ar',
-          ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        TextField(
-          controller: description,
-          decoration: InputDecoration(
-            labelText: '${l10n.pkgDescription} (${l10n.addrOptional})',
-            prefixIcon: const Icon(Icons.notes_outlined),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          l10n.pkgPhotoLater,
-          style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurfaceVariant,
-          ),
-        ),
-        const SizedBox(height: AppSpacing.xl),
-        Text(l10n.slotTitle, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        SegmentedButton<bool>(
-          segments: [
-            ButtonSegment(value: true, label: Text(l10n.slotImmediate)),
-            ButtonSegment(value: false, label: Text(l10n.slotScheduled)),
-          ],
-          selected: {slot.isImmediate},
-          showSelectedIcon: false,
-          onSelectionChanged: (selection) => onSlot(
-            selection.first
-                ? const PickupSlot.immediate()
-                : PickupSlot.scheduled(
-                    date: DateTime.now().add(const Duration(days: 1)),
-                    hour: 8,
-                  ),
-          ),
-        ),
-        if (!slot.isImmediate) ...[
-          const SizedBox(height: AppSpacing.md),
+          const SizedBox(height: AppSpacing.sm),
           Wrap(
-            spacing: AppSpacing.sm,
+            spacing: 8,
+            runSpacing: 8,
             children: [
-              for (final hour in const [6, 8, 10, 12, 14, 16])
-                ChoiceChip(
-                  label: Text(l10n.slotRange(hour, hour + 2)),
-                  selected: slot.startHour == hour,
-                  onSelected: (_) => onSlot(
-                    PickupSlot.scheduled(
-                      date:
-                          slot.scheduledDate ??
-                          DateTime.now().add(const Duration(days: 1)),
-                      hour: hour,
-                    ),
-                  ),
+              for (final k in DeliveryKind.values)
+                _ModernChoiceChip(
+                  label: kindLabel(k),
+                  selected: kind == k,
+                  onTap: () => onKind(k),
                 ),
             ],
           ),
+          if (kind == DeliveryKind.shopping)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm),
+              child: Container(
+                padding: const EdgeInsets.all(AppSpacing.sm),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Text(
+                  l10n.shoppingHelp,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontSize: 12,
+                  ),
+                ),
+              ),
+            ),
+          const SizedBox(height: AppSpacing.xl),
+
+          _ModernSectionHeader(
+            title: l10n.pkgWeight,
+            icon: Icons.scale_outlined,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Column(
+            children: [
+              for (final w in WeightCategory.values)
+                _ModernRadioTile(
+                  label: weightLabel(w),
+                  selected: weight == w,
+                  onTap: () => onWeight(w),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          TextField(
+            controller: value,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: '${l10n.pkgValue} (${l10n.addrOptional})',
+              prefixIcon: Icon(Icons.payments_outlined, color: AppColors.primary),
+              suffixText: 'Ar',
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: description,
+            decoration: InputDecoration(
+              labelText: '${l10n.pkgDescription} (${l10n.addrOptional})',
+              prefixIcon: Icon(Icons.notes_outlined, color: AppColors.primary),
+              filled: true,
+              fillColor: Colors.white,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide.none,
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(14),
+                borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+              ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.pkgPhotoLater,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: Colors.grey.shade500,
+              fontSize: 12,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+
+          _ModernSectionHeader(
+            title: l10n.slotTitle,
+            icon: Icons.access_time_outlined,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          SegmentedButton<bool>(
+            segments: [
+              ButtonSegment(value: true, label: Text(l10n.slotImmediate)),
+              ButtonSegment(value: false, label: Text(l10n.slotScheduled)),
+            ],
+            selected: {slot.isImmediate},
+            showSelectedIcon: false,
+            style: SegmentedButton.styleFrom(
+              selectedBackgroundColor: AppColors.primary,
+              selectedForegroundColor: Colors.white,
+            ),
+            onSelectionChanged: (selection) => onSlot(
+              selection.first
+                  ? const PickupSlot.immediate()
+                  : PickupSlot.scheduled(
+                      date: DateTime.now().add(const Duration(days: 1)),
+                      hour: 8,
+                    ),
+            ),
+          ),
+          if (!slot.isImmediate) ...[
+            const SizedBox(height: AppSpacing.md),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                for (final hour in const [6, 8, 10, 12, 14, 16])
+                  _ModernChoiceChip(
+                    label: l10n.slotRange(hour, hour + 2),
+                    selected: slot.startHour == hour,
+                    onTap: () => onSlot(
+                      PickupSlot.scheduled(
+                        date:
+                            slot.scheduledDate ??
+                            DateTime.now().add(const Duration(days: 1)),
+                        hour: hour,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ],
+          const SizedBox(height: AppSpacing.xl),
+
+          _ModernSectionHeader(
+            title: l10n.paymentTitle,
+            icon: Icons.payment_outlined,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _ModernRadioTile(
+            label: l10n.paymentCash,
+            selected: payment == PaymentMethod.cash,
+            onTap: () => onPayment(PaymentMethod.cash),
+          ),
+          _ModernRadioTile(
+            label: l10n.paymentMajipay,
+            subtitle: l10n.paymentMajipaySoon,
+            selected: false,
+            onTap: null,
+          ),
+          const SizedBox(height: AppSpacing.xl),
         ],
-        const SizedBox(height: AppSpacing.xl),
-        Text(l10n.paymentTitle, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        // L'espece est le premier choix et le defaut : c'est la norme de
-        // confiance a Madagascar (§4.2), pas un mode degrade.
-        RadioListTileTile(
-          label: l10n.paymentCash,
-          selected: payment == PaymentMethod.cash,
-          onTap: () => onPayment(PaymentMethod.cash),
-        ),
-        RadioListTileTile(
-          label: l10n.paymentMajipay,
-          subtitle: l10n.paymentMajipaySoon,
-          selected: false,
-          onTap: null,
-        ),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+      ),
     );
   }
 }
 
-/// Ligne a selection unique, sans `RadioListTile` (deprecie dans Flutter 3.44).
-class RadioListTileTile extends StatelessWidget {
-  const RadioListTileTile({
+// ============================================================
+// CHOICE CHIP MODERNE
+// ============================================================
+
+class _ModernChoiceChip extends StatelessWidget {
+  const _ModernChoiceChip({
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.xs,
+        ),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.grey.shade300,
+            width: 1.5,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 8,
+                  ),
+                ]
+              : null,
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+            color: selected ? Colors.white : Colors.grey.shade700,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// RADIO TILE MODERNE
+// ============================================================
+
+class _ModernRadioTile extends StatelessWidget {
+  const _ModernRadioTile({
     required this.label,
     required this.selected,
     required this.onTap,
     this.subtitle,
-    super.key,
   });
 
   final String label;
@@ -517,22 +789,65 @@ class RadioListTileTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    return ListTile(
-      enabled: onTap != null,
+    return GestureDetector(
       onTap: onTap,
-      leading: Icon(
-        selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-        color: selected ? scheme.primary : null,
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppSpacing.md,
+          vertical: AppSpacing.sm,
+        ),
+        margin: const EdgeInsets.only(bottom: 4),
+        decoration: BoxDecoration(
+          color: selected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: selected ? AppColors.primary : Colors.grey.shade200,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
+              color: selected ? AppColors.primary : Colors.grey.shade400,
+              size: 20,
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: TextStyle(
+                      fontSize: 14,
+                      fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+                      color: selected ? AppColors.primary : Colors.grey.shade800,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey.shade500,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
-      title: Text(label),
-      subtitle: subtitle == null ? null : Text(subtitle!),
-      contentPadding: EdgeInsets.zero,
     );
   }
 }
 
-// --- Etape 3 : recapitulatif et prix -------------------------------------
+// ============================================================
+// ÉTAPE 3 : RÉCAPITULATIF
+// ============================================================
 
 class _ReviewStep extends StatelessWidget {
   const _ReviewStep({
@@ -558,32 +873,142 @@ class _ReviewStep extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
 
-    return ListView(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-      children: [
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.trip_origin),
-                title: Text(pickup.summary),
-                subtitle: Text(pickup.contactPhone.displayNational),
-              ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.place_outlined),
-                title: Text(dropoff.summary),
-                subtitle: Text(dropoff.contactPhone.displayNational),
-              ),
-            ],
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Récapitulatif des adresses
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                _ReviewItem(
+                  icon: Icons.trip_origin,
+                  title: pickup.summary,
+                  subtitle: pickup.contactPhone.displayNational,
+                  iconColor: Colors.green.shade600,
+                ),
+                const Divider(height: 1, indent: 56),
+                _ReviewItem(
+                  icon: Icons.place_outlined,
+                  title: dropoff.summary,
+                  subtitle: dropoff.contactPhone.displayNational,
+                  iconColor: Colors.blue.shade600,
+                ),
+              ],
+            ),
           ),
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        Text(l10n.estimateTitle, style: theme.textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.sm),
-        PriceBreakdown(estimate: estimate),
-        const SizedBox(height: AppSpacing.xl),
-      ],
+          const SizedBox(height: AppSpacing.lg),
+
+          // Détails de la course
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 12,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.estimateTitle,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: Color(0xFF1A1A2E),
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                PriceBreakdown(estimate: estimate),
+              ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+        ],
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ÉLÉMENT DE RÉCAPITULATIF
+// ============================================================
+
+class _ReviewItem extends StatelessWidget {
+  const _ReviewItem({
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.iconColor,
+  });
+
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final Color iconColor;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: iconColor.withValues(alpha: 0.1),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              size: 20,
+              color: iconColor,
+            ),
+          ),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1A1A2E),
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
