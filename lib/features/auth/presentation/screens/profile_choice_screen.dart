@@ -1,19 +1,22 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:go_router/go_router.dart';
+
+import 'package:majichrono/app/router/app_routes.dart';
+import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
+import 'package:majichrono/shared/widgets/mc_patterns.dart';
 import 'package:majichrono/shared/widgets/mc_primary_action.dart';
 
-/// Choix du profil a l'inscription (EXI-T02).
-///
-/// Seuls client et livreur figurent ici. Le profil exploitation est attribue
-/// cote serveur ; l'ecran le dit explicitement plutot que de le taire, pour
-/// qu'un responsable d'exploitation ne cherche pas un bouton qui n'existe pas.
 class ProfileChoiceScreen extends ConsumerStatefulWidget {
   const ProfileChoiceScreen({super.key});
 
@@ -22,15 +25,49 @@ class ProfileChoiceScreen extends ConsumerStatefulWidget {
       _ProfileChoiceScreenState();
 }
 
-class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
+class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
+    with TickerProviderStateMixin {
   final TextEditingController _name = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   UserRole? _role;
   bool _busy = false;
   String? _error;
 
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<Offset> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 400),
+      vsync: this,
+    );
+    _fadeAnimation = CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeInOut,
+    );
+    _slideAnimation = Tween<Offset>(
+      begin: const Offset(0, 0.05),
+      end: Offset.zero,
+    ).animate(CurvedAnimation(
+      parent: _animationController,
+      curve: Curves.easeOutQuart,
+    ));
+    _animationController.forward();
+
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) _focusNode.requestFocus();
+    });
+  }
+
   @override
   void dispose() {
     _name.dispose();
+    _focusNode.dispose();
+    _animationController.dispose();
     super.dispose();
   }
 
@@ -67,88 +104,321 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen> {
     final theme = Theme.of(context);
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.authProfileTitle)),
-      body: Column(
+      backgroundColor: AppColors.primary,
+      body: Stack(
         children: [
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.all(AppSpacing.xl),
-              children: [
-                Text(
-                  l10n.authProfileSubtitle,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onSurfaceVariant,
-                  ),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                _ProfileCard(
-                  role: UserRole.client,
-                  title: l10n.roleClient,
-                  description: l10n.roleClientDesc,
-                  selected: _role == UserRole.client,
-                  onTap: () => setState(() => _role = UserRole.client),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                _ProfileCard(
-                  role: UserRole.driver,
-                  title: l10n.roleDriver,
-                  description: l10n.roleDriverDesc,
-                  selected: _role == UserRole.driver,
-                  onTap: () => setState(() => _role = UserRole.driver),
-                ),
-                const SizedBox(height: AppSpacing.xl),
-                TextField(
-                  controller: _name,
-                  textCapitalization: TextCapitalization.words,
-                  decoration: InputDecoration(
-                    labelText: l10n.authProfileName,
-                    hintText: l10n.authProfileNameHint,
-                    prefixIcon: const Icon(Icons.person_outline),
-                  ),
-                  onChanged: (_) => setState(() => _error = null),
-                ),
-                const SizedBox(height: AppSpacing.lg),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Icon(
-                      Icons.info_outline,
-                      size: 18,
-                      color: theme.colorScheme.onSurfaceVariant,
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Text(
-                        l10n.authProfileAdminNote,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
+          // Fond dégradé
+          Positioned.fill(
+            child: DecoratedBox(
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Color(0xFF2A3894),
+                    AppColors.primary,
+                    Color(0xFF151E5E),
                   ],
                 ),
-                if (_error != null) ...[
-                  const SizedBox(height: AppSpacing.lg),
-                  Text(
-                    _error!,
-                    style: theme.textTheme.bodyLarge?.copyWith(
-                      color: theme.colorScheme.error,
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
-          McPrimaryAction(
-            label: l10n.commonConfirm,
-            busy: _busy,
-            onPressed: _role == null ? null : _submit,
+
+          // Icônes de fond
+          _ProfileBackgroundIcons(),
+
+          // Motif technique
+          Positioned.fill(
+            child: CustomPaint(
+              painter: TechPatternPainter(
+                color: Colors.white.withValues(alpha: 0.03),
+              ),
+            ),
+          ),
+
+          SafeArea(
+            child: Center(
+              child: SingleChildScrollView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: SlideTransition(
+                    position: _slideAnimation,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Flèche retour
+                        Align(
+                          alignment: Alignment.centerLeft,
+                          child: IconButton(
+                            onPressed: () {
+                              context.go(AppRoutes.authPhone);
+                            },
+                            icon: const Icon(
+                              Icons.arrow_back,
+                              color: Colors.white,
+                              size: 26,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(
+                              minWidth: 44,
+                              minHeight: 44,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+
+                        // En-tête
+                        _ProfileHeader(
+                          title: l10n.authProfileTitle,
+                          subtitle: l10n.authProfileSubtitle,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+
+                        // Modal blanc
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(AppSpacing.lg),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.10),
+                                blurRadius: 30,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              // Cartes de choix
+                              _ProfileCard(
+                                role: UserRole.client,
+                                title: l10n.roleClient,
+                                description: l10n.roleClientDesc,
+                                selected: _role == UserRole.client,
+                                onTap: () => setState(() {
+                                  _role = UserRole.client;
+                                  _error = null;
+                                }),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+                              _ProfileCard(
+                                role: UserRole.driver,
+                                title: l10n.roleDriver,
+                                description: l10n.roleDriverDesc,
+                                selected: _role == UserRole.driver,
+                                onTap: () => setState(() {
+                                  _role = UserRole.driver;
+                                  _error = null;
+                                }),
+                              ),
+                              const SizedBox(height: AppSpacing.md),
+
+                              // Note admin
+                              Container(
+                                padding: const EdgeInsets.all(
+                                  AppSpacing.sm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.amber.shade50,
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(
+                                    color: Colors.amber.shade200,
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      Icons.info_outline,
+                                      size: 18,
+                                      color: Colors.amber.shade700,
+                                    ),
+                                    const SizedBox(width: AppSpacing.sm),
+                                    Expanded(
+                                      child: Text(
+                                        l10n.authProfileAdminNote,
+                                        style: theme.textTheme.bodyMedium
+                                            ?.copyWith(
+                                          color: Colors.amber.shade700,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+
+                              const SizedBox(height: AppSpacing.md),
+
+                              // Champ Nom
+                              TextField(
+                                controller: _name,
+                                focusNode: _focusNode,
+                                textCapitalization: TextCapitalization.words,
+                                textInputAction: TextInputAction.done,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 18,
+                                ),
+                                decoration: InputDecoration(
+                                  labelText: l10n.authProfileName,
+                                  hintText: l10n.authProfileNameHint,
+                                  labelStyle: const TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                  hintStyle: const TextStyle(fontSize: 16),
+                                  prefixIcon: Icon(
+                                    Icons.person_outline,
+                                    color: AppColors.primary,
+                                    size: 22,
+                                  ),
+                                  filled: true,
+                                  fillColor: const Color(0xFFF8FAFC),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: AppSpacing.md,
+                                    vertical: AppSpacing.sm,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: const BorderSide(
+                                      color: AppColors.primary,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(14),
+                                    borderSide: BorderSide(
+                                      color: Colors.grey.shade200,
+                                      width: 1,
+                                    ),
+                                  ),
+                                ),
+                                onChanged: (_) => setState(() => _error = null),
+                                onSubmitted: (_) => _submit(),
+                              ),
+
+                              if (_error != null) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                Container(
+                                  padding: const EdgeInsets.all(
+                                    AppSpacing.sm,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red.shade50,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Icon(
+                                        Icons.error_outline,
+                                        color: Colors.red.shade700,
+                                        size: 18,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          _error!,
+                                          style: theme.textTheme.bodyMedium
+                                              ?.copyWith(
+                                            color: Colors.red.shade700,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ],
+                              const SizedBox(height: AppSpacing.md),
+
+                              // Bouton "Confirmer"
+                              SizedBox(
+                                height: 52,
+                                child: ElevatedButton(
+                                  onPressed: _role == null || _busy
+                                      ? null
+                                      : _submit,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.primary,
+                                    foregroundColor: Colors.white,
+                                    disabledBackgroundColor: Colors.grey
+                                        .shade300,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                    elevation: 0,
+                                  ),
+                                  child: _busy
+                                      ? const SizedBox(
+                                          height: 22,
+                                          width: 22,
+                                          child: CircularProgressIndicator(
+                                            color: Colors.white,
+                                            strokeWidth: 2.5,
+                                          ),
+                                        )
+                                      : Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
+                                          children: [
+                                            Text(
+                                              l10n.commonConfirm,
+                                              style: const TextStyle(
+                                                fontSize: 17,
+                                                fontWeight: FontWeight.w700,
+                                                letterSpacing: 0.5,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            const Icon(
+                                              Icons.arrow_forward_rounded,
+                                              size: 20,
+                                            ),
+                                          ],
+                                        ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+
+                        // Icônes de confiance
+                        const SizedBox(height: AppSpacing.sm),
+                        _TrustIcons(),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// ============================================================
+// CARTE DE CHOIX DE PROFIL
+// ============================================================
 
 class _ProfileCard extends StatelessWidget {
   const _ProfileCard({
@@ -168,49 +438,253 @@ class _ProfileCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return Card(
-      color: selected ? theme.colorScheme.primaryContainer : null,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppRadii.sheetAll,
-        side: BorderSide(
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
           color: selected
-              ? theme.colorScheme.primary
-              : theme.colorScheme.outlineVariant,
-          width: selected ? 2 : 1,
+              ? AppColors.primary.withValues(alpha: 0.06)
+              : const Color(0xFFF8FAFC),
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: selected
+                ? AppColors.primary
+                : Colors.grey.shade200,
+            width: selected ? 2 : 1,
+          ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.10),
+                    blurRadius: 12,
+                    spreadRadius: 0,
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: selected
+                    ? AppColors.primary.withValues(alpha: 0.1)
+                    : Colors.grey.shade100,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                role.icon,
+                size: 28,
+                color: selected ? AppColors.primary : Colors.grey.shade600,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: selected ? AppColors.primary : Colors.grey.shade800,
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    description,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: selected
+                          ? AppColors.primary.withValues(alpha: 0.7)
+                          : Colors.grey.shade600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              selected ? Icons.check_circle : Icons.circle_outlined,
+              color: selected ? AppColors.primary : Colors.grey.shade300,
+              size: 24,
+            ),
+          ],
         ),
       ),
-      child: InkWell(
-        onTap: onTap,
-        child: Padding(
-          padding: AppSpacing.card,
-          child: Row(
-            children: [
-              Icon(role.icon, size: 32, color: theme.colorScheme.primary),
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(title, style: theme.textTheme.titleMedium),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      description,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Icon(
-                selected ? Icons.check_circle : Icons.circle_outlined,
-                color: selected
-                    ? theme.colorScheme.primary
-                    : theme.colorScheme.outline,
-              ),
-            ],
+    );
+  }
+}
+
+// ============================================================
+// EN-TÊTE
+// ============================================================
+
+class _ProfileHeader extends StatelessWidget {
+  const _ProfileHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          Icons.person_outline,
+          size: 44,
+          color: Colors.white,
+        ),
+        const SizedBox(height: 6),
+        Text(
+          title,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.headlineMedium?.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+            fontSize: 26,
           ),
         ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          textAlign: TextAlign.center,
+          style: theme.textTheme.bodyLarge?.copyWith(
+            color: Colors.white.withValues(alpha: 0.75),
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+// ============================================================
+// ICÔNES DE CONFIANCE
+// ============================================================
+
+class _TrustIcons extends StatelessWidget {
+  const _TrustIcons();
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        _TrustIcon(icon: Icons.shield, size: 24),
+        const SizedBox(width: AppSpacing.sm),
+        _TrustIcon(icon: Icons.lock_outline, size: 22),
+        const SizedBox(width: AppSpacing.sm),
+        _TrustIcon(icon: Icons.verified, size: 24),
+        const SizedBox(width: AppSpacing.sm),
+        _TrustIcon(icon: Icons.security, size: 24),
+      ],
+    ).animate().fadeIn(duration: 600.ms).slideY(
+      begin: 0.1,
+      curve: Curves.easeOut,
+    );
+  }
+}
+
+class _TrustIcon extends StatelessWidget {
+  const _TrustIcon({
+    required this.icon,
+    required this.size,
+  });
+
+  final IconData icon;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.15),
+          width: 1.5,
+        ),
+        color: Colors.white.withValues(alpha: 0.04),
+      ),
+      child: Icon(
+        icon,
+        color: Colors.white.withValues(alpha: 0.6),
+        size: size,
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ICÔNES DE FOND
+// ============================================================
+
+class _ProfileBackgroundIcons extends StatelessWidget {
+  const _ProfileBackgroundIcons();
+
+  @override
+  Widget build(BuildContext context) {
+    final icons = [
+      Icons.person_outline,
+      Icons.people_outline,
+      Icons.person_add_outlined,
+      Icons.badge_outlined,
+      Icons.account_circle_outlined,
+    ];
+
+    final positions = [
+      (0.04, 0.04, 45, 0),
+      (0.86, 0.06, 35, 1),
+      (0.10, 0.28, 30, 2),
+      (0.80, 0.32, 40, 3),
+      (0.04, 0.55, 38, 4),
+      (0.92, 0.58, 28, 0),
+      (0.08, 0.78, 34, 1),
+      (0.84, 0.80, 30, 2),
+      (0.48, 0.12, 24, 3),
+      (0.96, 0.90, 40, 4),
+      (0.02, 0.92, 26, 0),
+      (0.42, 0.88, 24, 1),
+      (0.72, 0.46, 22, 2),
+      (0.28, 0.70, 32, 3),
+      (0.58, 0.28, 22, 4),
+    ];
+
+    return Positioned.fill(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: positions.map((pos) {
+              final x = pos.$1 * constraints.maxWidth;
+              final y = pos.$2 * constraints.maxHeight;
+              final size = pos.$3.toDouble();
+              final iconIndex = pos.$4;
+              final iconData = icons[iconIndex % icons.length];
+
+              return Positioned(
+                left: x,
+                top: y,
+                child: Opacity(
+                  opacity: 0.04 + (size / 200),
+                  child: Icon(
+                    iconData,
+                    size: size,
+                    color: Colors.white,
+                  ),
+                ),
+              );
+            }).toList(),
+          );
+        },
       ),
     );
   }
