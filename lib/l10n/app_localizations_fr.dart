@@ -1715,6 +1715,47 @@ class AppLocalizationsFr extends AppLocalizations {
   String get earningsCommission => 'Montants nets, commission deduite.';
 
   @override
+  String get withdrawTitle => 'Retrait';
+
+  @override
+  String get withdrawAvailable => 'Solde MajiPay disponible';
+
+  @override
+  String get withdrawAction => 'Retirer';
+
+  @override
+  String get withdrawAmountLabel => 'Montant a retirer (Ar)';
+
+  @override
+  String get withdrawDestinationLabel => 'Vers (Mobile Money, compte)';
+
+  @override
+  String get withdrawConfirm => 'Confirmer le retrait';
+
+  @override
+  String withdrawSuccess(String ref) {
+    return 'Retrait effectue. Reference $ref';
+  }
+
+  @override
+  String get withdrawInsufficient => 'Solde insuffisant pour ce retrait';
+
+  @override
+  String get withdrawInvalidAmount => 'Montant invalide';
+
+  @override
+  String get notifCenterTitle => 'Notifications';
+
+  @override
+  String get notifCenterEmpty => 'Aucune notification pour le moment';
+
+  @override
+  String get notifCenterMarkAllRead => 'Tout marquer comme lu';
+
+  @override
+  String get notifCenterClear => 'Effacer l\'historique';
+
+  @override
   String get kycTitle => 'Mon dossier';
 
   @override
@@ -1993,4 +2034,41 @@ class AppLocalizationsFr extends AppLocalizations {
   String shellModuleWipDesc(String module) {
     return 'Cet ecran sera livre au module $module.';
   }
+
+  @override
+  String get chatTitle => 'Discussion';
+
+  @override
+  String get chatInputHint => 'Votre message';
+
+  @override
+  String get chatSendError => 'Message non envoye, reessayez';
+
+  @override
+  String get chatUnavailable => 'Discussion indisponible pour le moment';
+
+  @override
+  String get chatUnavailableHint =>
+      'Verifiez le reseau, la relecture reprendra seule.';
+
+  @override
+  String get chatEmpty => 'Demarrez la conversation';
+
+  @override
+  String get chatEmptyHint => 'Coordonnez le retrait et la remise du colis.';
+
+  @override
+  String get chatToday => 'Aujourd\'hui';
+
+  @override
+  String get chatYesterday => 'Hier';
+
+  @override
+  String get chatRead => 'Lu';
+
+  @override
+  String get chatSent => 'Envoye';
+
+  @override
+  String get chatCall => 'Appeler';
 }

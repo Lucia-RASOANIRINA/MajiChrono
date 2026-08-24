@@ -90,11 +90,16 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
               child: Column(
                 children: [
-                  // Marge fixe et non un ressort : le titre doit se poser haut,
-                  // comme sur la maquette. Un `Spacer` en tete repoussait tout le
-                  // bloc vers le bas et laissait un vide que rien n'occupait —
-                  // celui ou vivait autrefois le logo.
-                  const SizedBox(height: AppSpacing.xxl),
+                  const SizedBox(height: AppSpacing.lg),
+                  // Le logo, pose a plat en haut de l'ecran. C'est la meme
+                  // illustration que l'ecran de lancement : un seul symbole, du
+                  // lanceur a la premiere page.
+                  Image.asset(
+                    'assets/brand/logo_rider.png',
+                    height: 150,
+                    fit: BoxFit.contain,
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     l10n.appName,
                     textAlign: TextAlign.center,
@@ -104,13 +109,7 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       letterSpacing: -0.5,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  // Le pays, en petit, sous le nom. Il dit d'ou vient
-                  // l'application sans une ligne de texte de plus — et sur un
-                  // marche ou la confiance se joue sur l'ancrage local, c'est
-                  // une information qui vaut d'etre montree en premier.
-                  const MadagascarMark(height: 34),
-                  const SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.md),
                   Text(
                     l10n.welcomeTagline,
                     textAlign: TextAlign.center,
@@ -119,11 +118,9 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       height: 1.4,
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.xxl),
-                  // `Expanded` et non une taille libre : sur un ecran court — 320
-                  // dp de haut sur le parc d'entree de gamme — le schema doit se
-                  // reduire plutot que deborder. Aligne en haut, il reste sous la
-                  // promesse au lieu de flotter au milieu du vide.
+                  const SizedBox(height: AppSpacing.xl),
+                  // La ronde des quatre elements sur les deux mains : le style
+                  // d'accueil d'origine, conserve tel quel.
                   Expanded(
                     child: Align(
                       alignment: Alignment.topCenter,
@@ -153,9 +150,6 @@ class _WelcomeScreenState extends ConsumerState<WelcomeScreen> {
                       ),
                     ),
                   ),
-                  // Le bas de l'ecran restait vide, et ce vide se lisait comme
-                  // un ecran inacheve. Un scooter le traverse en boucle, sur
-                  // une route pointillee.
                   const McScooterStrip(),
                   const SizedBox(height: AppSpacing.md),
                 ],

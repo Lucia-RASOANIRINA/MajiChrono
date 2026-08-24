@@ -593,6 +593,22 @@
   "earningsEmpty": "Tsy misy tombony voarakitra",
   "earningsCommission": "Vola madio, efa nesorina ny sara.",
 
+  "withdrawTitle": "Fisintonam-bola",
+  "withdrawAvailable": "Volan'ny MajiPay azo ampiasaina",
+  "withdrawAction": "Misintona",
+  "withdrawAmountLabel": "Vola hosintonina (Ar)",
+  "withdrawDestinationLabel": "Mankany (Mobile Money, kaonty)",
+  "withdrawConfirm": "Hamafiso ny fisintonana",
+  "withdrawSuccess": "Vita ny fisintonana. Laharana {ref}",
+  "@withdrawSuccess": { "placeholders": { "ref": { "type": "String" } } },
+  "withdrawInsufficient": "Tsy ampy ny vola amin'ity fisintonana ity",
+  "withdrawInvalidAmount": "Tsy mety ny vola",
+
+  "notifCenterTitle": "Fampahafantarana",
+  "notifCenterEmpty": "Tsy misy fampahafantarana aloha",
+  "notifCenterMarkAllRead": "Mariho ho voavaky daholo",
+  "notifCenterClear": "Fafao ny tantara",
+
   "kycTitle": "Ny antontan-taratasiko",
   "kycStatusDraft": "Tokony fenoina ny antontan-taratasy",
   "kycStatusSubmitted": "Nalefa ny antontan-taratasy",
@@ -694,5 +710,18 @@
 
   "shellModuleWip": "Mbola amboarina ity modely ity",
   "shellModuleWipDesc": "Halefa amin'ny modely {module} ity efijery ity.",
-  "@shellModuleWipDesc": { "placeholders": { "module": { "type": "String" } } }
+  "@shellModuleWipDesc": { "placeholders": { "module": { "type": "String" } } },
+
+  "chatTitle": "Resaka",
+  "chatInputHint": "Ny hafatrao",
+  "chatSendError": "Tsy voalefa ny hafatra, andramo indray",
+  "chatUnavailable": "Tsy azo idirana aloha ny resaka",
+  "chatUnavailableHint": "Hamarino ny fifandraisana, hiverina ho azy ny famakiana.",
+  "chatEmpty": "Atombohy ny resaka",
+  "chatEmptyHint": "Ifandrindrao ny fakana sy ny fanaterana ny entana.",
+  "chatToday": "Androany",
+  "chatYesterday": "Omaly",
+  "chatRead": "Vakiana",
+  "chatSent": "Voalefa",
+  "chatCall": "Miantso"
 }

@@ -268,3 +268,31 @@ class ScannedPayment {
   final String intentId;
   final String token;
 }
+
+/// Recu d'un retrait MajiPay (EXI-MP09).
+///
+/// Il porte la reference remise par le prestataire — de quoi retrouver le
+/// mouvement chez MajiPay en cas de litige — et le solde **restant**, que
+/// l'ecran relit sans avoir a interroger le serveur une seconde fois.
+class WithdrawReceipt {
+  const WithdrawReceipt({
+    required this.ref,
+    required this.amountAriary,
+    required this.balance,
+  });
+
+  final String ref;
+  final int amountAriary;
+  final MajiPayBalance balance;
+
+  static WithdrawReceipt? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final balance = MajiPayBalance.fromJson(json);
+    if (balance == null) return null;
+    return WithdrawReceipt(
+      ref: '${json['receiptRef'] ?? ''}',
+      amountAriary: (json['amount'] as num?)?.toInt() ?? 0,
+      balance: balance,
+    );
+  }
+}

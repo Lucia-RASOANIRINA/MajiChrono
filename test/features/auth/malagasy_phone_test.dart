@@ -53,6 +53,8 @@ void main() {
   group('operateur', () {
     test('les prefixes connus sont reconnus', () {
       expect(MalagasyPhone.tryParse('0321234567')!.operator, MobileOperator.orange);
+      expect(MalagasyPhone.tryParse('0371234567')!.operator, MobileOperator.orange);
+      expect(MalagasyPhone.tryParse('0391234567')!.operator, MobileOperator.orange);
       expect(MalagasyPhone.tryParse('0331234567')!.operator, MobileOperator.airtel);
       expect(MalagasyPhone.tryParse('0341234567')!.operator, MobileOperator.telma);
       expect(MalagasyPhone.tryParse('0381234567')!.operator, MobileOperator.telma);
@@ -69,7 +71,7 @@ void main() {
       // Le refus est volontaire : un numero bien forme mais impossible partait
       // autrefois en inscription, le SMS n'arrivait jamais, et l'utilisateur
       // concluait que l'application ne marche pas.
-      for (final input in ['0301234567', '0351234567', '0391234567']) {
+      for (final input in ['0301234567', '0351234567', '0361234567']) {
         expect(MalagasyPhone.tryParse(input), isNull, reason: input);
         expect(MalagasyPhone.isUnknownOperator(input), isTrue, reason: input);
       }

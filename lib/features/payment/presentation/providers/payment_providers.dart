@@ -140,6 +140,18 @@ class PaymentActions {
   Future<PaymentIntent> fallbackToCash(String intentId) =>
       _repository.fallbackToCash(intentId);
 
+  /// Retrait du solde MajiPay du livreur vers un moyen externe (EXI-MP09).
+  ///
+  /// Le processus est conduit ici ; la sortie d'argent se fait chez MajiPay. On
+  /// rend le solde restant, que l'ecran relit pour se remettre a jour.
+  Future<WithdrawReceipt> withdraw({
+    required int amountAriary,
+    String destination = '',
+  }) => _repository.withdraw(
+    amountAriary: amountAriary,
+    destination: destination,
+  );
+
   Future<bool> _verifyPin(String pin) =>
       _ref.read(authRepositoryProvider).verifyPin(pin);
 }

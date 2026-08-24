@@ -37,6 +37,12 @@ class NotificationService {
   /// Ouvre le lien profond porte par une notification touchee.
   void Function(String route)? _onSelectRoute;
 
+  /// Appele avec chaque notification **effectivement affichee** (donc jamais une
+  /// annonce commerciale coupee). C'est par la que le centre de notifications se
+  /// remplit : la couche d'affichage signale ce qu'elle pose, sans connaitre le
+  /// centre lui-meme.
+  void Function(AppNotification notification)? onShown;
+
   /// Prepare le plugin, cree les quatre canaux, et branche le toucher.
   ///
   /// [onSelectRoute] est appele avec la route (lien profond) quand l'utilisateur
@@ -161,6 +167,9 @@ class NotificationService {
       'notification_shown',
       data: {'channel': channel.id, 'hasRoute': notification.route != null},
     );
+    // On ne previent le centre qu'apres un affichage reussi : ce qui n'a pas pu
+    // s'afficher n'a pas non plus a garnir l'historique.
+    onShown?.call(notification);
   }
 
   /// Route portee par la notification qui a lance l'application (demarrage a

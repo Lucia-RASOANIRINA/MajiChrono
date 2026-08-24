@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -59,9 +61,13 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
 
     final l10n = AppLocalizations.of(context);
     final messenger = ScaffoldMessenger.of(context);
+    final router = GoRouter.of(context);
+    final deliveryId = widget.offer.delivery.id;
+    var accepted = false;
 
     try {
-      await ref.read(driverActionsProvider).accept(widget.offer.delivery.id);
+      await ref.read(driverActionsProvider).accept(deliveryId);
+      accepted = true;
     } on ConflictFailure {
       // Course prise par un autre : cas normal de la course a l'acceptation.
       messenger.showSnackBar(SnackBar(content: Text(l10n.driverAlreadyTaken)));
@@ -71,6 +77,13 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
       );
     } finally {
       if (mounted) setState(() => _busy = false);
+    }
+
+    // La discussion avec l'expediteur s'ouvre d'elle-meme des l'acceptation :
+    // c'est le moment ou les deux ont besoin de se coordonner (« j'arrive »,
+    // « je suis en bas »), sans avoir a chercher un bouton.
+    if (accepted && mounted) {
+      unawaited(router.push(AppRoutes.chat(deliveryId)));
     }
   }
 

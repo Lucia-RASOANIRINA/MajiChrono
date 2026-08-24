@@ -25,9 +25,25 @@ class DeliveriesScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final deliveries = ref.watch(deliveriesProvider);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.deliveriesTitle)),
+      backgroundColor:
+          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      appBar: AppBar(
+        backgroundColor:
+            isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        surfaceTintColor: Colors.transparent,
+        scrolledUnderElevation: 0,
+        title: Text(
+          l10n.deliveriesTitle,
+          style: TextStyle(
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.3,
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+          ),
+        ),
+      ),
       body: deliveries.when(
         loading: () => const McSkeletonList(),
         error: (_, _) => McEmptyState(

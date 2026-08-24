@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
+import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
@@ -82,6 +84,16 @@ class TrackingScreen extends ConsumerWidget {
       appBar: AppBar(
         title: Text(l10n.trackingTitle),
         actions: [
+          // Discussion avec le livreur, des qu'une course est acceptee.
+          if (delivery.driverId != null)
+            IconButton(
+              icon: const Icon(Icons.chat_bubble_outline),
+              tooltip: 'Discussion',
+              onPressed: () => context.push(
+                AppRoutes.chat(delivery.id),
+                extra: delivery.driverName,
+              ),
+            ),
           if (delivery.paymentMethod == PaymentMethod.majipay &&
               (delivery.status == DeliveryStatus.delivered ||
                   delivery.status == DeliveryStatus.deliveredWithReserves))

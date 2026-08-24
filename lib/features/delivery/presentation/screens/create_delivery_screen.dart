@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
@@ -18,7 +17,6 @@ import 'package:majichrono/features/delivery/presentation/widgets/address_form.d
 import 'package:majichrono/features/delivery/presentation/widgets/price_breakdown.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
-import 'package:majichrono/shared/widgets/mc_primary_action.dart';
 
 class CreateDeliveryScreen extends ConsumerStatefulWidget {
   const CreateDeliveryScreen({super.key});
@@ -871,7 +869,6 @@ class _ReviewStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),

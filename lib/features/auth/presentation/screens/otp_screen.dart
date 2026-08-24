@@ -16,7 +16,6 @@ import 'package:majichrono/features/auth/presentation/providers/auth_providers.d
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_patterns.dart';
-import 'package:majichrono/shared/widgets/mc_primary_action.dart';
 
 class OtpScreen extends ConsumerStatefulWidget {
   const OtpScreen({required this.challenge, super.key});

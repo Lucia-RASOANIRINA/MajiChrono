@@ -22,8 +22,9 @@ from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.deps import Idempotency, current_account, idempotency
+from app.core.deps import Idempotency, current_account, idempotency, require_role
 from app.core.errors import conflict, forbidden, not_found, unprocessable
+from app.core.geo import MAX_ACCEPT_KM, haversine_km, point_of
 from app.core.security import new_opaque_token
 from app.db import get_db
 from app.models import (
@@ -33,6 +34,7 @@ from app.models import (
     DeliveryEvent,
     DeliveryStatus,
     Account,
+    DriverState,
     UserRole,
 )
 
@@ -157,6 +159,31 @@ async def read_delivery(
     return {**delivery.to_json(), "events": [e.to_json() for e in events]}
 
 
+def _enforce_accept_distance(
+    db: Session, driver: Account, delivery: Delivery
+) -> None:
+    """Refuse l'acceptation d'une course hors de portee du livreur.
+
+    On compare la derniere position connue du livreur au point de retrait. Si
+    l'une des deux manque — livreur sans fix GPS, adresse sans coordonnees — on
+    ne peut pas juger : on laisse passer plutot que de bloquer sur une donnee
+    absente. Des que les deux sont connues, la course trop eloignee est refusee
+    avec la distance, que l'application peut afficher telle quelle.
+    """
+    state = db.get(DriverState, driver.id)
+    pickup = point_of(delivery.pickup_json)
+    if state is None or state.lat is None or state.lng is None or pickup is None:
+        return
+
+    distance = haversine_km(state.lat, state.lng, pickup[0], pickup[1])
+    if distance > MAX_ACCEPT_KM:
+        raise unprocessable(
+            "too_far",
+            "Course trop eloignee pour etre acceptee",
+            {"distanceKm": round(distance, 1), "maxKm": MAX_ACCEPT_KM},
+        )
+
+
 @router.post("/deliveries/{delivery_id}/transition")
 async def transition_delivery(
     delivery_id: str,
@@ -208,6 +235,7 @@ async def transition_delivery(
                 "Course deja prise",
                 {"currentState": delivery.status.value},
             )
+        _enforce_accept_distance(db, account, delivery)
 
     if target not in ALLOWED_TRANSITIONS[delivery.status]:
         raise conflict(
@@ -226,6 +254,49 @@ async def transition_delivery(
     payload = delivery.to_json()
     idem.remember(200, payload)
     return payload
+
+
+@router.post("/deliveries/{delivery_id}/accept")
+async def accept_delivery(
+    delivery_id: str,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Acceptation d'une course par un livreur (EXI-L05).
+
+    C'est le geste qui assigne le livreur et ouvre la discussion avec
+    l'expediteur. Deux garde-fous : la course doit etre encore libre, et son
+    point de retrait doit etre a portee du livreur (regle de distance). Le
+    second acceptant lit « course deja prise » ; un livreur qui reaccepte sa
+    propre course relit simplement son etat, sans erreur.
+    """
+    delivery = db.get(Delivery, delivery_id)
+    if delivery is None:
+        raise not_found("Course inconnue")
+
+    if delivery.driver_id is not None:
+        if delivery.driver_id == account.id:
+            return delivery.to_json()
+        raise conflict(
+            "already_taken",
+            "Course deja prise",
+            {"currentState": delivery.status.value},
+        )
+
+    if delivery.status is not DeliveryStatus.pending:
+        raise conflict(
+            "illegal_transition",
+            "La course n'est plus a prendre",
+            {"currentState": delivery.status.value},
+        )
+
+    _enforce_accept_distance(db, account, delivery)
+
+    delivery.driver_id = account.id
+    delivery.status = DeliveryStatus.assigned
+    _record(db, delivery, account.id, "acceptation")
+    db.commit()
+    return delivery.to_json()
 
 
 @router.post("/deliveries/{delivery_id}/cancel")

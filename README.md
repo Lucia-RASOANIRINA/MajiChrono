@@ -313,25 +313,312 @@ dart run build_runner build --delete-conflicting-outputs
 
 ## Lancement
 
-### Mode recommandé : backend simulé
+Le projet a deux moitiés : le **serveur** (`server/`, FastAPI + PostgreSQL) et
+l'**application** (Flutter). On peut lancer l'application seule contre son
+backend simulé, ou lancer les deux ensemble.
 
-Le backend réel n'étant pas encore disponible, l'application peut fonctionner avec le backend simulé intégré.
+### Option A — Application seule (backend simulé)
+
+Aucun serveur, aucune base : le simulateur embarqué répond à la place du
+serveur. C'est le mode le plus rapide pour parcourir l'interface.
 
 ```bash
 flutter run --dart-define=API_MODE=mock
 ```
 
-Aucun serveur externe n'est nécessaire.
+En mode simulé, le code OTP est affiché dans l'application (`debugCode`) : le
+parcours de connexion se teste sans passerelle SMS ni e-mail.
 
-### Mode backend réel
+### Option B — Projet complet (serveur réel + application)
 
-Lorsque le backend sera disponible :
+#### 1. Démarrer le serveur
+
+Prérequis : **Python 3.12** (les dépendances sont épinglées à des versions qui
+ont des paquets précompilés pour 3.12 ; 3.13/3.14 obligeraient à compiler
+psycopg et pydantic-core à la main).
 
 ```bash
-flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=https://api.majichrono.mg/v2
+cd server
+
+# Environnement isolé
+py -3.12 -m venv .venv          # ou : python -m venv .venv
+.venv\Scripts\activate          # Windows
+pip install -r requirements.txt
+
+# Configuration : copier l'exemple, puis générer un secret
+copy .env.example .env
+python -c "import secrets;print(secrets.token_urlsafe(48))"   # -> coller dans JWT_SECRET
+
+# Créer le schéma (développement)
+python -c "from app.db import create_all; create_all()"
+
+# Lancer
+uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-Le passage de mock à live est prévu pour modifier uniquement la configuration du transport, sans réécrire les fonctionnalités métier.
+Le serveur écoute alors sur `http://localhost:8000`. Vérifier :
+
+```bash
+curl http://localhost:8000/health
+```
+
+La documentation interactive de l'API est sur `http://localhost:8000/docs`.
+
+#### 2. Lancer l'application, connectée au serveur
+
+```bash
+# Émulateur Android : la machine hôte est vue comme 10.0.2.2
+flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=http://10.0.2.2:8000
+
+# Appareil physique sur le même Wi-Fi : mettre l'IP locale de la machine
+flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=http://192.168.x.x:8000
+```
+
+Le passage de `mock` à `live` ne change que la configuration du transport, jamais
+la logique métier.
+
+> Si le port `8000` est déjà pris par un autre service (un serveur PHP local, par
+> exemple), lancez le serveur sur un autre port — `uvicorn app.main:app --port 8010`
+> — et pointez l'application vers `http://10.0.2.2:8010`.
+
+#### 3. Créer des données de test
+
+Deux scripts peuplent une base neuve sans passer par l'interface. Ils sont
+**idempotents** : les relancer ne crée pas de doublon.
+
+```bash
+cd server
+
+# Compte administrateur (connexion e-mail -> mot de passe)
+.venv\Scripts\python -m app.tools.seed_admin
+
+# Jeu de démonstration : 1 expéditeur, 1 livreur, 5 courses réparties sur
+# les états (en attente / assignée / en transit / livrée), avec leur journal
+.venv\Scripts\python -m app.tools.seed_test_data
+```
+
+Comptes créés :
+
+| Rôle | Identifiant | Détails |
+|---|---|---|
+| Administrateur | `majitech@gmail.com` / `majichrono` | connexion e-mail → mot de passe ; numéro réservé `+261340000000` |
+| Expéditeur | `+261340000001` | Rina Rakoto — 5 courses de démonstration |
+| Livreur | `+261330000002` | Tovo Livreur — en ligne, KYC validé, position à Ankorondrano |
+
+En développement, le code OTP est renvoyé dans la réponse (`debugCode`) et écrit
+dans le journal du serveur : la connexion par téléphone se teste sans passerelle
+SMS. Pour se connecter, saisir l'un des numéros ci-dessus sur l'écran téléphone,
+puis lire le code dans la réponse ou le journal.
+
+> Ces identifiants sont réservés au développement. Ne jamais les committer tels
+> quels pour un déploiement réel.
+
+---
+
+## Base de données
+
+Le code des routes ne change pas d'une ligne entre les trois bases : SQLAlchemy
+les sert toutes. On choisit avec la variable `DATABASE_URL` de `server/.env`.
+
+### SQLite — par défaut, pour démarrer sans rien installer
+
+```env
+DATABASE_URL=sqlite:///./majichrono.db
+```
+
+Le fichier `server/majichrono.db` est créé automatiquement. C'est aussi la base
+**hors-ligne côté serveur** : elle fonctionne sans réseau ni installation.
+
+> À ne pas confondre avec le **hors-ligne de l'application** (voir la section
+> « Mode hors ligne ») : celui-ci est une base locale embarquée **dans le
+> téléphone**, qui garde les actions tant que le réseau manque puis les
+> synchronise avec le serveur.
+
+### PostgreSQL local — pour développer et tester au plus près de la production
+
+C'est la base qui tient la concurrence et les transactions longues. Créer la
+base et l'utilisateur une seule fois (adapter le port : une installation
+PostgreSQL 17 native écoute souvent sur **5433**, un conteneur sur 5432) :
+
+```sql
+-- Connecté en superutilisateur (psql -U postgres -p 5433) :
+CREATE USER majichrono WITH PASSWORD 'majichrono';
+CREATE DATABASE majichrono OWNER majichrono;
+```
+
+Puis dans `server/.env` :
+
+```env
+DATABASE_URL=postgresql+psycopg://majichrono:majichrono@localhost:5433/majichrono
+```
+
+Recréer le schéma : `python -c "from app.db import create_all; create_all()"`.
+
+Variante par conteneur (si Docker est disponible) :
+
+```bash
+docker run -d --name majichrono-db -p 5432:5432 \
+  -e POSTGRES_USER=majichrono -e POSTGRES_PASSWORD=majichrono \
+  -e POSTGRES_DB=majichrono postgres:16
+```
+
+### Neon — PostgreSQL infogéré, pour le déploiement
+
+Neon héberge la base dans le cloud : plusieurs appareils voient les mêmes
+données, ce que le local ne permet pas. Offre gratuite, sans carte bancaire.
+
+1. Créer un projet sur [console.neon.tech](https://console.neon.tech). Choisir
+   la région la plus proche de Madagascar : **eu-central-1 (Francfort)** ajoute
+   deux à trois fois moins de latence qu'une région américaine.
+2. Dashboard → **Connection string** → onglet **Pooled connection**.
+3. Remplacer le préfixe `postgresql://` par `postgresql+psycopg://`.
+4. Garder `?sslmode=require` à la fin : Neon refuse les connexions en clair.
+
+```env
+DATABASE_URL=postgresql+psycopg://user:mdp@ep-xxx-pooler.eu-central-1.aws.neon.tech/majichrono?sslmode=require
+```
+
+> Neon met les bases inactives en veille ; le premier appel après une pause paie
+> le réveil (jusqu'à ~5 s). C'est normal.
+
+Le fichier `server/.env.neon.example` est prêt à copier.
+
+---
+
+## E-mail réel (code de connexion par e-mail)
+
+Sans configuration SMTP, le serveur **écrit le code dans son journal** au lieu de
+l'envoyer (et le renvoie dans `debugCode` hors production). C'est voulu : le
+parcours complet se teste sans compte fournisseur. Pour envoyer de vrais
+e-mails, renseigner quatre variables dans `server/.env`.
+
+### Obtenir une clé Resend (recommandé pour la production)
+
+Resend offre 3 000 e-mails/mois sans carte bancaire.
+
+1. Créer un compte sur [resend.com](https://resend.com) (bouton **Sign up**).
+2. Menu **API Keys** → **Create API Key**. Donner un nom (`majichrono`),
+   permission **Sending access**. Copier la clé affichée — elle commence par
+   `re_` et **ne s'affiche qu'une fois**.
+3. Menu **Domains** → **Add Domain** : ajouter votre domaine, puis publier chez
+   votre registrar les enregistrements **SPF, DKIM et DMARC** que Resend
+   affiche. Cette étape n'est pas optionnelle : sans elle, les codes partent en
+   indésirables — pire qu'une absence d'e-mail, car l'utilisateur ne sait pas où
+   chercher.
+   - Pour un simple essai avant d'avoir un domaine, l'adresse
+     `onboarding@resend.dev` fournie par Resend permet d'envoyer vers votre
+     propre adresse.
+4. Renseigner `server/.env` :
+
+```env
+SMTP_HOST=smtp.resend.com
+SMTP_PORT=587
+SMTP_USER=resend
+SMTP_PASSWORD=re_votre_cle
+MAIL_FROM_ADDRESS=no-reply@votre-domaine.mg   # doit appartenir au domaine vérifié
+MAIL_FROM_NAME=MajiChrono
+```
+
+5. Redémarrer le serveur. Un test rapide : `python -m app.tools.check_mail`.
+
+### Variante Gmail (pour la recette, ~500 envois/jour)
+
+Le mot de passe du compte **ne marche pas** : Google exige un « mot de passe
+d'application », à créer sur
+[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
+après avoir activé la validation en deux étapes.
+
+```env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=votre.adresse@gmail.com
+SMTP_PASSWORD=xxxx xxxx xxxx xxxx
+```
+
+---
+
+## SMS réel (code de connexion par téléphone)
+
+Même principe : tant que `SMS_API_KEY` est vide, le code part dans le journal du
+serveur, jamais sur le réseau — pour ne pas consommer le quota d'essai pendant
+le développement. Le premier envoi réel doit être un geste décidé.
+
+La passerelle utilisée est **mAPI** (Madagascar) : locale, les codes partent
+d'un numéro court malgache et arrivent sur Orange, Airtel et Telma sans passer
+par un agrégateur étranger.
+
+1. Ouvrir un compte sur [messaging.mapi.mg/subscriber](https://messaging.mapi.mg/subscriber).
+2. Récupérer la clé d'API.
+3. Faire déclarer `MajiChrono` comme nom d'expéditeur (11 caractères maximum).
+4. Renseigner `server/.env`, puis redémarrer :
+
+```env
+SMS_API_KEY=votre_cle_mapi
+SMS_SENDER=MajiChrono
+```
+
+Une fois la clé posée, l'écran de connexion par téléphone envoie un vrai SMS ;
+le code n'apparaît plus dans l'application.
+
+---
+
+## Espace administrateur (accès unique)
+
+Le rôle **administrateur** est attribué **côté serveur** et ne se choisit jamais
+depuis l'application : l'écran de profil n'offre que « expéditeur » et
+« livreur ». Le seul point d'entrée du rôle admin est un script, ce qui garantit
+qu'il n'existe qu'**un seul** administrateur tant qu'on ne le lance qu'une fois.
+
+```bash
+cd server
+.venv\Scripts\python -m app.tools.seed_admin
+```
+
+Cela crée (ou met à jour, sans doublon) le compte :
+
+- **E-mail** : `majitech@gmail.com`
+- **Mot de passe** : `majichrono`
+- Connexion dans l'app : écran **« Avec une adresse e-mail » → mot de passe**.
+
+Le script signale tout autre compte admin déjà présent, pour que l'accès reste
+unique. Changez ces identifiants avant la production.
+
+## Numéros et opérateurs
+
+Seuls les préfixes réellement exploités à Madagascar sont acceptés à la saisie
+(côté application **et** côté serveur — la même règle aux deux bouts) :
+
+| Opérateur | Préfixes |
+|---|---|
+| Telma | 034, 038 |
+| Orange | 032, 037, 039 |
+| Airtel | 033 |
+| Telma fixe (e-mail uniquement, pas de SMS) | 020 |
+
+Un numéro en 030, 031, 035 ou 036 est refusé avec un message qui nomme les
+opérateurs attendus.
+
+## Pas de comptes en double
+
+Le **numéro de téléphone est la clé du compte** : la colonne `accounts.phone`
+est **unique** en base, tout comme `accounts.email`. Concrètement :
+
+- Se connecter avec un numéro déjà enregistré **rouvre le compte existant** — il
+  n'en crée jamais un second.
+- Une inscription par mot de passe sur une adresse déjà prise est refusée
+  (`email_taken`), et rattacher une adresse déjà liée à un autre compte aussi.
+
+La redondance est donc empêchée par le schéma lui-même, pas par une vérification
+qu'on pourrait oublier d'appeler.
+
+## Vérifier le serveur
+
+Depuis `server/`, la suite de tests tourne sur une base en mémoire, sans toucher
+à votre base :
+
+```bash
+.venv\Scripts\python -m pytest -q
+```
 
 ### Vérification du projet
 

@@ -35,10 +35,11 @@ from app.models import Account, Challenge, ChallengeChannel, RefreshToken
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
-# Plages reellement exploitees a Madagascar : Orange, Airtel, Telma mobile, et
-# le fixe Telma. Refuser les autres tot evite qu'un numero mal recopie parte en
-# inscription et attende un SMS qui n'arrivera jamais.
-PHONE_PATTERN = re.compile(r"^\+261(32|33|34|38|20)\d{7}$")
+# Plages reellement exploitees a Madagascar, telles que retenues par le projet :
+#   Telma  : 034, 038          Orange : 032, 037, 039          Airtel : 033
+# plus le fixe Telma 020. Refuser les autres tot evite qu'un numero mal recopie
+# parte en inscription et attende un SMS qui n'arrivera jamais.
+PHONE_PATTERN = re.compile(r"^\+261(32|33|34|37|38|39|20)\d{7}$")
 EMAIL_PATTERN = re.compile(r"^[^@\s]+@[^@\s.]+\.[^@\s]+$")
 MIN_PASSWORD_LENGTH = 8
 

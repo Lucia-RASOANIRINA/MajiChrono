@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/app/router/app_routes.dart';
-import 'package:majichrono/app/theme/app_colors.dart';
+import 'package:majichrono/shared/widgets/mc_moto_loader.dart';
 import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
@@ -36,8 +36,10 @@ import 'package:majichrono/features/home/presentation/socle_home_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/public_tracking_screen.dart';
 import 'package:majichrono/features/tracking/presentation/screens/tracking_screen.dart';
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
+import 'package:majichrono/features/notifications/presentation/screens/notification_center_screen.dart';
 import 'package:majichrono/features/settings/presentation/pending_sync_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
+import 'package:majichrono/features/chat/presentation/chat_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -45,14 +47,16 @@ final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
 
 /// Duree minimale d'affichage de l'ecran d'attente.
 ///
-/// Elle est **nulle** : le logo est desormais porte par l'ecran de demarrage du
-/// systeme, qui s'affiche des la premiere milliseconde. Retenir l'utilisateur
-/// ici ajouterait une attente derriere une attente, sans rien montrer de plus.
-///
-/// Le point d'extension est conserve — et non supprime — parce qu'un ecran
-/// d'attente sans plancher devient invisible le jour ou on y met quoi que ce
-/// soit a regarder. La valeur se change ici, en un seul endroit.
-final splashHoldProvider = FutureProvider<void>((ref) async {});
+/// Un plancher court, mais non nul : sans lui, l'ecran de chargement de marque —
+/// le nom et la barre qui se remplit — passerait si vite qu'on ne le verrait
+/// jamais, et le premier affichage de l'application sauterait directement au
+/// contenu. Ce plancher laisse la barre de chargement s'afficher le temps d'un
+/// battement, puis rend la main. La valeur se change ici, en un seul endroit.
+const splashMinimumHold = Duration(milliseconds: 1200);
+
+final splashHoldProvider = FutureProvider<void>((ref) async {
+  await Future<void>.delayed(splashMinimumHold);
+});
 
 /// Routeur applicatif.
 ///
@@ -170,12 +174,35 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const SettingsScreen(),
       ),
       GoRoute(
+        path: AppRoutes.notifications,
+        builder: (_, _) => const NotificationCenterScreen(),
+      ),
+      GoRoute(
         path: AppRoutes.dataUsage,
         builder: (_, _) => const DataUsageScreen(),
       ),
       GoRoute(
         path: AppRoutes.pendingSync,
         builder: (_, _) => const PendingSyncScreen(),
+      ),
+      GoRoute(
+        path: '/chat/:deliveryId',
+        builder: (context, state) {
+          // L'appelant transmet l'interlocuteur via `extra` : soit un simple
+          // titre (compatibilite), soit un couple (titre, telephone) pour
+          // offrir aussi l'appel direct.
+          final extra = state.extra;
+          final (title, phone) = switch (extra) {
+            (String? t, String? p) => (t, p),
+            final String t => (t, null),
+            _ => (null, null),
+          };
+          return ChatScreen(
+            deliveryId: state.pathParameters['deliveryId']!,
+            title: title,
+            phone: phone,
+          );
+        },
       ),
       // Ecrans de supervision atteints depuis le tableau de bord (EXI-A03,
       // EXI-A04) : la barre inferieure compte deja quatre onglets.
@@ -430,24 +457,18 @@ String? _redirectForRole(UserRole role, String location) {
 
 /// Ecran d'attente pendant la relecture de la session.
 ///
-/// Un aplat du bleu de la marque, sans rien dessus. Il prolonge exactement
-/// l'ecran de lancement Android, qui porte deja ce bleu, et se confond ensuite
-/// avec l'accueil qui le porte aussi : l'utilisateur ne voit donc **aucune
-/// etape** entre le lanceur et l'animation. Un indicateur de chargement place
-/// ici ferait apparaitre une attente la ou il n'y a, le plus souvent, que
-/// quelques dizaines de millisecondes de lecture locale.
+/// Le bleu de la marque, prolongeant l'ecran de lancement Android sans rupture,
+/// et par-dessus une moto qui file le long d'une barre de progression. Le geste
+/// reste dans l'univers du service — une livraison, c'est une moto qui roule —
+/// et occupe l'attente quand la lecture locale prend plus que quelques
+/// millisecondes (premiere ouverture, appareil lent).
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
-  // `Scaffold` et non un simple `ColoredBox` : la route est posee directement
-  // sous le Navigator, sans contrainte de taille. Un `ColoredBox` y reste sans
-  // dimension et ne peint rien — l'ecran devient noir, ce qui ne se voit qu'en
-  // release, la ou l'erreur de mise en page ne s'affiche pas.
-  // Aucun logo : l'accueil est l'ecran d'entree, et son nom y figure deja en
-  // grand. Ce qui s'affiche ici n'est qu'un aplat de la meme couleur que lui,
-  // le temps que la session se relise — quelques dizaines de millisecondes. Rien
-  // ne clignote entre les deux : l'ecran se remplit, il ne se remplace pas.
-  Widget build(BuildContext context) =>
-      const Scaffold(backgroundColor: AppColors.primary);
+  // `Scaffold` (porte par McMotoLoadingView) et non un simple `ColoredBox` : la
+  // route est posee directement sous le Navigator, sans contrainte de taille. Un
+  // `ColoredBox` y resterait sans dimension et peindrait noir — erreur qui ne se
+  // voit qu'en release.
+  Widget build(BuildContext context) => const McMotoLoadingView();
 }

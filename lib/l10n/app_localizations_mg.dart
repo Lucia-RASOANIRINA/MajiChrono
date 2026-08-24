@@ -1718,6 +1718,48 @@ class AppLocalizationsMg extends AppLocalizations {
   String get earningsCommission => 'Vola madio, efa nesorina ny sara.';
 
   @override
+  String get withdrawTitle => 'Fisintonam-bola';
+
+  @override
+  String get withdrawAvailable => 'Volan\'ny MajiPay azo ampiasaina';
+
+  @override
+  String get withdrawAction => 'Misintona';
+
+  @override
+  String get withdrawAmountLabel => 'Vola hosintonina (Ar)';
+
+  @override
+  String get withdrawDestinationLabel => 'Mankany (Mobile Money, kaonty)';
+
+  @override
+  String get withdrawConfirm => 'Hamafiso ny fisintonana';
+
+  @override
+  String withdrawSuccess(String ref) {
+    return 'Vita ny fisintonana. Laharana $ref';
+  }
+
+  @override
+  String get withdrawInsufficient =>
+      'Tsy ampy ny vola amin\'ity fisintonana ity';
+
+  @override
+  String get withdrawInvalidAmount => 'Tsy mety ny vola';
+
+  @override
+  String get notifCenterTitle => 'Fampahafantarana';
+
+  @override
+  String get notifCenterEmpty => 'Tsy misy fampahafantarana aloha';
+
+  @override
+  String get notifCenterMarkAllRead => 'Mariho ho voavaky daholo';
+
+  @override
+  String get notifCenterClear => 'Fafao ny tantara';
+
+  @override
   String get kycTitle => 'Ny antontan-taratasiko';
 
   @override
@@ -1994,4 +2036,42 @@ class AppLocalizationsMg extends AppLocalizations {
   String shellModuleWipDesc(String module) {
     return 'Halefa amin\'ny modely $module ity efijery ity.';
   }
+
+  @override
+  String get chatTitle => 'Resaka';
+
+  @override
+  String get chatInputHint => 'Ny hafatrao';
+
+  @override
+  String get chatSendError => 'Tsy voalefa ny hafatra, andramo indray';
+
+  @override
+  String get chatUnavailable => 'Tsy azo idirana aloha ny resaka';
+
+  @override
+  String get chatUnavailableHint =>
+      'Hamarino ny fifandraisana, hiverina ho azy ny famakiana.';
+
+  @override
+  String get chatEmpty => 'Atombohy ny resaka';
+
+  @override
+  String get chatEmptyHint =>
+      'Ifandrindrao ny fakana sy ny fanaterana ny entana.';
+
+  @override
+  String get chatToday => 'Androany';
+
+  @override
+  String get chatYesterday => 'Omaly';
+
+  @override
+  String get chatRead => 'Vakiana';
+
+  @override
+  String get chatSent => 'Voalefa';
+
+  @override
+  String get chatCall => 'Miantso';
 }

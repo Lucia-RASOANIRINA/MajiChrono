@@ -19,6 +19,7 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import current_account, require_role
 from app.core.errors import forbidden
+from app.core.geo import MAX_ACCEPT_KM, haversine_km, point_of
 from app.db import get_db
 from app.models import (
     Account,
@@ -108,11 +109,31 @@ async def list_offers(
         .order_by(Delivery.created_at)
     ).all()
 
+    # Position courante du livreur, pour ne proposer que ce qu'il peut accepter.
+    origin = (
+        (state.lat, state.lng)
+        if state.lat is not None and state.lng is not None
+        else None
+    )
+
     # L'adresse exacte du destinataire n'est pas donnee avant acceptation : le
     # livreur a besoin du quartier pour decider, pas du numero de porte de
     # quelqu'un qui n'a rien demande.
-    return {
-        "items": [
+    items = []
+    for offer in offers:
+        distance_km: float | None = None
+        if origin is not None:
+            pickup = point_of(offer.pickup_json)
+            if pickup is not None:
+                distance_km = round(
+                    haversine_km(origin[0], origin[1], pickup[0], pickup[1]), 1
+                )
+                # Trop loin pour etre acceptee (meme regle que l'acceptation) :
+                # inutile de la montrer, elle ne ferait qu'un refus a l'ecran.
+                if distance_km > MAX_ACCEPT_KM:
+                    continue
+
+        items.append(
             {
                 "id": offer.id,
                 "kind": offer.kind,
@@ -120,11 +141,12 @@ async def list_offers(
                 "dropoff": _summary_only(offer.dropoff_json),
                 "package": _json(offer.package_json),
                 "price": offer.price_ariary,
+                "distanceKm": distance_km,
                 "createdAt": as_utc(offer.created_at).isoformat(),
             }
-            for offer in offers
-        ]
-    }
+        )
+
+    return {"items": items}
 
 
 @router.post("/positions")

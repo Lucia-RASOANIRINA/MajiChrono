@@ -13,6 +13,7 @@ import 'package:majichrono/features/auth/presentation/controllers/auth_state.dar
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
+import 'package:majichrono/features/notifications/presentation/providers/notification_center_provider.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_section_header.dart';
@@ -216,7 +217,6 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
   Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
     final percent = shrinkOffset / maxExtent;
     final isCompact = percent > 0.4;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Container(
       color: AppColors.primary,
@@ -279,6 +279,8 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
                           icon: Icons.bug_report_outlined,
                           onPressed: onDevPanel!,
                         ),
+                      const SizedBox(width: 8),
+                      const _HeaderBell(),
                       const SizedBox(width: 8),
                       _HeaderIconButton(
                         icon: Icons.settings_outlined,
@@ -354,6 +356,27 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
         statusLabel != oldDelegate.statusLabel ||
         statusOnline != oldDelegate.statusOnline ||
         pendingCount != oldDelegate.pendingCount;
+  }
+}
+
+/// Cloche du centre de notifications, avec sa pastille de non-lus.
+///
+/// Elle est autonome : elle lit elle-meme le compteur, de sorte qu'aucun ecran
+/// d'accueil n'a a le lui transmettre. La pastille disparait quand tout est lu.
+class _HeaderBell extends ConsumerWidget {
+  const _HeaderBell();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref.watch(unreadNotificationCountProvider);
+    return Badge(
+      isLabelVisible: unread > 0,
+      label: Text(unread > 99 ? '99+' : '$unread'),
+      child: _HeaderIconButton(
+        icon: Icons.notifications_none_rounded,
+        onPressed: () => context.push(AppRoutes.notifications),
+      ),
+    );
   }
 }
 

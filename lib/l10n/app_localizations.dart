@@ -3266,6 +3266,84 @@ abstract class AppLocalizations {
   /// **'Montants nets, commission deduite.'**
   String get earningsCommission;
 
+  /// No description provided for @withdrawTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrait'**
+  String get withdrawTitle;
+
+  /// No description provided for @withdrawAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde MajiPay disponible'**
+  String get withdrawAvailable;
+
+  /// No description provided for @withdrawAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer'**
+  String get withdrawAction;
+
+  /// No description provided for @withdrawAmountLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant a retirer (Ar)'**
+  String get withdrawAmountLabel;
+
+  /// No description provided for @withdrawDestinationLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vers (Mobile Money, compte)'**
+  String get withdrawDestinationLabel;
+
+  /// No description provided for @withdrawConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le retrait'**
+  String get withdrawConfirm;
+
+  /// No description provided for @withdrawSuccess.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retrait effectue. Reference {ref}'**
+  String withdrawSuccess(String ref);
+
+  /// No description provided for @withdrawInsufficient.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde insuffisant pour ce retrait'**
+  String get withdrawInsufficient;
+
+  /// No description provided for @withdrawInvalidAmount.
+  ///
+  /// In fr, this message translates to:
+  /// **'Montant invalide'**
+  String get withdrawInvalidAmount;
+
+  /// No description provided for @notifCenterTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notifications'**
+  String get notifCenterTitle;
+
+  /// No description provided for @notifCenterEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune notification pour le moment'**
+  String get notifCenterEmpty;
+
+  /// No description provided for @notifCenterMarkAllRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tout marquer comme lu'**
+  String get notifCenterMarkAllRead;
+
+  /// No description provided for @notifCenterClear.
+  ///
+  /// In fr, this message translates to:
+  /// **'Effacer l\'historique'**
+  String get notifCenterClear;
+
   /// No description provided for @kycTitle.
   ///
   /// In fr, this message translates to:
@@ -3787,6 +3865,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cet ecran sera livre au module {module}.'**
   String shellModuleWipDesc(String module);
+
+  /// No description provided for @chatTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussion'**
+  String get chatTitle;
+
+  /// No description provided for @chatInputHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre message'**
+  String get chatInputHint;
+
+  /// No description provided for @chatSendError.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message non envoye, reessayez'**
+  String get chatSendError;
+
+  /// No description provided for @chatUnavailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Discussion indisponible pour le moment'**
+  String get chatUnavailable;
+
+  /// No description provided for @chatUnavailableHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Verifiez le reseau, la relecture reprendra seule.'**
+  String get chatUnavailableHint;
+
+  /// No description provided for @chatEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Demarrez la conversation'**
+  String get chatEmpty;
+
+  /// No description provided for @chatEmptyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Coordonnez le retrait et la remise du colis.'**
+  String get chatEmptyHint;
+
+  /// No description provided for @chatToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aujourd\'hui'**
+  String get chatToday;
+
+  /// No description provided for @chatYesterday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Hier'**
+  String get chatYesterday;
+
+  /// No description provided for @chatRead.
+  ///
+  /// In fr, this message translates to:
+  /// **'Lu'**
+  String get chatRead;
+
+  /// No description provided for @chatSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoye'**
+  String get chatSent;
+
+  /// No description provided for @chatCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler'**
+  String get chatCall;
 }
 
 class _AppLocalizationsDelegate

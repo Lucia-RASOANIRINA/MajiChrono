@@ -298,6 +298,48 @@ class DeliveryEvent(Base):
         }
 
 
+class Message(Base):
+    """Message de la discussion entre l'expediteur et le livreur d'une course.
+
+    La discussion n'existe qu'a partir de l'acceptation : avant, il n'y a pas de
+    livreur a qui parler. Elle est rattachee a la course, pas a une paire de
+    comptes — c'est la course qui donne le contexte (« ou en est mon colis ? »),
+    et elle se ferme avec elle. Seuls l'expediteur et le livreur assigne y ont
+    acces ; le controle est porte par la route, pas par cette table.
+    """
+
+    __tablename__ = "messages"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("msg"))
+    delivery_id: Mapped[str] = mapped_column(
+        ForeignKey("deliveries.id", ondelete="CASCADE"), index=True
+    )
+    sender_id: Mapped[str] = mapped_column(ForeignKey("accounts.id"), index=True)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    # Horodatage de lecture par l'autre partie. Nul tant que le destinataire n'a
+    # pas ouvert la discussion : c'est ce que l'accuse de lecture affiche —
+    # « envoye » (nul) puis « lu » (pose). On garde un seul instant plutot qu'un
+    # drapeau : il porte le « lu a telle heure », et suffit a deux interlocuteurs.
+    read_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), default=None
+    )
+
+    __table_args__ = (
+        Index("ix_messages_delivery_created", "delivery_id", "created_at"),
+    )
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "deliveryId": self.delivery_id,
+            "senderId": self.sender_id,
+            "body": self.body,
+            "createdAt": as_utc(self.created_at).isoformat(),
+            "readAt": as_utc(self.read_at).isoformat() if self.read_at else None,
+        }
+
+
 class DriverState(Base):
     """Etat de travail d'un livreur : en ligne, et derniere position connue.
 
@@ -358,6 +400,178 @@ class PositionSample(Base):
     __table_args__ = (
         UniqueConstraint("driver_id", "fixed_at", name="uq_position_driver_instant"),
     )
+
+
+class PaymentDirection(str, enum.Enum):
+    """Sens de l'appariement d'un paiement par code QR.
+
+    L'argent va toujours de l'expediteur (client) au livreur ; ce qui change,
+    c'est qui presente le code et qui le scanne.
+    """
+
+    # Le livreur presente le code, le client le scanne puis confirme : demande
+    # d'encaissement, rien n'est debite avant confirmation du payeur.
+    collect = "collect"
+    # Le client presente le code, deja pre-autorise ; le livreur le scanne pour
+    # encaisser, et le mouvement suit immediatement.
+    offer = "offer"
+
+
+class PaymentStatus(str, enum.Enum):
+    pending = "pending"     # creee, en attente d'appariement
+    claimed = "claimed"     # code scanne, les deux appareils se connaissent
+    captured = "captured"   # confirmee par le payeur, mouvement MajiPay effectue
+    failed = "failed"       # refusee, expiree, ou solde insuffisant
+    cash = "cash"           # bascule en especes
+
+
+class PaymentIntent(Base):
+    """Intention de paiement adossee a un solde MajiPay (§11.2).
+
+    Le partage des roles gouverne toute la table : **MajiPay tient les soldes et
+    execute le mouvement**, MajiChrono ne fait qu'arbitrer. On ne stocke donc ni
+    solde ni numero de compte ici — ils vivent chez le prestataire et sont lus a
+    chaque fois. Ce qui vit ici, c'est l'etat de la transaction et son garde-fou
+    d'unicite : une intention capturee ne se debite jamais deux fois (EXI-MP06).
+
+    Le jeton du code QR n'est **jamais** conserve en clair : seule son empreinte
+    l'est, comme pour un mot de passe ou un code SMS. Un code photographie a
+    distance ne revele rien, et une fuite de la base ne rend aucun code
+    encaissable.
+    """
+
+    __tablename__ = "payment_intents"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("pay"))
+    delivery_id: Mapped[str] = mapped_column(ForeignKey("deliveries.id", ondelete="CASCADE"), index=True)
+
+    # Payeur et beneficiaire sont **derives de la course**, jamais du mobile : le
+    # payeur est l'expediteur, le beneficiaire le livreur assigne. C'est ce qui
+    # empeche un beneficiaire de se payer lui-meme en falsifiant un champ.
+    payer_id: Mapped[str] = mapped_column(String(40), index=True)
+    payee_id: Mapped[str] = mapped_column(String(40), index=True)
+
+    amount_ariary: Mapped[int] = mapped_column(Integer)
+    direction: Mapped[PaymentDirection] = mapped_column(Enum(PaymentDirection, name="payment_direction"))
+    status: Mapped[PaymentStatus] = mapped_column(
+        Enum(PaymentStatus, name="payment_status"), default=PaymentStatus.pending, index=True
+    )
+
+    # Empreinte du jeton a usage unique. Le jeton en clair ne sort qu'une fois, a
+    # la creation, et uniquement a celui qui presente le code.
+    token_hash: Mapped[str] = mapped_column(String(255))
+
+    failure: Mapped[str] = mapped_column(String(30), default="none")
+    receipt_ref: Mapped[str | None] = mapped_column(String(60))
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    captured_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+
+    @property
+    def is_expired(self) -> bool:
+        return _now() > as_utc(self.expires_at)
+
+    @property
+    def is_final(self) -> bool:
+        return self.status in (PaymentStatus.captured, PaymentStatus.failed, PaymentStatus.cash)
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "deliveryId": self.delivery_id,
+            "amount": self.amount_ariary,
+            "direction": self.direction.value,
+            "status": self.status.value,
+            "payerLabel": "Client",
+            "payeeLabel": "Livreur",
+            "failure": self.failure,
+            "receiptRef": self.receipt_ref,
+            "createdAt": as_utc(self.created_at).isoformat(),
+            "expiresAt": as_utc(self.expires_at).isoformat(),
+            "capturedAt": as_utc(self.captured_at).isoformat() if self.captured_at else None,
+        }
+
+
+class Review(Base):
+    """Evaluation d'une course, de l'expediteur vers le livreur (EXI-C40).
+
+    Une note sans course n'a pas de sens : on ne juge pas un livreur dans
+    l'abstrait, mais la course qu'il vient de faire. L'unicite `(course,
+    auteur)` l'impose et interdit du meme coup de noter deux fois la meme
+    course — la note se corrige, elle ne s'empile pas.
+
+    Trois axes plutot qu'un seul : la note globale dit la satisfaction, la
+    ponctualite et la qualite disent **pourquoi**. Un livreur mal note sur la
+    seule ponctualite ne se corrige pas comme un livreur mal note sur le soin —
+    et il ne peut se corriger que s'il sait lequel des deux on lui reproche.
+    """
+
+    __tablename__ = "reviews"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("rev"))
+    delivery_id: Mapped[str] = mapped_column(ForeignKey("deliveries.id", ondelete="CASCADE"), index=True)
+    rater_id: Mapped[str] = mapped_column(String(40), index=True)
+    ratee_id: Mapped[str] = mapped_column(String(40), index=True)
+
+    # Note globale, de 1 a 5. Les deux axes fins sont facultatifs : une note
+    # rapide reste possible, mais quand ils sont donnes, ils eclairent.
+    stars: Mapped[int] = mapped_column(Integer)
+    punctuality: Mapped[int | None] = mapped_column(Integer)
+    service: Mapped[int | None] = mapped_column(Integer)
+    comment: Mapped[str | None] = mapped_column(Text)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (
+        UniqueConstraint("delivery_id", "rater_id", name="uq_review_delivery_rater"),
+    )
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "deliveryId": self.delivery_id,
+            "raterId": self.rater_id,
+            "rateeId": self.ratee_id,
+            "stars": self.stars,
+            "punctuality": self.punctuality,
+            "service": self.service,
+            "comment": self.comment,
+            "createdAt": as_utc(self.created_at).isoformat(),
+        }
+
+
+class MajiPaySandboxAccount(Base):
+    """Solde fictif d'un compte chez le **prestataire de paiement** MajiPay.
+
+    Cette table n'existe que tant que le vrai MajiPay n'est pas branche : elle
+    tient lieu de bac a sable pour developper et tester le parcours de bout en
+    bout. En production, ces lignes n'existent pas — les soldes vivent chez
+    MajiPay, et la passerelle HTTP les lit par-dessus le reseau. Rien dans le
+    routeur de paiement ne lit cette table directement : tout passe par la
+    passerelle, exactement comme avec le vrai prestataire.
+    """
+
+    __tablename__ = "majipay_sandbox_accounts"
+
+    account_id: Mapped[str] = mapped_column(String(40), primary_key=True)
+    balance_ariary: Mapped[int] = mapped_column(Integer, default=0)
+    account_ref: Mapped[str] = mapped_column(String(40))
+
+
+class MajiPaySandboxTxn(Base):
+    """Mouvement MajiPay deja honore, retrouve par sa cle d'idempotence.
+
+    Un prestataire de paiement serieux rend la meme reponse a la meme cle sans
+    rejouer le debit. Le bac a sable en fait autant : c'est la derniere barriere
+    contre un double mouvement, celle qui tient meme si l'appelant s'y reprend.
+    """
+
+    __tablename__ = "majipay_sandbox_txns"
+
+    idem_key: Mapped[str] = mapped_column(String(120), primary_key=True)
+    receipt_ref: Mapped[str] = mapped_column(String(60))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
 class ModerationLog(Base):

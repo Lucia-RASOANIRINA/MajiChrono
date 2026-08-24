@@ -53,6 +53,15 @@ class ApiEndpoints {
   // --- Pieces jointes --------------------------------------------------
   static const String uploads = '/uploads';
 
+  // --- Discussion course (expediteur <-> livreur) ----------------------
+  /// Messages d'une course. S'ouvre a l'acceptation ; seuls l'expediteur et le
+  /// livreur assigne y ont acces.
+  static String deliveryMessages(String id) => '/deliveries/$id/messages';
+
+  /// Accuse de lecture : marque comme lus les messages recus de la course.
+  static String deliveryMessagesRead(String id) =>
+      '/deliveries/$id/messages/read';
+
   // --- Suivi -----------------------------------------------------------
   static const String trackingPing = '/tracking/ping';
   static const String trackingBatch = '/tracking/batch';
@@ -72,6 +81,10 @@ class ApiEndpoints {
   static String paymentClaim(String id) => '/payments/$id/claim';
   static String paymentConfirm(String id) => '/payments/$id/confirm';
   static String paymentCash(String id) => '/payments/$id/cash';
+
+  /// Retrait du solde MajiPay vers un moyen externe (Mobile Money, compte). Le
+  /// processus vit dans l'app, la sortie d'argent se fait chez MajiPay.
+  static const String paymentWithdraw = '/payments/withdraw';
 
   // --- Urgence livreur (EXI-L13, D10) ----------------------------------
   static const String emergency = '/drivers/emergency';

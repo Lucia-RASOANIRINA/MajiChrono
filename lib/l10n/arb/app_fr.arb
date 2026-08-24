@@ -598,6 +598,22 @@
   "earningsEmpty": "Aucun gain enregistre",
   "earningsCommission": "Montants nets, commission deduite.",
 
+  "withdrawTitle": "Retrait",
+  "withdrawAvailable": "Solde MajiPay disponible",
+  "withdrawAction": "Retirer",
+  "withdrawAmountLabel": "Montant a retirer (Ar)",
+  "withdrawDestinationLabel": "Vers (Mobile Money, compte)",
+  "withdrawConfirm": "Confirmer le retrait",
+  "withdrawSuccess": "Retrait effectue. Reference {ref}",
+  "@withdrawSuccess": { "placeholders": { "ref": { "type": "String" } } },
+  "withdrawInsufficient": "Solde insuffisant pour ce retrait",
+  "withdrawInvalidAmount": "Montant invalide",
+
+  "notifCenterTitle": "Notifications",
+  "notifCenterEmpty": "Aucune notification pour le moment",
+  "notifCenterMarkAllRead": "Tout marquer comme lu",
+  "notifCenterClear": "Effacer l'historique",
+
   "kycTitle": "Mon dossier",
   "kycStatusDraft": "Dossier a completer",
   "kycStatusSubmitted": "Dossier transmis",
@@ -699,5 +715,18 @@
 
   "shellModuleWip": "Module en cours de construction",
   "shellModuleWipDesc": "Cet ecran sera livre au module {module}.",
-  "@shellModuleWipDesc": { "placeholders": { "module": { "type": "String" } } }
+  "@shellModuleWipDesc": { "placeholders": { "module": { "type": "String" } } },
+
+  "chatTitle": "Discussion",
+  "chatInputHint": "Votre message",
+  "chatSendError": "Message non envoye, reessayez",
+  "chatUnavailable": "Discussion indisponible pour le moment",
+  "chatUnavailableHint": "Verifiez le reseau, la relecture reprendra seule.",
+  "chatEmpty": "Demarrez la conversation",
+  "chatEmptyHint": "Coordonnez le retrait et la remise du colis.",
+  "chatToday": "Aujourd'hui",
+  "chatYesterday": "Hier",
+  "chatRead": "Lu",
+  "chatSent": "Envoye",
+  "chatCall": "Appeler"
 }

@@ -13,9 +13,44 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
+from app.config import get_settings
 from app.db import get_db
 from app.main import app
 from app.models import Base
+
+
+@pytest.fixture(autouse=True)
+def _no_real_mail_or_sms():
+    """Neutralise l'envoi reel d'e-mail et de SMS pendant les tests.
+
+    La suite doit rester hermetique : selon ce que `.env` contient — une cle
+    Resend, un mot de passe Gmail — un test qui demande un code partirait sinon
+    vraiment sur le reseau, et echouerait des que le fournisseur refuse une
+    adresse de test. On vide donc les identifiants d'envoi le temps du test :
+    `emails_are_real` redevient faux, le code repart dans `debugCode`, et le
+    parcours se verifie sans compte fournisseur — exactement comme en
+    developpement.
+    """
+    settings = get_settings()
+    saved = (
+        settings.smtp_host,
+        settings.smtp_user,
+        settings.smtp_password,
+        settings.sms_api_key,
+    )
+    settings.smtp_host = ""
+    settings.smtp_user = ""
+    settings.smtp_password = ""
+    settings.sms_api_key = ""
+    try:
+        yield
+    finally:
+        (
+            settings.smtp_host,
+            settings.smtp_user,
+            settings.smtp_password,
+            settings.sms_api_key,
+        ) = saved
 
 
 @pytest.fixture

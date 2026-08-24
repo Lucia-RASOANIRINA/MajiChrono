@@ -1,12 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
 
-import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -15,7 +12,6 @@ import 'package:majichrono/features/auth/presentation/providers/auth_providers.d
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_patterns.dart';
-import 'package:majichrono/shared/widgets/mc_primary_action.dart';
 
 class ProfileChoiceScreen extends ConsumerStatefulWidget {
   const ProfileChoiceScreen({super.key});

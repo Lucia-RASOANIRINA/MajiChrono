@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -142,6 +144,20 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       appBar: AppBar(
         title: Text(l10n.driverActiveDelivery),
         actions: [
+          // Discussion avec l'expediteur, disponible pendant toute la course.
+          // On transmet son contact : son nom titre l'ecran, son numero ouvre
+          // l'appel direct depuis l'en-tete de la discussion.
+          IconButton(
+            tooltip: l10n.chatTitle,
+            icon: const Icon(Icons.chat_bubble_outline),
+            onPressed: () => context.push(
+              AppRoutes.chat(delivery.id),
+              extra: (
+                delivery.pickup.contactName,
+                delivery.pickup.contactPhone.e164,
+              ),
+            ),
+          ),
           // L'encaissement n'apparait qu'une fois le colis remis : proposer de
           // se faire payer avant d'avoir livre inverserait l'ordre des choses
           // et exposerait le client.

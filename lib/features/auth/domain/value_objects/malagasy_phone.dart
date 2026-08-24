@@ -6,7 +6,7 @@
 /// M11 du §11.3 designe explicitement cette detection par prefixe comme une
 /// brique du routage operateur ; la faire ici evite de la refaire au module 7.
 enum MobileOperator {
-  orange('Orange', {'32'}),
+  orange('Orange', {'32', '37', '39'}),
   airtel('Airtel', {'33'}),
 
   /// Telma, qui exploite commercialement la marque YAS depuis 2025. Le libelle
@@ -53,8 +53,8 @@ enum MobileOperator {
 /// `0341234567`) sont toutes normalisees vers elle.
 ///
 /// La validation n'accepte que les plages **reellement exploitees a
-/// Madagascar** : Orange (032), Airtel (033), Telma (034 et 038) et le fixe
-/// Telma (020). Un numero en 035, 036 ou 039 est refuse a la saisie.
+/// Madagascar** : Orange (032, 037, 039), Airtel (033), Telma (034 et 038) et
+/// le fixe Telma (020). Un numero en 035 ou 036 est refuse a la saisie.
 ///
 /// C'est un choix, et il a un cout : le jour ou l'ARTEC attribue une nouvelle
 /// plage, cette liste devra etre completee avant qu'un abonne de cette plage

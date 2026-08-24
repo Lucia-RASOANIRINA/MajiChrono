@@ -7,6 +7,8 @@ import 'package:majichrono/app/router/app_router.dart';
 import 'package:majichrono/core/logging/app_logger.dart';
 import 'package:majichrono/features/notifications/data/notification_service.dart';
 import 'package:majichrono/features/notifications/domain/entities/app_notification.dart';
+import 'package:majichrono/features/notifications/domain/entities/center_notification.dart';
+import 'package:majichrono/features/notifications/presentation/providers/notification_center_provider.dart';
 import 'package:majichrono/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -57,6 +59,11 @@ class _NotificationInitializerState
     Map<McNotificationChannel, NotificationChannelStrings> channels,
   ) async {
     final service = ref.read(notificationServiceProvider);
+    // Chaque notification affichee vient garnir le centre de notifications, qui
+    // en garde l'historique et l'etat de lecture (EXI-N06).
+    service.onShown = (notification) => ref
+        .read(notificationCenterProvider.notifier)
+        .add(CenterNotification.fromDisplayed(notification));
     try {
       await service.init(
         onSelectRoute: (route) => ref.read(routerProvider).go(route),

@@ -174,7 +174,10 @@ void main() {
         auth: AuthProfilePending(MalagasyPhone.tryParse('0341234567')!),
       ),
     );
-    await tester.pumpAndSettle();
+    // `pump` et non `pumpAndSettle` : l'ecran de choix de profil anime un
+    // camion en boucle, l'etat stable n'arrive jamais.
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 300));
 
     expect(find.text('Votre profil'), findsOneWidget);
     expect(find.text('Expediteur'), findsOneWidget);

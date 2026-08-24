@@ -64,6 +64,15 @@ class Settings(BaseSettings):
     # il doit etre declare aupres de la passerelle avant usage.
     sms_sender: str = "MajiChrono"
 
+    # --- Paiement (MajiPay) ------------------------------------------------
+    #
+    # Le prestataire qui tient les soldes et execute les mouvements. Tant que
+    # cette cle est vide, un bac a sable en base joue son role : le parcours de
+    # paiement par QR se teste de bout en bout sans compte MajiPay, et le mobile
+    # ne peut toujours pas debiter seul. Poser la cle bascule vers le vrai
+    # prestataire sans changer une ligne du routeur.
+    majipay_api_key: str = ""
+
     @field_validator("jwt_secret")
     @classmethod
     def _secret_must_be_real(cls, value: str, info) -> str:

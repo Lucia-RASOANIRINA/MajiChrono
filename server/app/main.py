@@ -11,7 +11,7 @@ from starlette.requests import Request
 
 from app.config import get_settings
 from app.core.errors import ApiError, api_error_handler, error_body
-from app.routers import admin, auth, deliveries, driver, me
+from app.routers import admin, auth, chat, deliveries, driver, me, payment, reviews
 
 logging.basicConfig(
     level=logging.INFO,
@@ -68,3 +68,6 @@ app.include_router(me.router)
 app.include_router(deliveries.router)
 app.include_router(driver.router)
 app.include_router(admin.router)
+app.include_router(chat.router)
+app.include_router(payment.router)
+app.include_router(reviews.router)

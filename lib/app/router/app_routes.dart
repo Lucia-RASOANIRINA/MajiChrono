@@ -36,6 +36,13 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String dataUsage = '/settings/data';
 
+  /// Centre de notifications : l'historique des notifications recues (EXI-N06).
+  static const String notifications = '/notifications';
+
+  /// Discussion d'une course (expediteur <-> livreur). Ouverte a l'acceptation,
+  /// accessible depuis le suivi cote client et la course active cote livreur.
+  static String chat(String deliveryId) => '/chat/$deliveryId';
+
   /// Elements en attente de synchronisation (EXI-S06).
   static const String pendingSync = '/settings/sync';
   static const String devPanel = '/dev';

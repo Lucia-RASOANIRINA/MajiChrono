@@ -103,6 +103,9 @@ flutter:
   uses-material-design: true
   generate: true
 
+  assets:
+    - assets/brand/
+
 # Icone de lanceur (module 10) : le logo de l'application remplace celui de
 # Flutter. Les sources sont generees par `dart run tool/generate_brand_assets.dart`.
 flutter_launcher_icons:

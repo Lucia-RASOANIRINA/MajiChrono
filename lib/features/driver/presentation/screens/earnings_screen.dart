@@ -3,8 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
+import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_skeleton.dart';
@@ -68,6 +71,8 @@ class EarningsScreen extends ConsumerWidget {
                   ),
                 ),
               ),
+              const SizedBox(height: AppSpacing.md),
+              const _MajiPayCard(),
               const SizedBox(height: AppSpacing.md),
               Row(
                 children: [
@@ -136,6 +141,235 @@ class EarningsScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Solde MajiPay du livreur, avec le bouton de retrait (EXI-MP09).
+///
+/// Le solde est **lu**, jamais recopie : c'est MajiPay qui en est la source. Le
+/// bouton reste inactif tant que le solde n'est pas connu — on ne propose pas de
+/// retirer d'un montant qu'on n'a pas encore pu afficher.
+class _MajiPayCard extends ConsumerWidget {
+  const _MajiPayCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final balance = ref.watch(majiPayBalanceProvider(UserRole.driver));
+
+    return Card(
+      child: Padding(
+        padding: AppSpacing.card,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.account_balance_wallet_outlined,
+                  color: theme.colorScheme.primary,
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Expanded(
+                  child: Text(
+                    l10n.withdrawAvailable,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            balance.when(
+              loading: () => const Padding(
+                padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: SizedBox(
+                  width: 22,
+                  height: 22,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+              error: (_, _) => Text('—', style: theme.textTheme.displaySmall),
+              data: (b) => Text(
+                b == null ? '—' : formatAriary(b.availableAriary),
+                style: theme.textTheme.displaySmall,
+              ),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            SizedBox(
+              width: double.infinity,
+              child: FilledButton.icon(
+                onPressed: balance.valueOrNull == null
+                    ? null
+                    : () => _openSheet(context, balance.value!.availableAriary),
+                icon: const Icon(Icons.north_east),
+                label: Text(l10n.withdrawAction),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openSheet(BuildContext context, int maxAmount) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _WithdrawSheet(maxAmount: maxAmount),
+    );
+  }
+}
+
+/// Feuille de saisie d'un retrait : montant et destination, puis confirmation.
+class _WithdrawSheet extends ConsumerStatefulWidget {
+  const _WithdrawSheet({required this.maxAmount});
+
+  final int maxAmount;
+
+  @override
+  ConsumerState<_WithdrawSheet> createState() => _WithdrawSheetState();
+}
+
+class _WithdrawSheetState extends ConsumerState<_WithdrawSheet> {
+  final _amount = TextEditingController();
+  final _destination = TextEditingController();
+  bool _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _amount.dispose();
+    _destination.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    final amount = int.tryParse(_amount.text.trim());
+
+    if (amount == null || amount <= 0) {
+      setState(() => _error = l10n.withdrawInvalidAmount);
+      return;
+    }
+    if (amount > widget.maxAmount) {
+      setState(() => _error = l10n.withdrawInsufficient);
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+
+    try {
+      final receipt = await ref
+          .read(paymentActionsProvider)
+          .withdraw(
+            amountAriary: amount,
+            destination: _destination.text.trim(),
+          );
+      if (!mounted) return;
+
+      // Le solde a bouge chez MajiPay : on invalide pour le relire, et on
+      // rafraichit les gains dans la foulee.
+      ref.invalidate(majiPayBalanceProvider(UserRole.driver));
+      ref.invalidate(earningsProvider);
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.withdrawSuccess(receipt.ref))),
+      );
+    } on ServerFailure catch (failure) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = failure.code == 'insufficient_funds'
+            ? l10n.withdrawInsufficient
+            : l10n.errorNetwork;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = l10n.errorNetwork;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.md,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(l10n.withdrawTitle, style: theme.textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            '${l10n.withdrawAvailable} : ${formatAriary(widget.maxAmount)}',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextField(
+            controller: _amount,
+            keyboardType: TextInputType.number,
+            autofocus: true,
+            enabled: !_submitting,
+            decoration: InputDecoration(
+              labelText: l10n.withdrawAmountLabel,
+              prefixIcon: const Icon(Icons.payments_outlined),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          TextField(
+            controller: _destination,
+            enabled: !_submitting,
+            decoration: InputDecoration(
+              labelText: l10n.withdrawDestinationLabel,
+              prefixIcon: const Icon(Icons.smartphone_outlined),
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: AppSpacing.md),
+            Text(
+              _error!,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.colorScheme.error,
+              ),
+            ),
+          ],
+          const SizedBox(height: AppSpacing.lg),
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: _submitting ? null : _submit,
+              child: _submitting
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.withdrawConfirm),
+            ),
+          ),
+        ],
       ),
     );
   }

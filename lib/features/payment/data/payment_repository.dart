@@ -140,6 +140,31 @@ class PaymentRepository {
     return intent;
   }
 
+  /// Retrait du solde MajiPay du livreur vers un moyen externe (EXI-MP09).
+  ///
+  /// Le processus est conduit ici ; la sortie d'argent, elle, se fait chez
+  /// MajiPay. On ne fait que la declencher et lire le solde restant. La cle
+  /// d'idempotence porte le moment du retrait : deux appuis sur « retirer » ne
+  /// produisent pas deux sorties.
+  Future<WithdrawReceipt> withdraw({
+    required int amountAriary,
+    String destination = '',
+    String? idempotencyKey,
+  }) async {
+    final json = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.paymentWithdraw,
+      body: {'amount': amountAriary, 'destination': destination},
+      idempotencyKey: idempotencyKey ?? 'withdraw_${DateTime.now().millisecondsSinceEpoch}',
+      category: DataCategory.payment,
+    );
+
+    AppLogger.instance.info('payment_withdraw');
+    // Le serveur rend le recu et le solde restant : on ne relit rien de plus.
+    final receipt = WithdrawReceipt.fromJson(json);
+    if (receipt == null) throw const ServerFailure(statusCode: 500);
+    return receipt;
+  }
+
   String _roleName(UserRole role) =>
       role == UserRole.driver ? 'driver' : 'client';
 }

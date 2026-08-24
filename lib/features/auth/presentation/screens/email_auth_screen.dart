@@ -1,5 +1,4 @@
 import 'dart:async';
-import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -18,7 +17,6 @@ import 'package:majichrono/features/auth/presentation/widgets/auth_branding.dart
 import 'package:majichrono/features/auth/presentation/widgets/google_account_sheet.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/l10n/failure_messages.dart';
-import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/shared/widgets/mc_patterns.dart';
 
 enum EmailAuthMode { signIn, signUp }

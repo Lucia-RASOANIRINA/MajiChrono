@@ -69,27 +69,48 @@ class AppTheme {
           TargetPlatform.iOS: _FadePageTransitionsBuilder(),
         },
       ),
+      // Fond ardoise repris du home de l'expediteur : les cartes blanches
+      // arrondies s'en detachent, ce qu'un fond presque blanc ne permettait
+      // pas. Le meme choix vaut pour tous les ecrans, hors espace d'identite
+      // qui pose son propre fond bleu.
       scaffoldBackgroundColor: isLight
-          ? AppColors.lightBackground
-          : AppColors.darkBackground,
+          ? const Color(0xFFF1F5F9)
+          : const Color(0xFF0F172A),
       textTheme: text,
       splashFactory: InkSparkle.splashFactory,
       appBarTheme: AppBarTheme(
+        // La barre se fond dans le fond ardoise plutot que de poser une bande
+        // blanche : c'est le langage du home, ou l'en-tete et le contenu
+        // partagent la meme surface.
         backgroundColor: isLight
-            ? AppColors.lightSurface
-            : AppColors.darkSurface,
+            ? const Color(0xFFF1F5F9)
+            : const Color(0xFF0F172A),
         foregroundColor: scheme.onSurface,
+        surfaceTintColor: Colors.transparent,
         elevation: AppElevation.flat,
-        scrolledUnderElevation: AppElevation.raised,
+        scrolledUnderElevation: AppElevation.flat,
         centerTitle: false,
         toolbarHeight: AppSizes.appBarHeight,
-        titleTextStyle: text.titleLarge?.copyWith(color: scheme.onSurface),
+        titleTextStyle: text.titleLarge?.copyWith(
+          color: scheme.onSurface,
+          fontWeight: FontWeight.w700,
+          letterSpacing: -0.3,
+        ),
       ),
+      // Cartes dans le langage du home : rayon 20, une bordure discrete au lieu
+      // d'une ombre portee, surface franche. Un composant partout coherent —
+      // accueil, profil, reglages, supervision — sans retoucher chaque ecran.
       cardTheme: CardThemeData(
-        elevation: AppElevation.raised,
+        elevation: AppElevation.flat,
         margin: EdgeInsets.zero,
-        color: isLight ? AppColors.lightSurface : AppColors.darkSurface,
-        shape: const RoundedRectangleBorder(borderRadius: AppRadii.sheetAll),
+        color: isLight ? Colors.white : const Color(0xFF1E293B),
+        surfaceTintColor: Colors.transparent,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(20),
+          side: BorderSide(
+            color: isLight ? const Color(0xFFE2E8F0) : const Color(0xFF334155),
+          ),
+        ),
         clipBehavior: Clip.antiAlias,
       ),
       filledButtonTheme: FilledButtonThemeData(
