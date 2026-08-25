@@ -4,13 +4,16 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/app/router/app_routes.dart';
+import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
 import 'package:majichrono/features/payment/presentation/screens/payment_screen.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/delivery/presentation/providers/review_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
+import 'package:majichrono/features/delivery/presentation/widgets/rating_sheet.dart';
 import 'package:majichrono/features/tracking/domain/entities/tracking.dart';
 import 'package:majichrono/features/tracking/presentation/providers/tracking_providers.dart';
 import 'package:majichrono/features/tracking/presentation/widgets/delivery_map.dart';
@@ -173,6 +176,13 @@ class TrackingScreen extends ConsumerWidget {
             _ShareTrackingCard(token: delivery.trackingToken!),
             const SizedBox(height: AppSpacing.lg),
           ],
+          // Une course remise se note : c'est le moment ou l'expediteur a tout
+          // le contexte en tete (EXI-C40).
+          if (delivery.status == DeliveryStatus.delivered ||
+              delivery.status == DeliveryStatus.deliveredWithReserves) ...[
+            _RateDriverCard(deliveryId: delivery.id),
+            const SizedBox(height: AppSpacing.lg),
+          ],
           Text(
             l10n.trackingTimeline,
             style: Theme.of(context).textTheme.titleMedium,
@@ -185,6 +195,81 @@ class TrackingScreen extends ConsumerWidget {
             _Timeline(entries: snapshot.timeline),
         ],
       ),
+    );
+  }
+}
+
+/// Invite a noter le livreur, ou rappel de la note deja donnee (EXI-C40).
+///
+/// La carte se relit d'elle-meme : une fois l'avis envoye, le provider renvoie
+/// la note, et l'invitation cede la place a un rappel — on ne redemande pas de
+/// noter une course deja notee.
+class _RateDriverCard extends ConsumerWidget {
+  const _RateDriverCard({required this.deliveryId});
+
+  final String deliveryId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final review = ref.watch(deliveryReviewProvider(deliveryId));
+
+    return McCard(
+      child: review.when(
+        loading: () => const SizedBox(
+          height: 24,
+          child: Center(
+            child: SizedBox(
+              width: 20,
+              height: 20,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+          ),
+        ),
+        error: (_, _) => _invite(context, l10n, theme),
+        data: (existing) {
+          if (existing == null) return _invite(context, l10n, theme);
+          // Note deja donnee : on la rappelle, en lecture seule.
+          return Row(
+            children: [
+              Expanded(
+                child: Text(
+                  l10n.rateAlready,
+                  style: theme.textTheme.bodyLarge,
+                ),
+              ),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: List.generate(
+                  5,
+                  (i) => Icon(
+                    i < existing.stars
+                        ? Icons.star_rounded
+                        : Icons.star_outline_rounded,
+                    size: 20,
+                    color: AppColors.accent,
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _invite(BuildContext context, AppLocalizations l10n, ThemeData theme) {
+    return Row(
+      children: [
+        Icon(Icons.star_rounded, color: AppColors.accent),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(child: Text(l10n.rateTitle, style: theme.textTheme.bodyLarge)),
+        FilledButton.tonal(
+          onPressed: () => showRatingSheet(context, deliveryId: deliveryId),
+          child: Text(l10n.rateCta),
+        ),
+      ],
     );
   }
 }

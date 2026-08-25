@@ -20,7 +20,7 @@ from sqlalchemy.orm import Session
 from app.core.deps import current_account
 from app.core.errors import forbidden, not_found, unprocessable
 from app.db import get_db
-from app.models import Account, Delivery, DeliveryStatus, Review
+from app.models import DELIVERED_STATES, Account, Delivery, Review
 
 router = APIRouter(tags=["reviews"])
 
@@ -62,8 +62,9 @@ async def create_review(
         raise forbidden("not_client", "Seul l'expediteur note la course")
 
     # Et seulement une fois remise : noter une course en cours, c'est noter ce
-    # qui n'a pas encore eu lieu.
-    if delivery.status is not DeliveryStatus.delivered:
+    # qui n'a pas encore eu lieu. « Remise avec reserves » compte comme remise —
+    # la course a bien eu lieu, elle merite d'etre notee.
+    if delivery.status not in DELIVERED_STATES:
         raise unprocessable(
             "not_delivered",
             "La course n'est pas encore remise",

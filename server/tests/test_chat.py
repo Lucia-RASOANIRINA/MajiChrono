@@ -61,7 +61,7 @@ class TestDistanceAcceptation:
         response = client.post(f"/deliveries/{course['id']}/accept", headers=livreur)
 
         assert response.status_code == 200
-        assert response.json()["status"] == "assigned"
+        assert response.json()["status"] == "acceptee"
         assert response.json()["driverId"] is not None
 
     def test_sans_position_l_acceptation_passe(self, client: TestClient):

@@ -3344,6 +3344,144 @@ abstract class AppLocalizations {
   /// **'Effacer l\'historique'**
   String get notifCenterClear;
 
+  /// No description provided for @rateCta.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter le livreur'**
+  String get rateCta;
+
+  /// No description provided for @rateTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Noter le livreur'**
+  String get rateTitle;
+
+  /// No description provided for @rateOverall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Note globale'**
+  String get rateOverall;
+
+  /// No description provided for @ratePunctuality.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ponctualite'**
+  String get ratePunctuality;
+
+  /// No description provided for @rateService.
+  ///
+  /// In fr, this message translates to:
+  /// **'Qualite du service'**
+  String get rateService;
+
+  /// No description provided for @rateComment.
+  ///
+  /// In fr, this message translates to:
+  /// **'Commentaire (optionnel)'**
+  String get rateComment;
+
+  /// No description provided for @rateSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer l\'evaluation'**
+  String get rateSubmit;
+
+  /// No description provided for @rateThanks.
+  ///
+  /// In fr, this message translates to:
+  /// **'Merci pour votre evaluation'**
+  String get rateThanks;
+
+  /// No description provided for @rateAlready.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous avez deja note cette course'**
+  String get rateAlready;
+
+  /// No description provided for @notifEventAcceptedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course acceptee'**
+  String get notifEventAcceptedTitle;
+
+  /// No description provided for @notifEventAcceptedBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un livreur a pris votre course en charge.'**
+  String get notifEventAcceptedBody;
+
+  /// No description provided for @notifEventPickedUpTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis recupere'**
+  String get notifEventPickedUpTitle;
+
+  /// No description provided for @notifEventPickedUpBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur a recupere votre colis.'**
+  String get notifEventPickedUpBody;
+
+  /// No description provided for @notifEventInTransitTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Colis en route'**
+  String get notifEventInTransitTitle;
+
+  /// No description provided for @notifEventInTransitBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre colis est en cours de livraison.'**
+  String get notifEventInTransitBody;
+
+  /// No description provided for @notifEventArrivedTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreur arrive'**
+  String get notifEventArrivedTitle;
+
+  /// No description provided for @notifEventArrivedBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le livreur est arrive a destination.'**
+  String get notifEventArrivedBody;
+
+  /// No description provided for @notifEventDeliveredTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraison terminee'**
+  String get notifEventDeliveredTitle;
+
+  /// No description provided for @notifEventDeliveredBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre colis a ete remis.'**
+  String get notifEventDeliveredBody;
+
+  /// No description provided for @notifEventCancelledTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course annulee'**
+  String get notifEventCancelledTitle;
+
+  /// No description provided for @notifEventCancelledBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'La course a ete annulee.'**
+  String get notifEventCancelledBody;
+
+  /// No description provided for @notifEventPaidTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement recu'**
+  String get notifEventPaidTitle;
+
+  /// No description provided for @notifEventPaidBody.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le paiement a ete regle avec succes.'**
+  String get notifEventPaidBody;
+
   /// No description provided for @kycTitle.
   ///
   /// In fr, this message translates to:

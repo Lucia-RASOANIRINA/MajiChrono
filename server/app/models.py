@@ -195,28 +195,69 @@ class DeliveryStatus(str, enum.Enum):
     redevient pas un colis en attente.
     """
 
-    pending = "pending"
-    assigned = "assigned"
-    picked_up = "picked_up"
-    in_transit = "in_transit"
-    delivered = "delivered"
-    cancelled = "cancelled"
-    failed = "failed"
+    # La **valeur** de chaque etat est le mot que porte le fil (wire), et c'est
+    # celui qu'attend l'application : `en_attente`, `acceptee`, ... — pas un
+    # equivalent anglais. Emettre autre chose forcerait le mobile a retomber sur
+    # un etat par defaut, et toutes les courses s'afficheraient « en attente ».
+    # Le nom du membre reste en anglais pour le code ; seul le wire est en
+    # francais, cote reseau.
+    pending = "en_attente"
+    assigned = "acceptee"          # course acceptee par un livreur
+    at_pickup = "au_depart"        # livreur arrive chez l'expediteur
+    picked_up = "prise_en_charge"  # colis en main
+    in_transit = "en_transit"
+    at_destination = "a_destination"  # livreur arrive chez le destinataire
+    delivered = "livree"
+    delivered_with_reserves = "livree_avec_reserves"
+    cancelled = "annulee"
+    failed = "refusee"             # remise refusee / echec de livraison
 
 
-# Transitions permises, par etat de depart. Toute transition absente d'ici est
-# refusee par un 409 qui rappelle l'etat courant (EXI-B02) : l'application peut
-# alors reafficher la verite plutot que de laisser reessayer dans le vide.
+# Transitions permises, par etat de depart (§8.3). Toute transition absente d'ici
+# est refusee par un 409 qui rappelle l'etat courant (EXI-B02) : l'application
+# peut alors reafficher la verite plutot que de laisser reessayer dans le vide.
+#
+# Le graphe suit celui du mobile : l'arrivee chez l'expediteur puis chez le
+# destinataire sont des etapes a part entiere, parce que ce sont elles qui
+# horodatent un constat de prise en charge et un constat de remise.
+# Les etats « arrive chez l'expediteur » (at_pickup) et « arrive chez le
+# destinataire » (at_destination) sont **facultatifs** : ils horodatent une
+# arrivee quand l'application les traverse, mais un client plus sobre peut passer
+# directement a l'enlevement ou a la remise. Le graphe autorise donc les deux
+# chemins, sans jamais laisser sauter par-dessus une prise en charge.
 ALLOWED_TRANSITIONS: dict[DeliveryStatus, set[DeliveryStatus]] = {
     DeliveryStatus.pending: {DeliveryStatus.assigned, DeliveryStatus.cancelled},
     DeliveryStatus.assigned: {
+        DeliveryStatus.at_pickup,
         DeliveryStatus.picked_up,
         DeliveryStatus.cancelled,
         DeliveryStatus.failed,
     },
-    DeliveryStatus.picked_up: {DeliveryStatus.in_transit, DeliveryStatus.failed},
-    DeliveryStatus.in_transit: {DeliveryStatus.delivered, DeliveryStatus.failed},
+    DeliveryStatus.at_pickup: {
+        DeliveryStatus.picked_up,
+        DeliveryStatus.cancelled,
+        DeliveryStatus.failed,
+    },
+    DeliveryStatus.picked_up: {
+        DeliveryStatus.in_transit,
+        DeliveryStatus.at_destination,
+        DeliveryStatus.delivered,
+        DeliveryStatus.delivered_with_reserves,
+        DeliveryStatus.failed,
+    },
+    DeliveryStatus.in_transit: {
+        DeliveryStatus.at_destination,
+        DeliveryStatus.delivered,
+        DeliveryStatus.delivered_with_reserves,
+        DeliveryStatus.failed,
+    },
+    DeliveryStatus.at_destination: {
+        DeliveryStatus.delivered,
+        DeliveryStatus.delivered_with_reserves,
+        DeliveryStatus.failed,
+    },
     DeliveryStatus.delivered: set(),
+    DeliveryStatus.delivered_with_reserves: set(),
     DeliveryStatus.cancelled: set(),
     DeliveryStatus.failed: set(),
 }
@@ -224,6 +265,12 @@ ALLOWED_TRANSITIONS: dict[DeliveryStatus, set[DeliveryStatus]] = {
 # Etats ou l'expediteur peut encore annuler seul. Au-dela, le colis est chez le
 # livreur : l'annulation devient un litige, pas un bouton.
 CLIENT_CANCELLABLE = {DeliveryStatus.pending, DeliveryStatus.assigned}
+
+# Etats consideres comme une remise reussie (pour les gains, la notation).
+DELIVERED_STATES = {
+    DeliveryStatus.delivered,
+    DeliveryStatus.delivered_with_reserves,
+}
 
 
 class Delivery(Base):

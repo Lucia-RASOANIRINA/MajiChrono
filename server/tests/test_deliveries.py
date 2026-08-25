@@ -60,7 +60,7 @@ class TestTransitions:
         livreur = sign_in(client, "+261330000002", role="driver")
         course = creer(client, expediteur)
 
-        for etape in ("assigned", "picked_up", "in_transit", "delivered"):
+        for etape in ("acceptee", "prise_en_charge", "en_transit", "livree"):
             response = client.post(
                 f"/deliveries/{course['id']}/transition",
                 json={"status": etape},
@@ -75,25 +75,25 @@ class TestTransitions:
         course = creer(client, expediteur)
         client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "assigned"},
+            json={"status": "acceptee"},
             headers=livreur,
         )
 
         response = client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "delivered"},
+            json={"status": "livree"},
             headers=livreur,
         )
 
         assert response.status_code == 409
         # L'etat courant est rappele : l'application peut reafficher la verite.
-        assert response.json()["error"]["details"]["currentState"] == "assigned"
+        assert response.json()["error"]["details"]["currentState"] == "acceptee"
 
     def test_une_course_remise_ne_bouge_plus(self, client: TestClient):
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
         course = creer(client, expediteur)
-        for etape in ("assigned", "picked_up", "in_transit", "delivered"):
+        for etape in ("acceptee", "prise_en_charge", "en_transit", "livree"):
             client.post(
                 f"/deliveries/{course['id']}/transition",
                 json={"status": etape},
@@ -102,7 +102,7 @@ class TestTransitions:
 
         response = client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "in_transit"},
+            json={"status": "en_transit"},
             headers=livreur,
         )
 
@@ -116,12 +116,12 @@ class TestTransitions:
 
         client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "assigned"},
+            json={"status": "acceptee"},
             headers=premier,
         )
         perdant = client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "assigned"},
+            json={"status": "acceptee"},
             headers=second,
         )
 
@@ -138,13 +138,13 @@ class TestAnnulation:
         response = client.post(f"/deliveries/{course['id']}/cancel", headers=expediteur)
 
         assert response.status_code == 200
-        assert response.json()["status"] == "cancelled"
+        assert response.json()["status"] == "annulee"
 
     def test_apres_l_enlevement_l_annulation_devient_un_litige(self, client: TestClient):
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
         course = creer(client, expediteur)
-        for etape in ("assigned", "picked_up"):
+        for etape in ("acceptee", "prise_en_charge"):
             client.post(
                 f"/deliveries/{course['id']}/transition",
                 json={"status": etape},
@@ -174,7 +174,7 @@ class TestVisibilite:
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
         course = creer(client, expediteur)
-        for etape in ("assigned", "picked_up"):
+        for etape in ("acceptee", "prise_en_charge"):
             client.post(
                 f"/deliveries/{course['id']}/transition",
                 json={"status": etape},
@@ -186,9 +186,9 @@ class TestVisibilite:
         # Creation, acceptation, enlevement. Une colonne `status` seule ne
         # raconterait rien du chemin, ni de qui l'a fait parcourir.
         assert [e["status"] for e in detail["events"]] == [
-            "pending",
-            "assigned",
-            "picked_up",
+            "en_attente",
+            "acceptee",
+            "prise_en_charge",
         ]
         assert detail["events"][1]["actorId"] is not None
 
@@ -203,7 +203,7 @@ class TestSuiviPublic:
 
         assert public.status_code == 200
         corps = public.json()
-        assert corps["status"] == "pending"
+        assert corps["status"] == "en_attente"
         assert corps["dropoffSummary"] == "Ivandry"
         # Ni prix, ni numeros : ce sont des donnees des deux parties, pas de
         # celui qui attend a la porte.

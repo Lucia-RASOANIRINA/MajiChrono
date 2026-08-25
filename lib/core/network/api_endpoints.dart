@@ -95,6 +95,9 @@ class ApiEndpoints {
   // --- Notations -------------------------------------------------------
   static const String reviews = '/reviews';
 
+  /// Avis deja laisse par l'expediteur sur une course, s'il existe.
+  static String reviewForDelivery(String id) => '/reviews/delivery/$id';
+
   // --- Litiges ---------------------------------------------------------
   static const String disputes = '/disputes';
   static String dispute(String id) => '/disputes/$id';

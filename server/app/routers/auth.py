@@ -10,6 +10,7 @@ nouvel utilisateur, que l'application enchaine sur la confirmation du numero.
 
 from __future__ import annotations
 
+import logging
 import re
 from datetime import datetime, timedelta, timezone
 
@@ -32,6 +33,8 @@ from app.core.security import (
 )
 from app.db import get_db
 from app.models import Account, Challenge, ChallengeChannel, RefreshToken
+
+logger = logging.getLogger("majichrono.auth")
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
@@ -206,23 +209,39 @@ async def request_email_code(body: EmailRequest, db: Session = Depends(get_db)) 
 
     challenge, code = _open_challenge(db, ChallengeChannel.email, email)
 
+    settings = get_settings()
+
     # Un echec d'envoi ne doit ni remonter en 500, ni laisser croire au mobile
     # que le code est parti. Le defi est brule au passage : personne ne l'a
     # recu, il ne doit pas rester ouvert cinq minutes a etre devine.
+    #
+    # En **developpement**, l'exception est traitee autrement : Resend, tant
+    # qu'un domaine n'est pas verifie, n'accepte que l'adresse du proprietaire du
+    # compte, et fait donc echouer tout envoi vers une adresse de test. Faire
+    # capoter le parcours pour cette seule raison rendrait l'inscription par
+    # e-mail intestable en local. On journalise alors, on garde le defi ouvert,
+    # et le code reste utilisable via `debugCode` — exactement la politique du
+    # SMS. En production, l'echec reste une vraie panne, signalee par un 502.
     try:
         await send_login_code(email, code)
     except Exception:  # noqa: BLE001 — la cause est deja journalisee
-        challenge.consumed_at = datetime.now(timezone.utc)
-        db.commit()
-        raise ApiError(
-            502,
-            "mail_delivery_failed",
-            "Impossible d'envoyer le code pour le moment",
-        ) from None
+        if settings.environment == "dev":
+            logger.warning(
+                "AUCUN ENVOI E-MAIL en dev — code disponible via debugCode "
+                "(Resend n'accepte que l'adresse du proprietaire tant qu'un "
+                "domaine n'est pas verifie)"
+            )
+        else:
+            challenge.consumed_at = datetime.now(timezone.utc)
+            db.commit()
+            raise ApiError(
+                502,
+                "mail_delivery_failed",
+                "Impossible d'envoyer le code pour le moment",
+            ) from None
 
     # La reponse ne dit **pas** si l'adresse est connue. Le savoir avant d'avoir
     # prouve la possession de la boite permettrait d'enumerer les comptes.
-    settings = get_settings()
     body_out = {
         "challengeId": challenge.id,
         "email": email,

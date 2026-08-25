@@ -10,6 +10,7 @@ import 'package:majichrono/core/i18n/mg_material_localizations.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/sync/sync_gate.dart';
 import 'package:majichrono/features/auth/presentation/widgets/inactivity_lock.dart';
+import 'package:majichrono/features/notifications/presentation/delivery_notifications_listener.dart';
 import 'package:majichrono/features/notifications/presentation/notification_initializer.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
@@ -67,7 +68,8 @@ class MajiChronoApp extends ConsumerWidget {
           ),
           child: Builder(
             builder: (inner) => NotificationInitializer(
-              child: SyncGate(
+              child: DeliveryNotificationsListener(
+                child: SyncGate(
                 messengerKey: messengerKey,
                 child: InactivityLock(
                   child: Column(
@@ -100,6 +102,7 @@ class MajiChronoApp extends ConsumerWidget {
                     ],
                   ),
                 ),
+              ),
               ),
             ),
           ),

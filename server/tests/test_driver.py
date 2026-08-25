@@ -108,7 +108,7 @@ class TestOffres:
 
         client.post(
             f"/deliveries/{course['id']}/transition",
-            json={"status": "assigned"},
+            json={"status": "acceptee"},
             headers=premier,
         )
 
@@ -183,7 +183,7 @@ class TestGains:
             "/deliveries", json=COURSE, headers={**expediteur, "Idempotency-Key": "b"}
         ).json()
 
-        for etape in ("assigned", "picked_up", "in_transit", "delivered"):
+        for etape in ("acceptee", "prise_en_charge", "en_transit", "livree"):
             client.post(
                 f"/deliveries/{remise['id']}/transition",
                 json={"status": etape},
@@ -191,7 +191,7 @@ class TestGains:
             )
         client.post(
             f"/deliveries/{en_cours['id']}/transition",
-            json={"status": "assigned"},
+            json={"status": "acceptee"},
             headers=livreur,
         )
 

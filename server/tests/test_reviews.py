@@ -45,7 +45,7 @@ def _delivered_course(client: TestClient) -> tuple[dict, dict, str]:
     _approve_kyc(DRIVER_PHONE)
     client.post("/driver/status", json={"online": True}, headers=livreur)
     client.post(f"/deliveries/{cid}/accept", headers=livreur)
-    for step in ("picked_up", "in_transit", "delivered"):
+    for step in ("prise_en_charge", "en_transit", "livree"):
         r = client.post(
             f"/deliveries/{cid}/transition",
             json={"status": step},

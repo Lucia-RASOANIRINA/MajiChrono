@@ -172,8 +172,31 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen>
             .read(authControllerProvider.notifier)
             .onOtpVerified(verification);
       case EmailUnlinked(:final email):
-        ref.read(pendingEmailLinkProvider.notifier).state = email;
-        if (mounted) unawaited(context.push(AppRoutes.authPhone));
+        // Apres une **inscription**, on prouve d'abord la possession de la boite
+        // par un code e-mail : c'est le sens du parcours par adresse. Le numero
+        // ne vient qu'ensuite, depuis l'ecran de code (panneau « compte a
+        // completer »). A la connexion, en revanche, une adresse sans compte
+        // mene directement au numero — il n'y a pas d'adresse a prouver.
+        if (_isSignUp) {
+          final l10n = AppLocalizations.of(context);
+          try {
+            final challenge = await ref
+                .read(authRepositoryProvider)
+                .requestEmailCode(email);
+            if (mounted) {
+              unawaited(
+                context.push(AppRoutes.authEmailCode, extra: challenge),
+              );
+            }
+          } on Failure catch (failure) {
+            if (mounted) {
+              setState(() => _error = failure.localizedMessage(l10n));
+            }
+          }
+        } else {
+          ref.read(pendingEmailLinkProvider.notifier).state = email;
+          if (mounted) unawaited(context.push(AppRoutes.authPhone));
+        }
     }
   }
 

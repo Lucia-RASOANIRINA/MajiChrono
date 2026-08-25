@@ -142,11 +142,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: AppRoutes.authOtp,
+        // Le defi voyage dans `extra`. S'il manque — rebuild du routeur, retour
+        // arriere, lien profond direct — on renvoie a la saisie du numero plutot
+        // que de planter sur un cast nul.
+        redirect: (context, state) =>
+            state.extra is OtpChallenge ? null : AppRoutes.authPhone,
         builder: (context, state) =>
             OtpScreen(challenge: state.extra! as OtpChallenge),
       ),
       GoRoute(
         path: AppRoutes.authEmailCode,
+        // Meme garde : sans le defi e-mail, on repart du choix d'entree au lieu
+        // d'ouvrir un ecran de code qui n'a rien a verifier.
+        redirect: (context, state) =>
+            state.extra is EmailChallenge ? null : AppRoutes.authChoice,
         builder: (context, state) =>
             EmailCodeScreen(challenge: state.extra! as EmailChallenge),
       ),

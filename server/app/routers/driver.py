@@ -22,6 +22,7 @@ from app.core.errors import forbidden
 from app.core.geo import MAX_ACCEPT_KM, haversine_km, point_of
 from app.db import get_db
 from app.models import (
+    DELIVERED_STATES,
     Account,
     Delivery,
     DeliveryStatus,
@@ -210,7 +211,7 @@ async def read_earnings(
     delivered = db.scalars(
         select(Delivery).where(
             Delivery.driver_id == account.id,
-            Delivery.status == DeliveryStatus.delivered,
+            Delivery.status.in_(DELIVERED_STATES),
         )
     ).all()
 

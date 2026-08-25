@@ -247,7 +247,7 @@ class TestTableauDeBord:
         client.post(
             "/deliveries", json=COURSE, headers={**expediteur, "Idempotency-Key": "b"}
         )
-        for etape in ("assigned", "picked_up", "in_transit", "delivered"):
+        for etape in ("acceptee", "prise_en_charge", "en_transit", "livree"):
             client.post(
                 f"/deliveries/{remise['id']}/transition",
                 json={"status": etape},
@@ -260,4 +260,4 @@ class TestTableauDeBord:
         # d'argent pas encore gagne.
         assert tableau["revenueTodayAriary"] == 6000
         assert tableau["pendingDeliveries"] == 1
-        assert tableau["byStatus"]["delivered"] == 1
+        assert tableau["byStatus"]["livree"] == 1

@@ -20,6 +20,7 @@ from app.core.deps import require_role
 from app.core.errors import not_found, unprocessable
 from app.db import get_db
 from app.models import (
+    DELIVERED_STATES,
     Account,
     Delivery,
     DeliveryStatus,
@@ -70,13 +71,15 @@ async def dashboard(
 
     actives = [
         DeliveryStatus.assigned,
+        DeliveryStatus.at_pickup,
         DeliveryStatus.picked_up,
         DeliveryStatus.in_transit,
+        DeliveryStatus.at_destination,
     ]
     today = datetime.now(timezone.utc).date()
 
     delivered = db.scalars(
-        select(Delivery).where(Delivery.status == DeliveryStatus.delivered)
+        select(Delivery).where(Delivery.status.in_(DELIVERED_STATES))
     ).all()
 
     return {

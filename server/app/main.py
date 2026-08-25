@@ -11,7 +11,17 @@ from starlette.requests import Request
 
 from app.config import get_settings
 from app.core.errors import ApiError, api_error_handler, error_body
-from app.routers import admin, auth, chat, deliveries, driver, me, payment, reviews
+from app.routers import (
+    admin,
+    auth,
+    chat,
+    compat,
+    deliveries,
+    driver,
+    me,
+    payment,
+    reviews,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -65,6 +75,10 @@ async def health() -> dict:
 
 app.include_router(auth.router)
 app.include_router(me.router)
+# La couche de compatibilite est montee **avant** les courses : sa route
+# `GET /deliveries/available` doit l'emporter sur `GET /deliveries/{id}`, qui
+# prendrait sinon « available » pour un identifiant.
+app.include_router(compat.router)
 app.include_router(deliveries.router)
 app.include_router(driver.router)
 app.include_router(admin.router)

@@ -1760,6 +1760,76 @@ class AppLocalizationsMg extends AppLocalizations {
   String get notifCenterClear => 'Fafao ny tantara';
 
   @override
+  String get rateCta => 'Omeo naoty ny mpitatitra';
+
+  @override
+  String get rateTitle => 'Omeo naoty ny mpitatitra';
+
+  @override
+  String get rateOverall => 'Naoty ankapobeny';
+
+  @override
+  String get ratePunctuality => 'Fahatongavana ara-potoana';
+
+  @override
+  String get rateService => 'Kalitaon\'ny asa';
+
+  @override
+  String get rateComment => 'Hevitra (tsy voatery)';
+
+  @override
+  String get rateSubmit => 'Alefa ny naoty';
+
+  @override
+  String get rateThanks => 'Misaotra tamin\'ny naoty';
+
+  @override
+  String get rateAlready => 'Efa nomenao naoty ity dia ity';
+
+  @override
+  String get notifEventAcceptedTitle => 'Nekena ny dia';
+
+  @override
+  String get notifEventAcceptedBody => 'Nisy mpitatitra nandray ny dianao.';
+
+  @override
+  String get notifEventPickedUpTitle => 'Noraisina ny entana';
+
+  @override
+  String get notifEventPickedUpBody => 'Noraisin\'ny mpitatitra ny entanao.';
+
+  @override
+  String get notifEventInTransitTitle => 'Eny an-dalana ny entana';
+
+  @override
+  String get notifEventInTransitBody => 'Am-panaterana ny entanao.';
+
+  @override
+  String get notifEventArrivedTitle => 'Tonga ny mpitatitra';
+
+  @override
+  String get notifEventArrivedBody =>
+      'Tonga any amin\'ny toerana ny mpitatitra.';
+
+  @override
+  String get notifEventDeliveredTitle => 'Vita ny fanaterana';
+
+  @override
+  String get notifEventDeliveredBody => 'Voatolotra ny entanao.';
+
+  @override
+  String get notifEventCancelledTitle => 'Nofoanana ny dia';
+
+  @override
+  String get notifEventCancelledBody => 'Nofoanana ny dia.';
+
+  @override
+  String get notifEventPaidTitle => 'Voaray ny fandoavana';
+
+  @override
+  String get notifEventPaidBody => 'Vita soa aman-tsara ny fandoavam-bola.';
+
+  @override
   String get kycTitle => 'Ny antontan-taratasiko';
 
   @override

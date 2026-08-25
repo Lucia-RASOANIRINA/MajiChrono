@@ -1756,6 +1756,77 @@ class AppLocalizationsFr extends AppLocalizations {
   String get notifCenterClear => 'Effacer l\'historique';
 
   @override
+  String get rateCta => 'Noter le livreur';
+
+  @override
+  String get rateTitle => 'Noter le livreur';
+
+  @override
+  String get rateOverall => 'Note globale';
+
+  @override
+  String get ratePunctuality => 'Ponctualite';
+
+  @override
+  String get rateService => 'Qualite du service';
+
+  @override
+  String get rateComment => 'Commentaire (optionnel)';
+
+  @override
+  String get rateSubmit => 'Envoyer l\'evaluation';
+
+  @override
+  String get rateThanks => 'Merci pour votre evaluation';
+
+  @override
+  String get rateAlready => 'Vous avez deja note cette course';
+
+  @override
+  String get notifEventAcceptedTitle => 'Course acceptee';
+
+  @override
+  String get notifEventAcceptedBody =>
+      'Un livreur a pris votre course en charge.';
+
+  @override
+  String get notifEventPickedUpTitle => 'Colis recupere';
+
+  @override
+  String get notifEventPickedUpBody => 'Le livreur a recupere votre colis.';
+
+  @override
+  String get notifEventInTransitTitle => 'Colis en route';
+
+  @override
+  String get notifEventInTransitBody =>
+      'Votre colis est en cours de livraison.';
+
+  @override
+  String get notifEventArrivedTitle => 'Livreur arrive';
+
+  @override
+  String get notifEventArrivedBody => 'Le livreur est arrive a destination.';
+
+  @override
+  String get notifEventDeliveredTitle => 'Livraison terminee';
+
+  @override
+  String get notifEventDeliveredBody => 'Votre colis a ete remis.';
+
+  @override
+  String get notifEventCancelledTitle => 'Course annulee';
+
+  @override
+  String get notifEventCancelledBody => 'La course a ete annulee.';
+
+  @override
+  String get notifEventPaidTitle => 'Paiement recu';
+
+  @override
+  String get notifEventPaidBody => 'Le paiement a ete regle avec succes.';
+
+  @override
   String get kycTitle => 'Mon dossier';
 
   @override
