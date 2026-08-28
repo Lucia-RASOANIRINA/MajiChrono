@@ -485,6 +485,63 @@ Le fichier `server/.env.neon.example` est prêt à copier.
 
 ---
 
+## Déploiement Render + APK de test — l'essentiel à savoir
+
+Le serveur est déployé sur **Render** (`https://majichrono.onrender.com`) avec une
+base **Neon**. Cette section réunit ce qu'il faut savoir pour une phase de test.
+
+### 1. Construire un APK « propre » (sans info de développement)
+
+Un APK release construit **sans** `FLAVOR=prod` reste en flavor `dev` : il
+afficherait alors le code de connexion à l'écran et le panneau développeur.
+Depuis peu, un build **release** masque de toute façon ces outils, mais la bonne
+commande reste :
+
+```bash
+flutter build apk --release \
+  --dart-define=API_MODE=live \
+  --dart-define=API_BASE_URL=https://majichrono.onrender.com \
+  --dart-define=FLAVOR=prod
+```
+
+Sortie : `build/app/outputs/flutter-apk/app-release.apk`. Aucun `debugCode`, aucun
+panneau dev.
+
+### 2. Variables à poser sur Render (Settings → Environment)
+
+| Variable | Rôle |
+|---|---|
+| `ENVIRONMENT=prod` | masque le `debugCode` de l'API → codes réellement envoyés |
+| `JWT_SECRET` | 48+ caractères aléatoires (`python -c "import secrets;print(secrets.token_urlsafe(48))"`) |
+| `DATABASE_URL` | **chaîne Neon** `postgresql+psycopg://…?sslmode=require` (voir ⚠️ ci-dessous) |
+| `SMS_API_KEY`, `SMS_SENDER` | passerelle mAPI (voir « SMS réel ») |
+| `SMTP_HOST/PORT/USER/PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Resend (voir « E-mail réel ») |
+
+> **mAPI** s'authentifie par une **clé API** (`Authorization: Bearer …`), **pas**
+> par e-mail/mot de passe. L'e-mail/mot de passe servent à se connecter au
+> **dashboard mAPI**, d'où l'on copie la **clé API** à coller dans `SMS_API_KEY`.
+> Sans cette clé en `ENVIRONMENT=prod`, **aucun code SMS n'est délivré** et la
+> connexion par téléphone échoue.
+
+### 3. ⚠️ « Je ne vois pas mes données dans Neon »
+
+Cause la plus fréquente : **`DATABASE_URL` n'est pas réellement pointée sur Neon**
+sur Render. Sans elle, le serveur retombe sur son **SQLite par défaut**, stocké
+sur le disque **éphémère** de Render — les données existent le temps d'une
+session puis disparaissent à chaque redéploiement, et **n'arrivent jamais dans
+Neon**. À vérifier :
+
+1. Sur Render → *Environment* : `DATABASE_URL` est bien la chaîne **pooled** de
+   Neon, préfixe `postgresql+psycopg://`, suffixe `?sslmode=require`.
+2. Après l'avoir posée, Render redémarre : **créer le schéma** une fois si besoin
+   (`python -c "from app.db import create_all; create_all()"` via un shell Render,
+   ou au démarrage).
+3. Dans la console Neon, regarder la **bonne branche** (souvent `main`) et le bon
+   projet ; les tables sont `accounts`, `deliveries`, `payment_intents`,
+   `reviews`, etc.
+
+---
+
 ## E-mail réel (code de connexion par e-mail)
 
 Sans configuration SMTP, le serveur **écrit le code dans son journal** au lieu de

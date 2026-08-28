@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:majichrono/core/config/app_config.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -94,11 +96,34 @@ class ApiClient {
     RequestInterceptorHandler handler,
   ) {
     options.headers['Accept-Language'] = _languageProvider();
+    // Libelle d'appareil : sert a nommer la session dans la liste des appareils
+    // connectes. Best-effort, sans dependance supplementaire — le systeme et sa
+    // version suffisent a distinguer « cet appareil-ci » des autres.
+    options.headers['X-Device'] = _deviceLabel;
     final token = _accessTokenProvider();
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
     handler.next(options);
+  }
+
+  static final String _deviceLabel = _computeDeviceLabel();
+
+  static String _computeDeviceLabel() {
+    try {
+      final os = switch (Platform.operatingSystem) {
+        'android' => 'Android',
+        'ios' => 'iOS',
+        'macos' => 'macOS',
+        'windows' => 'Windows',
+        'linux' => 'Linux',
+        final other => other,
+      };
+      final version = Platform.operatingSystemVersion.trim();
+      return version.isEmpty ? os : '$os · ${version.split(RegExp(r"[ (]")).first}';
+    } catch (_) {
+      return 'Appareil';
+    }
   }
 
   Future<T> get<T>(
@@ -152,6 +177,18 @@ class ApiClient {
           IdempotencyInterceptor.extraKey: ?idempotencyKey,
         },
       ),
+    ),
+  );
+
+  Future<T> delete<T>(
+    String path, {
+    Object? body,
+    DataCategory category = DataCategory.api,
+  }) => _run<T>(
+    () => _dio.delete<T>(
+      path,
+      data: body,
+      options: Options(extra: {DataMeterInterceptor.extraKey: category}),
     ),
   );
 

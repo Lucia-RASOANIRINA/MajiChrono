@@ -9,6 +9,163 @@ class AppLocalizationsFr extends AppLocalizations {
   AppLocalizationsFr([String locale = 'fr']) : super(locale);
 
   @override
+  String get profileEdit => 'Modifier le profil';
+
+  @override
+  String get profilePersonalInfo => 'Informations personnelles';
+
+  @override
+  String get profilePhoto => 'Photo de profil';
+
+  @override
+  String get profilePhotoFromGallery => 'Choisir dans la galerie';
+
+  @override
+  String get profilePhotoFromCamera => 'Prendre une photo';
+
+  @override
+  String get profilePhotoRemove => 'Retirer la photo';
+
+  @override
+  String get profileName => 'Nom affiche';
+
+  @override
+  String get profileFirstName => 'Prenom';
+
+  @override
+  String get profileLastName => 'Nom';
+
+  @override
+  String get profileNameEmpty => 'Le nom ne peut pas etre vide';
+
+  @override
+  String get sessionsTitle => 'Appareils connectes';
+
+  @override
+  String get sessionsManage => 'Appareils connectes';
+
+  @override
+  String get sessionsEmpty => 'Aucune session active';
+
+  @override
+  String get sessionCurrent => 'Cet appareil';
+
+  @override
+  String get sessionRevoke => 'Deconnecter';
+
+  @override
+  String get sessionRevoked => 'Appareil deconnecte';
+
+  @override
+  String get sessionUnknownDevice => 'Appareil';
+
+  @override
+  String sessionSince(String date) {
+    return 'Connecte le $date';
+  }
+
+  @override
+  String get profilePhoneLabel => 'Numero de telephone';
+
+  @override
+  String get profileEmailLabel => 'Adresse e-mail';
+
+  @override
+  String get profileChange => 'Changer';
+
+  @override
+  String get profileSaved => 'Profil mis a jour';
+
+  @override
+  String get passwordTitle => 'Mot de passe';
+
+  @override
+  String get passwordManage => 'Mot de passe';
+
+  @override
+  String get passwordChangeTitle => 'Changer le mot de passe';
+
+  @override
+  String get passwordSetTitle => 'Definir un mot de passe';
+
+  @override
+  String get passwordCurrent => 'Mot de passe actuel';
+
+  @override
+  String get passwordNew => 'Nouveau mot de passe';
+
+  @override
+  String get passwordConfirm => 'Confirmer le mot de passe';
+
+  @override
+  String get passwordMismatch => 'Les mots de passe ne correspondent pas';
+
+  @override
+  String get passwordTooShort => '8 caracteres minimum';
+
+  @override
+  String get passwordChanged => 'Mot de passe mis a jour';
+
+  @override
+  String get passwordWrongCurrent => 'Mot de passe actuel incorrect';
+
+  @override
+  String get passwordForgot => 'Mot de passe oublie ?';
+
+  @override
+  String get passwordForgotTitle => 'Mot de passe oublie';
+
+  @override
+  String get passwordForgotHelp =>
+      'Entrez votre adresse e-mail : un code vous sera envoye pour reposer votre mot de passe.';
+
+  @override
+  String get passwordReset => 'Reinitialiser le mot de passe';
+
+  @override
+  String get codeEnterTitle => 'Entrez le code';
+
+  @override
+  String codeSentToEmail(String dest) {
+    return 'Un code a ete envoye a $dest.';
+  }
+
+  @override
+  String codeSentToPhone(String dest) {
+    return 'Un code a ete envoye au $dest.';
+  }
+
+  @override
+  String get emailChangeTitle => 'Changer d\'adresse e-mail';
+
+  @override
+  String get emailNew => 'Nouvelle adresse e-mail';
+
+  @override
+  String get emailInvalid => 'Adresse e-mail invalide';
+
+  @override
+  String get phoneChangeTitle => 'Changer de numero';
+
+  @override
+  String get phoneNew => 'Nouveau numero';
+
+  @override
+  String get phoneInvalid => 'Numero malgache invalide';
+
+  @override
+  String get changeSaved => 'Modification enregistree';
+
+  @override
+  String get commonSend => 'Envoyer';
+
+  @override
+  String get commonVerify => 'Verifier';
+
+  @override
+  String get commonNext => 'Continuer';
+
+  @override
   String get appName => 'MajiChrono';
 
   @override

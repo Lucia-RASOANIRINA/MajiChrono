@@ -9,6 +9,7 @@ import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/profile/presentation/avatar_image.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_loader.dart';
 import 'package:majichrono/shared/widgets/mc_patterns.dart';
@@ -84,6 +85,12 @@ class _Body extends ConsumerWidget {
                 title: linkedEmail ?? l10n.profileEmailNone,
                 subtitle: linkedEmail == null ? null : l10n.profileEmailLinked,
               ),
+              _Tile(
+                icon: Icons.edit_outlined,
+                title: l10n.profileEdit,
+                subtitle: l10n.profilePersonalInfo,
+                onTap: () => context.push(AppRoutes.profileEdit),
+              ),
 
               const SizedBox(height: AppSpacing.lg),
               _Section(title: l10n.profileSecurity),
@@ -102,6 +109,11 @@ class _Body extends ConsumerWidget {
                     onTap: () => context.push(AppRoutes.authPin),
                   );
                 },
+              ),
+              _Tile(
+                icon: Icons.password_outlined,
+                title: l10n.passwordManage,
+                onTap: () => context.push(AppRoutes.passwordChange),
               ),
               _Tile(
                 icon: Icons.settings_outlined,
@@ -228,9 +240,7 @@ class _ProfileHeader extends StatelessWidget {
                     child: CircleAvatar(
                       radius: AppSizes.avatarLg / 2,
                       backgroundColor: Colors.white,
-                      foregroundImage: account.avatarUrl == null
-                          ? null
-                          : NetworkImage(account.avatarUrl!),
+                      foregroundImage: avatarImage(account.avatarUrl),
                       child: Text(
                         initial,
                         style: const TextStyle(

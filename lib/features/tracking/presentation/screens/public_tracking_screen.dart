@@ -72,9 +72,15 @@ class PublicTrackingScreen extends ConsumerWidget {
                           children: [
                             const Icon(Icons.two_wheeler, size: 18),
                             const SizedBox(width: AppSpacing.sm),
-                            Text(
-                              data.driverFirstName!,
-                              style: theme.textTheme.bodyLarge,
+                            // Un prenom tres long, ou un fort agrandissement
+                            // systeme des polices, deborderait la Row sans ce
+                            // garde-fou : on laisse le texte se tronquer.
+                            Flexible(
+                              child: Text(
+                                data.driverFirstName!,
+                                style: theme.textTheme.bodyLarge,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                             ),
                           ],
                         ),

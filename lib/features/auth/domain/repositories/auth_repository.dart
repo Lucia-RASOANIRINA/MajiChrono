@@ -54,14 +54,71 @@ abstract interface class AuthRepository {
     required String password,
   });
 
-  /// Pose le profil d'un compte tout juste cree (EXI-T02).
+  /// Change le mot de passe du compte connecte. [currentPassword] est requis si
+  /// le compte en a deja un ; il est absent pour un compte entre par numero qui
+  /// s'en pose un pour la premiere fois.
+  Future<void> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  });
+
+  /// « Mot de passe oublie » : repose le mot de passe apres un code recu par
+  /// e-mail. Le defi vient de [requestEmailCode].
+  Future<void> resetPassword({
+    required String challengeId,
+    required String code,
+    required String newPassword,
+  });
+
+  /// Demande un code a une **nouvelle** adresse e-mail, en vue de la rattacher
+  /// au compte connecte.
+  Future<EmailChallenge> requestEmailChange(String email);
+
+  /// Confirme le changement d'adresse et rend le compte a jour.
+  Future<UserAccount> confirmEmailChange({
+    required String challengeId,
+    required String code,
+  });
+
+  /// Demande un SMS a un **nouveau** numero, en vue d'en faire la cle du compte.
+  Future<OtpChallenge> requestPhoneChange(MalagasyPhone phone);
+
+  /// Confirme le changement de numero et rend le compte a jour.
+  Future<UserAccount> confirmPhoneChange({
+    required String challengeId,
+    required String code,
+  });
+
+  /// Pose (ou remplace) la photo de profil. Rend le compte a jour, `avatarUrl`
+  /// pointant sur la nouvelle image.
+  Future<UserAccount> uploadAvatar({
+    required List<int> bytes,
+    required String contentType,
+  });
+
+  /// Retire la photo de profil.
+  Future<UserAccount> deleteAvatar();
+
+  /// Pose le profil d'un compte tout juste cree (EXI-T02) : role, prenom, nom.
   ///
   /// Le role administrateur est refuse par le serveur : il n'est attribue que
   /// cote serveur, jamais revendique par le mobile.
   Future<UserAccount> chooseProfile({
     required UserRole role,
-    required String displayName,
+    required String firstName,
+    required String lastName,
   });
+
+  /// Met a jour le prenom et le nom du compte connecte ; le serveur en recompose
+  /// le nom d'usage.
+  Future<UserAccount> updateName({String? firstName, String? lastName});
+
+  /// Liste les sessions actives (un appareil = une session).
+  Future<List<SessionInfo>> listSessions();
+
+  /// Revoque une session a distance : l'appareil vise ne pourra plus se
+  /// rafraichir.
+  Future<void> revokeSession(String id);
 
   /// Session persistee, ou `null` si l'utilisateur n'est pas connecte.
   Future<AuthSession?> currentSession();

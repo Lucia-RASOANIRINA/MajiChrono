@@ -1,6 +1,9 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
+import 'package:majichrono/app/theme/design_tokens.dart';
 
 /// Chargement de marque : une moto qui file le long d'une barre de progression.
 ///
@@ -116,51 +119,135 @@ class _McMotoLoaderState extends State<McMotoLoader>
   }
 }
 
-/// Ecran de chargement complet aux couleurs de la marque : le nom, puis la moto
-/// qui roule sur sa barre. Pose sur le bleu de la charte, il prolonge l'ecran de
-/// lancement Android sans rupture.
+/// Ecran de chargement complet aux couleurs de la marque : l'illustration du
+/// livreur — **la meme** que l'ecran de demarrage natif d'Android 12
+/// (`assets/brand/logo_rider.png` == `res/drawable/splash_logo.png`, sur le meme
+/// bleu `#1E2A78`) — accompagnee d'un petit indicateur de chargement.
+///
+/// Le livreur est cale **exactement au centre**, a la meme place et a la meme
+/// taille que l'icone du splash natif. Le passage du splash natif a cet ecran
+/// est donc invisible : rien ne bouge, ce n'est pas un second ecran — c'est le
+/// meme, ou les points de chargement viennent simplement apparaitre en dessous.
+/// On evite ainsi le doublon « livreur puis livreur+points ».
+///
+/// Ce signe de vie manquait au premier lancement et au reveil du serveur (plan
+/// gratuit Render, ~30-50 s), ou l'ecran restait fige sans retour.
 class McMotoLoadingView extends StatelessWidget {
-  const McMotoLoadingView({this.label = 'MajiChrono', super.key});
+  const McMotoLoadingView({super.key});
 
-  final String label;
+  /// Cote de la vignette du livreur — cale sur la taille de l'icone du splash
+  /// natif (livreur visible ~510 px @3x) pour que la transition ne fasse aucun
+  /// saut, ni de position ni de taille. Mesure verifiee a l'ecran.
+  static const double _riderSize = 286;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.primary,
+      // Le livreur reste dead-center (comme le splash natif) ; les points
+      // debordent sous sa vignette sans jamais le decaler.
       body: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 30,
-                fontWeight: FontWeight.w700,
-                letterSpacing: -0.5,
+        child: SizedBox.square(
+          dimension: _riderSize,
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              Image.asset(
+                'assets/brand/logo_rider.png',
+                width: _riderSize,
+                filterQuality: FilterQuality.medium,
               ),
-            ),
-            const SizedBox(height: 28),
-            const McMotoLoader(width: 200),
-            const SizedBox(height: 24),
-            // Barre de chargement explicite, sous la moto : elle dit « ca charge »
-            // avec le vocabulaire attendu d'un premier lancement, la ou la moto
-            // porte la marque.
-            SizedBox(
-              width: 200,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  minHeight: 4,
-                  backgroundColor: Colors.white.withValues(alpha: 0.22),
-                  valueColor: const AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
+              const Positioned(
+                bottom: -AppSpacing.lg,
+                left: 0,
+                right: 0,
+                child: Align(child: _SplashLoadingDots()),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
+}
+
+/// Trois points blancs qui pulsent en cascade, de gauche a droite — un « ca
+/// charge » discret, dans la veine des lignes de vitesse du livreur.
+///
+/// Retire quand le systeme demande la suppression des animations (EXI-T09) :
+/// trois points a demi-opacite le remplacent alors.
+class _SplashLoadingDots extends StatefulWidget {
+  const _SplashLoadingDots();
+
+  @override
+  State<_SplashLoadingDots> createState() => _SplashLoadingDotsState();
+}
+
+class _SplashLoadingDotsState extends State<_SplashLoadingDots>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1100),
+  )..repeat();
+
+  static const int _count = 3;
+  static const double _dotSize = 8;
+  static const double _gap = 6;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final reduceMotion = MediaQuery.maybeDisableAnimationsOf(context) ?? false;
+
+    if (reduceMotion) {
+      return _row(List.filled(_count, 0.55));
+    }
+
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, _) {
+        final opacities = <double>[
+          for (var i = 0; i < _count; i++)
+            // Chaque point est decale d'un tiers de cycle : la vague court de
+            // gauche a droite. Cloche cosinus : plein au passage, attenue
+            // autour, sans a-coup au bouclage.
+            0.3 +
+                0.7 *
+                    (0.5 +
+                        0.5 *
+                            math.cos(
+                              2 *
+                                  math.pi *
+                                  ((_controller.value - i / _count) % 1.0),
+                            )),
+        ];
+        return _row(opacities);
+      },
+    );
+  }
+
+  Widget _row(List<double> opacities) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var i = 0; i < opacities.length; i++) ...[
+        if (i > 0) const SizedBox(width: _gap),
+        Container(
+          width: _dotSize,
+          height: _dotSize,
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(
+              alpha: opacities[i].clamp(0.0, 1.0),
+            ),
+            shape: BoxShape.circle,
+          ),
+        ),
+      ],
+    ],
+  );
 }

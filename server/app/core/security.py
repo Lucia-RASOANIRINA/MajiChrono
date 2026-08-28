@@ -46,13 +46,18 @@ def new_opaque_token() -> str:
     return secrets.token_urlsafe(48)
 
 
-def issue_access_token(account_id: str, role: str | None) -> tuple[str, datetime]:
+def issue_access_token(
+    account_id: str, role: str | None, family: str | None = None
+) -> tuple[str, datetime]:
     settings = get_settings()
     expires = datetime.now(timezone.utc) + timedelta(minutes=settings.access_ttl_minutes)
     payload = {
         "sub": account_id,
         "role": role,
         "typ": "access",
+        # Famille de la session courante : permet a la liste des sessions de
+        # marquer « cet appareil-ci » sans le confondre avec les autres.
+        "fam": family,
         "exp": expires,
         "iat": datetime.now(timezone.utc),
     }

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
@@ -11,6 +12,7 @@ from starlette.requests import Request
 
 from app.config import get_settings
 from app.core.errors import ApiError, api_error_handler, error_body
+from app.db import ensure_schema, get_db
 from app.routers import (
     admin,
     auth,
@@ -30,9 +32,32 @@ logging.basicConfig(
 
 settings = get_settings()
 
+logger = logging.getLogger("majichrono.main")
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Au demarrage, on aligne le schema de la base sur les modeles (migration
+    legere, idempotente) : un deploiement suffit alors a faire apparaitre une
+    nouvelle table ou une nouvelle colonne nullable sur Neon, sans intervention.
+
+    On **saute** l'operation en test : la suite remplace `get_db` par une base
+    en memoire creee de zero par la fixture, et toucher la vraie base n'aurait ni
+    sens ni interet. L'echec eventuel n'est pas fatal — le serveur demarre quand
+    meme, l'incident est journalise.
+    """
+    if get_db not in app.dependency_overrides:
+        try:
+            ensure_schema()
+        except Exception:  # noqa: BLE001 — un schema deja a jour ne doit pas empecher le boot
+            logger.exception("Alignement du schema au demarrage impossible")
+    yield
+
+
 app = FastAPI(
     title="MajiChrono",
     version="0.1.0",
+    lifespan=lifespan,
     # La documentation interactive n'est ouverte qu'en dehors de la production :
     # elle expose la forme exacte de chaque route, ce qui rend le travail d'un
     # attaquant plus court sans rien apporter aux utilisateurs.

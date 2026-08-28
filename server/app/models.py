@@ -21,6 +21,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    LargeBinary,
     String,
     Text,
     UniqueConstraint,
@@ -80,6 +81,13 @@ class Account(Base):
     password_hash: Mapped[str | None] = mapped_column(String(255))
 
     role: Mapped[UserRole | None] = mapped_column(Enum(UserRole, name="user_role"))
+
+    # Prenom et nom, separes. `display_name` reste le nom d'usage, recompose a
+    # partir des deux : les ecrans (en-tete, salutation, cartes) n'ont ainsi
+    # qu'un seul champ a lire, et l'ancien contrat continue de fonctionner pour
+    # les comptes anterieurs qui n'ont pas encore rempli le detail.
+    first_name: Mapped[str | None] = mapped_column(String(80))
+    last_name: Mapped[str | None] = mapped_column(String(80))
     display_name: Mapped[str] = mapped_column(String(120), default="")
     avatar_url: Mapped[str | None] = mapped_column(String(500))
     rating: Mapped[float | None] = mapped_column()
@@ -94,12 +102,36 @@ class Account(Base):
             "phone": self.phone,
             "email": self.email,
             "role": self.role.value if self.role else None,
+            "firstName": self.first_name,
+            "lastName": self.last_name,
             "displayName": self.display_name,
             "avatarUrl": self.avatar_url,
             "rating": self.rating,
             "kycStatus": self.kyc_status.value if self.kyc_status else None,
             "createdAt": self.created_at.isoformat(),
         }
+
+
+class Avatar(Base):
+    """Photo de profil, rangee en base plutot que sur le disque.
+
+    Le disque d'un plan gratuit (Render) est ephemere : une photo posee la
+    disparaitrait au premier redeploiement. En base, elle survit et suit le
+    compte. On la garde dans une **table a part** : une colonne binaire sur
+    `accounts` grossirait chaque lecture de compte pour rien, alors que l'avatar
+    n'est lu que par la balise `<img>`. Une ligne par compte au plus.
+    """
+
+    __tablename__ = "avatars"
+
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True
+    )
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    content_type: Mapped[str] = mapped_column(String(80))
+    # Sert de version dans l'URL (`?v=...`) pour casser le cache quand la photo
+    # change, sans changer le chemin.
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
 class ChallengeChannel(str, enum.Enum):
@@ -156,8 +188,14 @@ class RefreshToken(Base):
     account_id: Mapped[str] = mapped_column(ForeignKey("accounts.id", ondelete="CASCADE"), index=True)
     token_hash: Mapped[str] = mapped_column(String(255), unique=True)
 
-    # Toutes les rotations issues d'une meme connexion partagent cette famille.
+    # Toutes les rotations issues d'une meme connexion partagent cette famille :
+    # c'est elle qui identifie une **session** (un appareil connecte) dans la
+    # liste que l'utilisateur peut consulter et revoquer.
     family: Mapped[str] = mapped_column(String(40), index=True)
+
+    # Libelle lisible de l'appareil a l'origine de la session (« Android 14 »,
+    # etc.), pose a la connexion et conserve a travers les rotations.
+    device_label: Mapped[str | None] = mapped_column(String(120))
 
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     revoked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

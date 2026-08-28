@@ -32,6 +32,10 @@ class AuthMockModule extends MockModule {
   /// Defis envoyes par e-mail, memes regles de duree et de tentatives.
   final Map<String, _EmailChallenge> _emailChallenges = {};
 
+  /// Sessions actives, par famille — un appareil connecte. En memoire (le vrai
+  /// serveur les range en base) : suffisant pour recetter liste et revocation.
+  final Map<String, _Session> _sessions = {};
+
   /// Rattachements adresse -> numero.
   ///
   /// Le numero reste la cle du compte : l'adresse n'est qu'une seconde porte
@@ -89,12 +93,23 @@ class AuthMockModule extends MockModule {
     backend.post(ApiEndpoints.logout, _logout);
     backend.get(ApiEndpoints.me, _me);
     backend.patch(ApiEndpoints.me, _patchMe);
+    backend.post(ApiEndpoints.passwordChange, _changePassword);
+    backend.post(ApiEndpoints.passwordReset, _resetPassword);
+    backend.post(ApiEndpoints.emailChangeRequest, _requestEmailChange);
+    backend.post(ApiEndpoints.emailChangeVerify, _verifyEmailChange);
+    backend.post(ApiEndpoints.phoneChangeRequest, _requestPhoneChange);
+    backend.post(ApiEndpoints.phoneChangeVerify, _verifyPhoneChange);
+    backend.post(ApiEndpoints.meAvatar, _uploadAvatar);
+    backend.delete(ApiEndpoints.meAvatar, _deleteAvatar);
+    backend.get(ApiEndpoints.sessions, _listSessions);
+    backend.delete('/auth/sessions/{family}', _revokeSession);
   }
 
   @override
   Future<void> reset() async {
     _challenges.clear();
     _emailChallenges.clear();
+    _sessions.clear();
     _emailLinks
       ..clear()
       ..addAll(seededEmails);
@@ -123,7 +138,7 @@ class AuthMockModule extends MockModule {
       );
     }
 
-    return _sessionForEmail(email);
+    return _sessionForEmail(email, deviceLabel: _deviceOf(req));
   }
 
   // --- POST /auth/password/signup ---------------------------------------
@@ -167,13 +182,13 @@ class AuthMockModule extends MockModule {
 
   /// Ouvre la session du compte rattache a une adresse, ou signale qu'aucun
   /// numero ne s'y rattache encore.
-  MockResponse _sessionForEmail(String email) {
+  MockResponse _sessionForEmail(String email, {String? deviceLabel}) {
     final phone = _emailLinks[email];
     if (phone == null) return MockResponse.ok({'linked': false, 'email': email});
 
     return MockResponse.ok({
       'linked': true,
-      'session': _issueSession(_accountFor(phone)),
+      'session': _issueSession(_accountFor(phone), deviceLabel: deviceLabel),
       'account': _accountFor(phone).toJson(),
     });
   }
@@ -287,7 +302,7 @@ class AuthMockModule extends MockModule {
     // Adresse prouvee. Si aucun numero ne s'y rattache, aucune session n'est
     // ouverte : un compte sans numero ne pourrait ni etre appele par un livreur,
     // ni recevoir le SMS de suivi (EXI-C24).
-    return _sessionForEmail(challenge.email);
+    return _sessionForEmail(challenge.email, deviceLabel: _deviceOf(req));
   }
 
   // --- POST /auth/email/link --------------------------------------------
@@ -403,7 +418,7 @@ class AuthMockModule extends MockModule {
     final account = _accountFor(challenge.phone);
 
     return MockResponse.ok({
-      'session': _issueSession(account),
+      'session': _issueSession(account, deviceLabel: _deviceOf(req)),
       'account': account.toJson(),
     });
   }
@@ -423,9 +438,13 @@ class AuthMockModule extends MockModule {
     if (_isExpired(claims)) {
       return MockResponse.error(401, 'refresh_expired', 'Session expiree');
     }
-    // Rotation : le couple precedent n'est plus valable (EXI-T03).
+    // Rotation : le couple precedent n'est plus valable (EXI-T03). La famille
+    // est conservee — c'est la meme session (le meme appareil) qui se prolonge.
     return MockResponse.ok({
-      'session': _issueSession(_Account.fromClaims(claims)),
+      'session': _issueSession(
+        _Account.fromClaims(claims),
+        family: claims['fam'] as String?,
+      ),
     });
   }
 
@@ -461,7 +480,9 @@ class AuthMockModule extends MockModule {
     }
 
     final role = req.json['role'] as String?;
-    final name = req.json['displayName'] as String?;
+    final displayName = req.json['displayName'] as String?;
+    final first = req.json['firstName'] as String?;
+    final last = req.json['lastName'] as String?;
 
     // EXI-T02 : le role administrateur est attribue cote serveur uniquement.
     // Une application qui le reclamerait doit etre refusee, pas ignoree.
@@ -481,9 +502,21 @@ class AuthMockModule extends MockModule {
       return MockResponse.error(409, 'role_already_set', 'Profil deja defini');
     }
 
+    // Prenom / nom priment sur `displayName` seul, et recomposent le nom d'usage.
+    final newFirst = first != null ? (first.trim().isEmpty ? null : first.trim()) : account.firstName;
+    final newLast = last != null ? (last.trim().isEmpty ? null : last.trim()) : account.lastName;
+    final String newName;
+    if (first != null || last != null) {
+      newName = [newFirst, newLast].whereType<String>().join(' ').trim();
+    } else {
+      newName = displayName ?? account.name;
+    }
+
     final updated = account.copyWith(
       role: role ?? account.role,
-      name: name ?? account.name,
+      name: newName,
+      firstName: newFirst,
+      lastName: newLast,
       kycStatus: (role ?? account.role) == 'driver' ? 'draft' : null,
     );
 
@@ -496,20 +529,396 @@ class AuthMockModule extends MockModule {
 
     return MockResponse.ok({
       ...updated.toJson(),
-      if (reissue) 'session': _issueSession(updated),
+      if (reissue) 'session': _issueSession(updated, family: _decode(req.bearer)?['fam'] as String?),
     });
+  }
+
+  // --- POST /auth/password/change --------------------------------------
+
+  Future<MockResponse> _changePassword(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final next = req.json['newPassword'] as String?;
+    if (next == null || next.length < minPasswordLength) {
+      return MockResponse.error(
+        422,
+        'weak_password',
+        'Mot de passe trop court',
+        details: {'minLength': minPasswordLength},
+      );
+    }
+    // Le mot de passe est range par adresse, ou par numero a defaut (compte
+    // entre par numero qui s'en pose un pour la premiere fois).
+    final key = account.email ?? account.phone;
+    final existing = _passwords[key];
+    if (existing != null && existing != (req.json['currentPassword'] as String?)) {
+      // 403 et non 401 : un 401 ferait tourner l'intercepteur de rafraichissement
+      // (jeton « expire ») en boucle. La session est valide, c'est la preuve qui
+      // est fausse.
+      return MockResponse.error(
+        403,
+        'wrong_current_password',
+        'Mot de passe actuel incorrect',
+      );
+    }
+    _passwords[key] = next;
+    return MockResponse.noContent();
+  }
+
+  // --- POST /auth/password/reset ---------------------------------------
+
+  Future<MockResponse> _resetPassword(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final next = req.json['newPassword'] as String?;
+    if (next == null || next.length < minPasswordLength) {
+      return MockResponse.error(
+        422,
+        'weak_password',
+        'Mot de passe trop court',
+        details: {'minLength': minPasswordLength},
+      );
+    }
+    final challenge = _takeEmailChallenge(req);
+    if (challenge.error != null) return challenge.error!;
+    _passwords[challenge.value!.email] = next;
+    return MockResponse.noContent();
+  }
+
+  // --- Changement d'adresse e-mail (compte connecte) -------------------
+
+  Future<MockResponse> _requestEmailChange(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final email = (req.json['email'] as String?)?.trim().toLowerCase();
+    if (email == null || !_looksLikeEmail(email)) {
+      return MockResponse.error(422, 'invalid_email', 'Adresse e-mail invalide');
+    }
+    final owner = _emailLinks[email];
+    if (owner != null && owner != account.phone) {
+      return MockResponse.error(
+        409,
+        'email_taken',
+        'Cette adresse est deja rattachee a un autre compte',
+      );
+    }
+    final challengeId = 'eml_${_random.nextInt(1 << 32)}';
+    final code = (_random.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(otpValidity);
+    _emailChallenges[challengeId] = _EmailChallenge(
+      email: email,
+      code: code,
+      expiresAt: expiresAt,
+      attemptsLeft: maxAttempts,
+    );
+    return MockResponse.ok({
+      'challengeId': challengeId,
+      'email': email,
+      'expiresAt': expiresAt.toUtc().toIso8601String(),
+      'attemptsLeft': maxAttempts,
+      'debugCode': code,
+    });
+  }
+
+  Future<MockResponse> _verifyEmailChange(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final result = _takeEmailChallenge(req);
+    if (result.error != null) return result.error!;
+    final newEmail = result.value!.email;
+
+    final owner = _emailLinks[newEmail];
+    if (owner != null && owner != account.phone) {
+      return MockResponse.error(
+        409,
+        'email_taken',
+        'Cette adresse est deja rattachee a un autre compte',
+      );
+    }
+    // Repointe le rattachement : l'ancienne adresse de ce compte s'efface, la
+    // nouvelle prend sa place.
+    _emailLinks.removeWhere((_, phone) => phone == account.phone);
+    _emailLinks[newEmail] = account.phone;
+
+    final updated = account.copyWith(email: newEmail);
+    return MockResponse.ok({
+      ...updated.toJson(),
+      'session': _issueSession(updated, family: _decode(req.bearer)?['fam'] as String?),
+    });
+  }
+
+  // --- Changement de numero (compte connecte) --------------------------
+
+  Future<MockResponse> _requestPhoneChange(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final phone = req.json['phone'] as String?;
+    if (phone == null ||
+        !RegExp(r'^\+261(32|33|34|38|20)\d{7}$').hasMatch(phone)) {
+      return MockResponse.error(
+        422,
+        'invalid_phone',
+        'Numero de telephone malgache invalide',
+      );
+    }
+    if (phone != account.phone && _emailLinks.containsValue(phone)) {
+      return MockResponse.error(
+        409,
+        'phone_taken',
+        'Ce numero est deja utilise par un autre compte',
+      );
+    }
+    final challengeId = 'chg_${_random.nextInt(1 << 32)}';
+    final code = (_random.nextInt(900000) + 100000).toString();
+    final expiresAt = DateTime.now().add(otpValidity);
+    _challenges[challengeId] = _Challenge(
+      phone: phone,
+      code: code,
+      expiresAt: expiresAt,
+      attemptsLeft: maxAttempts,
+    );
+    return MockResponse.ok({
+      'challengeId': challengeId,
+      'expiresAt': expiresAt.toUtc().toIso8601String(),
+      'attemptsLeft': maxAttempts,
+      'debugCode': code,
+    });
+  }
+
+  Future<MockResponse> _verifyPhoneChange(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final challengeId = req.json['challengeId'] as String?;
+    final code = req.json['code'] as String?;
+    final challenge = _challenges[challengeId];
+    if (challenge == null) {
+      return MockResponse.error(
+        422,
+        'unknown_challenge',
+        'Defi inconnu ou deja utilise',
+      );
+    }
+    if (DateTime.now().isAfter(challenge.expiresAt)) {
+      _challenges.remove(challengeId);
+      return MockResponse.error(422, 'otp_expired', 'Code expire');
+    }
+    if (code != challenge.code) {
+      final left = challenge.attemptsLeft - 1;
+      if (left <= 0) {
+        _challenges.remove(challengeId);
+        return MockResponse.error(422, 'otp_locked', 'Trop de tentatives');
+      }
+      _challenges[challengeId!] = challenge.copyWith(attemptsLeft: left);
+      return MockResponse.error(
+        422,
+        'otp_invalid',
+        'Code incorrect',
+        details: {'attemptsLeft': left},
+      );
+    }
+    _challenges.remove(challengeId);
+
+    final newPhone = challenge.phone;
+    // Le rattachement d'adresse suit le compte vers son nouveau numero.
+    _emailLinks.updateAll((_, phone) => phone == account.phone ? newPhone : phone);
+    final updated = account.copyWith(phone: newPhone);
+    return MockResponse.ok({
+      ...updated.toJson(),
+      'session': _issueSession(updated, family: _decode(req.bearer)?['fam'] as String?),
+    });
+  }
+
+  // --- Photo de profil --------------------------------------------------
+
+  Future<MockResponse> _uploadAvatar(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final image = req.json['imageBase64'] as String?;
+    final type = (req.json['contentType'] as String?)?.trim().toLowerCase();
+    if (image == null || image.isEmpty) {
+      return MockResponse.error(422, 'invalid_image', 'Image vide');
+    }
+    if (type == null ||
+        !{'image/jpeg', 'image/png', 'image/webp'}.contains(type)) {
+      return MockResponse.error(422, 'unsupported_type', 'Format non accepte');
+    }
+    // Sans serveur d'images, la photo revient telle quelle sous forme de data
+    // URI : l'application sait la rendre (voir la resolution d'avatar cote
+    // profil), et le parcours se recette de bout en bout en mode simule.
+    final updated = account.copyWith(avatarUrl: 'data:$type;base64,$image');
+    return MockResponse.ok({
+      ...updated.toJson(),
+      'session': _issueSession(updated, family: _decode(req.bearer)?['fam'] as String?),
+    });
+  }
+
+  Future<MockResponse> _deleteAvatar(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final updated = account.copyWith(avatarUrl: null);
+    return MockResponse.ok({
+      ...updated.toJson(),
+      'session': _issueSession(updated, family: _decode(req.bearer)?['fam'] as String?),
+    });
+  }
+
+  /// Consomme un defi e-mail (partage par la reinitialisation et le changement
+  /// d'adresse) : rend le defi brule, ou l'erreur a renvoyer telle quelle.
+  ({_EmailChallenge? value, MockResponse? error}) _takeEmailChallenge(
+    MockRequest req,
+  ) {
+    final challengeId = req.json['challengeId'] as String?;
+    final code = req.json['code'] as String?;
+    final challenge = _emailChallenges[challengeId];
+    if (challenge == null) {
+      return (
+        value: null,
+        error: MockResponse.error(
+          422,
+          'unknown_challenge',
+          'Defi inconnu ou deja utilise',
+        ),
+      );
+    }
+    if (DateTime.now().isAfter(challenge.expiresAt)) {
+      _emailChallenges.remove(challengeId);
+      return (
+        value: null,
+        error: MockResponse.error(422, 'otp_expired', 'Code expire'),
+      );
+    }
+    if (code != challenge.code) {
+      final left = challenge.attemptsLeft - 1;
+      if (left <= 0) {
+        _emailChallenges.remove(challengeId);
+        return (
+          value: null,
+          error: MockResponse.error(422, 'otp_locked', 'Trop de tentatives'),
+        );
+      }
+      _emailChallenges[challengeId!] = challenge.copyWith(attemptsLeft: left);
+      return (
+        value: null,
+        error: MockResponse.error(
+          422,
+          'otp_invalid',
+          'Code incorrect',
+          details: {'attemptsLeft': left},
+        ),
+      );
+    }
+    _emailChallenges.remove(challengeId);
+    return (value: challenge, error: null);
   }
 
   // --- Jetons -----------------------------------------------------------
 
-  Map<String, dynamic> _issueSession(_Account account) {
+  Map<String, dynamic> _issueSession(
+    _Account account, {
+    String? family,
+    String? deviceLabel,
+  }) {
     final now = DateTime.now();
+    final fam = family ?? 'fam_${_random.nextInt(1 << 32)}';
+    // Une session par famille : a la connexion elle nait, aux rotations elle
+    // garde son instant de depart et son appareil.
+    final existing = _sessions[fam];
+    _sessions[fam] = _Session(
+      accountId: account.id,
+      deviceLabel: deviceLabel ?? existing?.deviceLabel,
+      createdAt: existing?.createdAt ?? now,
+    );
+
+    Map<String, dynamic> withFamily(String type, Duration ttl) =>
+        account.claims(type, now.add(ttl))..['fam'] = fam;
+
     return {
-      'accessToken': _encode(account.claims('access', now.add(accessTtl))),
-      'refreshToken': _encode(account.claims('refresh', now.add(refreshTtl))),
+      'accessToken': _encode(withFamily('access', accessTtl)),
+      'refreshToken': _encode(withFamily('refresh', refreshTtl)),
       'accessExpiresAt': now.add(accessTtl).toUtc().toIso8601String(),
       'refreshExpiresAt': now.add(refreshTtl).toUtc().toIso8601String(),
     };
+  }
+
+  /// Libelle d'appareil transmis par l'en-tete `X-Device`, s'il existe.
+  String? _deviceOf(MockRequest req) => req.headers['x-device'];
+
+  // --- GET /auth/sessions -----------------------------------------------
+
+  Future<MockResponse> _listSessions(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final currentFam = _decode(req.bearer)?['fam'] as String?;
+    final mine = _sessions.entries.where((e) => e.value.accountId == account.id);
+    return MockResponse.ok([
+      for (final entry in mine)
+        {
+          'id': entry.key,
+          'deviceLabel': entry.value.deviceLabel,
+          'createdAt': entry.value.createdAt.toUtc().toIso8601String(),
+          'current': entry.key == currentFam,
+        },
+    ]);
+  }
+
+  // --- DELETE /auth/sessions/{family} -----------------------------------
+
+  Future<MockResponse> _revokeSession(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final account = _authenticate(req);
+    if (account == null) {
+      return MockResponse.error(401, 'unauthorized', 'Jeton absent ou invalide');
+    }
+    final family = params['family'];
+    final session = _sessions[family];
+    if (family == null || session == null || session.accountId != account.id) {
+      return MockResponse.error(404, 'not_found', 'Session inconnue');
+    }
+    _sessions.remove(family);
+    return MockResponse.noContent();
   }
 
   _Account? _authenticate(MockRequest req) {
@@ -537,6 +946,18 @@ class AuthMockModule extends MockModule {
       return null;
     }
   }
+}
+
+class _Session {
+  const _Session({
+    required this.accountId,
+    required this.deviceLabel,
+    required this.createdAt,
+  });
+
+  final String accountId;
+  final String? deviceLabel;
+  final DateTime createdAt;
 }
 
 class _Challenge {
@@ -588,8 +1009,11 @@ class _Account {
     required this.role,
     required this.name,
     required this.createdAt,
+    this.firstName,
+    this.lastName,
     this.email,
     this.kycStatus,
+    this.avatarUrl,
   });
 
   factory _Account.fromClaims(Map<String, dynamic> claims) => _Account(
@@ -598,8 +1022,11 @@ class _Account {
     role: claims['role'] as String?,
     name: '${claims['name'] ?? ''}',
     createdAt: DateTime.tryParse('') ?? DateTime.now(),
+    firstName: claims['first'] as String?,
+    lastName: claims['last'] as String?,
     email: claims['email'] as String?,
     kycStatus: claims['kyc'] as String?,
+    avatarUrl: claims['avatar'] as String?,
   );
 
   final String id;
@@ -607,19 +1034,41 @@ class _Account {
   final String? role;
   final String name;
   final DateTime createdAt;
+  final String? firstName;
+  final String? lastName;
   final String? email;
   final String? kycStatus;
+  final String? avatarUrl;
 
-  _Account copyWith({String? role, String? name, String? kycStatus}) =>
-      _Account(
-        id: id,
-        phone: phone,
-        role: role ?? this.role,
-        name: name ?? this.name,
-        createdAt: createdAt,
-        email: email,
-        kycStatus: kycStatus ?? this.kycStatus,
-      );
+  /// Sentinelle : distingue « ne touche pas ce champ » de « efface-le » (null),
+  /// pour les champs facultatifs qui peuvent legitimement redevenir absents.
+  static const Object _keep = Object();
+
+  _Account copyWith({
+    String? role,
+    String? name,
+    String? kycStatus,
+    String? phone,
+    Object? firstName = _keep,
+    Object? lastName = _keep,
+    Object? email = _keep,
+    Object? avatarUrl = _keep,
+  }) => _Account(
+    id: id,
+    phone: phone ?? this.phone,
+    role: role ?? this.role,
+    name: name ?? this.name,
+    createdAt: createdAt,
+    firstName: identical(firstName, _keep)
+        ? this.firstName
+        : firstName as String?,
+    lastName: identical(lastName, _keep) ? this.lastName : lastName as String?,
+    email: identical(email, _keep) ? this.email : email as String?,
+    kycStatus: kycStatus ?? this.kycStatus,
+    avatarUrl: identical(avatarUrl, _keep)
+        ? this.avatarUrl
+        : avatarUrl as String?,
+  );
 
   Map<String, dynamic> claims(String type, DateTime expiresAt) => {
     'typ': type,
@@ -627,8 +1076,11 @@ class _Account {
     'phone': phone,
     'role': role,
     'name': name,
+    'first': firstName,
+    'last': lastName,
     'email': email,
     'kyc': kycStatus,
+    'avatar': avatarUrl,
     'iat': createdAt.toUtc().toIso8601String(),
     'exp': expiresAt.toUtc().toIso8601String(),
   };
@@ -637,8 +1089,11 @@ class _Account {
     'id': id,
     'phone': phone,
     'role': role,
+    'firstName': firstName,
+    'lastName': lastName,
     'displayName': name,
     'email': email,
+    'avatarUrl': avatarUrl,
     'createdAt': createdAt.toUtc().toIso8601String(),
     'kycStatus': kycStatus,
     'rating': role == 'driver' ? 4.6 : null,

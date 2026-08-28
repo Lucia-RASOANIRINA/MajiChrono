@@ -316,10 +316,11 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen>
                         ),
                         const SizedBox(height: AppSpacing.md),
 
-                        // Modal blanc
+                        // Modal blanc : sa hauteur suit son contenu (le champ de
+                        // confirmation n'apparait qu'a l'inscription), au lieu
+                        // d'une hauteur fixe qui deborde sur les petits ecrans.
                         SizedBox(
                           width: double.infinity,
-                          height: 520,
                           child: Container(
                             padding: const EdgeInsets.all(AppSpacing.md),
                             decoration: BoxDecoration(
@@ -598,6 +599,16 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen>
                                     onSubmitted: (_) => _submit(),
                                   ),
                                 ],
+                                if (!_isSignUp)
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: TextButton(
+                                      onPressed: () => context.push(
+                                        AppRoutes.authForgotPassword,
+                                      ),
+                                      child: Text(l10n.passwordForgot),
+                                    ),
+                                  ),
 
                                 // Message d'erreur
                                 if (_error != null) ...[

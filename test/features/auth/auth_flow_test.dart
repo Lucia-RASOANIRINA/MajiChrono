@@ -162,7 +162,8 @@ void main() {
 
       final account = await repository.chooseProfile(
         role: UserRole.driver,
-        displayName: 'Naina',
+        firstName: 'Naina',
+        lastName: '',
       );
 
       expect(account.role, UserRole.driver);
@@ -175,10 +176,10 @@ void main() {
 
     test('changer de profil apres coup est refuse', () async {
       await signIn('0341234567');
-      await repository.chooseProfile(role: UserRole.client, displayName: 'Hery');
+      await repository.chooseProfile(role: UserRole.client, firstName: 'Hery', lastName: '');
 
       await expectLater(
-        repository.chooseProfile(role: UserRole.driver, displayName: 'Hery'),
+        repository.chooseProfile(role: UserRole.driver, firstName: 'Hery', lastName: ''),
         throwsA(isA<ConflictFailure>()),
       );
     });
@@ -188,7 +189,7 @@ void main() {
       await signIn('0341234567');
 
       await expectLater(
-        repository.chooseProfile(role: UserRole.admin, displayName: 'Miora'),
+        repository.chooseProfile(role: UserRole.admin, firstName: 'Miora', lastName: ''),
         throwsA(isA<UnauthorizedFailure>()),
       );
     });

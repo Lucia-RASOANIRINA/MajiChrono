@@ -40,6 +40,10 @@ import 'package:majichrono/features/notifications/presentation/screens/notificat
 import 'package:majichrono/features/settings/presentation/pending_sync_screen.dart';
 import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
 import 'package:majichrono/features/chat/presentation/chat_screen.dart';
+import 'package:majichrono/features/profile/presentation/change_password_screen.dart';
+import 'package:majichrono/features/profile/presentation/edit_profile_screen.dart';
+import 'package:majichrono/features/profile/presentation/forgot_password_screen.dart';
+import 'package:majichrono/features/profile/presentation/sessions_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -181,6 +185,22 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.settings,
         builder: (_, _) => const SettingsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.authForgotPassword,
+        builder: (_, _) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.profileEdit,
+        builder: (_, _) => const EditProfileScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.passwordChange,
+        builder: (_, _) => const ChangePasswordScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.sessions,
+        builder: (_, _) => const SessionsScreen(),
       ),
       GoRoute(
         path: AppRoutes.notifications,

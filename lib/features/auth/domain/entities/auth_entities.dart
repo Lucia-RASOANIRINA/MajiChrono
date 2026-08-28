@@ -9,6 +9,8 @@ class UserAccount {
     required this.role,
     required this.displayName,
     required this.createdAt,
+    this.firstName,
+    this.lastName,
     this.email,
     this.avatarUrl,
     this.rating,
@@ -18,7 +20,15 @@ class UserAccount {
   final String id;
   final MalagasyPhone phone;
   final UserRole role;
+
+  /// Nom d'usage, recompose a partir du prenom et du nom quand ils existent.
+  /// C'est lui qu'affichent l'en-tete, la salutation et les cartes.
   final String displayName;
+
+  /// Prenom et nom, quand l'utilisateur les a renseignes separement.
+  final String? firstName;
+  final String? lastName;
+
   final DateTime createdAt;
 
   /// Adresse rattachee au compte, quand il y en a une (parcours Google ou mot
@@ -39,6 +49,8 @@ class UserAccount {
 
   UserAccount copyWith({
     String? displayName,
+    String? firstName,
+    String? lastName,
     String? avatarUrl,
     KycStatus? kycStatus,
   }) => UserAccount(
@@ -46,6 +58,8 @@ class UserAccount {
     phone: phone,
     role: role,
     displayName: displayName ?? this.displayName,
+    firstName: firstName ?? this.firstName,
+    lastName: lastName ?? this.lastName,
     createdAt: createdAt,
     email: email,
     avatarUrl: avatarUrl ?? this.avatarUrl,
@@ -175,4 +189,27 @@ class OtpVerification {
 
   final AuthSession session;
   final AccountResult account;
+}
+
+/// Une session active : un appareil connecte au compte. L'utilisateur peut les
+/// lister et en revoquer un a distance (« deconnecter cet autre telephone »).
+class SessionInfo {
+  const SessionInfo({
+    required this.id,
+    required this.createdAt,
+    required this.isCurrent,
+    this.deviceLabel,
+  });
+
+  /// Identifiant de la session (la « famille » de jetons cote serveur).
+  final String id;
+
+  /// Libelle lisible de l'appareil, quand il est connu.
+  final String? deviceLabel;
+
+  final DateTime createdAt;
+
+  /// Vrai pour l'appareil qui consulte la liste — celui qu'on ne se deconnecte
+  /// pas soi-meme par megarde.
+  final bool isCurrent;
 }

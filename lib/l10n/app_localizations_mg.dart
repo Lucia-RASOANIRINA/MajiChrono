@@ -9,6 +9,163 @@ class AppLocalizationsMg extends AppLocalizations {
   AppLocalizationsMg([String locale = 'mg']) : super(locale);
 
   @override
+  String get profileEdit => 'Hanova ny mombamomba';
+
+  @override
+  String get profilePersonalInfo => 'Mombamomba manokana';
+
+  @override
+  String get profilePhoto => 'Sarin\'ny mombamomba';
+
+  @override
+  String get profilePhotoFromGallery => 'Misafidiana avy ao amin\'ny gallery';
+
+  @override
+  String get profilePhotoFromCamera => 'Maka sary';
+
+  @override
+  String get profilePhotoRemove => 'Esory ny sary';
+
+  @override
+  String get profileName => 'Anarana aseho';
+
+  @override
+  String get profileFirstName => 'Anarana';
+
+  @override
+  String get profileLastName => 'Anaram-pianakaviana';
+
+  @override
+  String get profileNameEmpty => 'Tsy azo avela foana ny anarana';
+
+  @override
+  String get sessionsTitle => 'Fitaovana mifandray';
+
+  @override
+  String get sessionsManage => 'Fitaovana mifandray';
+
+  @override
+  String get sessionsEmpty => 'Tsy misy session mavitrika';
+
+  @override
+  String get sessionCurrent => 'Ity fitaovana ity';
+
+  @override
+  String get sessionRevoke => 'Esory';
+
+  @override
+  String get sessionRevoked => 'Voaesotra ny fitaovana';
+
+  @override
+  String get sessionUnknownDevice => 'Fitaovana';
+
+  @override
+  String sessionSince(String date) {
+    return 'Nifandray ny $date';
+  }
+
+  @override
+  String get profilePhoneLabel => 'Laharana finday';
+
+  @override
+  String get profileEmailLabel => 'Adiresy mailaka';
+
+  @override
+  String get profileChange => 'Ovay';
+
+  @override
+  String get profileSaved => 'Voahavaozina ny mombamomba';
+
+  @override
+  String get passwordTitle => 'Tenimiafina';
+
+  @override
+  String get passwordManage => 'Tenimiafina';
+
+  @override
+  String get passwordChangeTitle => 'Ovay ny tenimiafina';
+
+  @override
+  String get passwordSetTitle => 'Mametraha tenimiafina';
+
+  @override
+  String get passwordCurrent => 'Tenimiafina ankehitriny';
+
+  @override
+  String get passwordNew => 'Tenimiafina vaovao';
+
+  @override
+  String get passwordConfirm => 'Hamafiso ny tenimiafina';
+
+  @override
+  String get passwordMismatch => 'Tsy mitovy ny tenimiafina';
+
+  @override
+  String get passwordTooShort => '8 litera farafahakeliny';
+
+  @override
+  String get passwordChanged => 'Voaova ny tenimiafina';
+
+  @override
+  String get passwordWrongCurrent => 'Diso ny tenimiafina ankehitriny';
+
+  @override
+  String get passwordForgot => 'Hadino ny tenimiafina?';
+
+  @override
+  String get passwordForgotTitle => 'Hadino ny tenimiafina';
+
+  @override
+  String get passwordForgotHelp =>
+      'Ampidiro ny adiresy mailakao: hisy kaody halefa hamerenana ny tenimiafina.';
+
+  @override
+  String get passwordReset => 'Avereno ny tenimiafina';
+
+  @override
+  String get codeEnterTitle => 'Ampidiro ny kaody';
+
+  @override
+  String codeSentToEmail(String dest) {
+    return 'Nisy kaody nalefa tany amin\'ny $dest.';
+  }
+
+  @override
+  String codeSentToPhone(String dest) {
+    return 'Nisy kaody nalefa tany amin\'ny $dest.';
+  }
+
+  @override
+  String get emailChangeTitle => 'Ovay ny adiresy mailaka';
+
+  @override
+  String get emailNew => 'Adiresy mailaka vaovao';
+
+  @override
+  String get emailInvalid => 'Adiresy mailaka tsy mety';
+
+  @override
+  String get phoneChangeTitle => 'Ovay ny laharana';
+
+  @override
+  String get phoneNew => 'Laharana vaovao';
+
+  @override
+  String get phoneInvalid => 'Laharana malagasy tsy mety';
+
+  @override
+  String get changeSaved => 'Voatahiry ny fanovana';
+
+  @override
+  String get commonSend => 'Alefa';
+
+  @override
+  String get commonVerify => 'Hamarino';
+
+  @override
+  String get commonNext => 'Tohizo';
+
+  @override
   String get appName => 'MajiChrono';
 
   @override

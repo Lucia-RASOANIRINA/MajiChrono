@@ -210,10 +210,31 @@ class SettingsScreen extends ConsumerWidget {
                 ],
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.edit_outlined),
+                  title: Text(l10n.profileEdit),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.profileEdit),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.password_outlined),
+                  title: Text(l10n.passwordManage),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.passwordChange),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.lock_outline),
                   title: Text(l10n.authPinTitle),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.authPin),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.devices_outlined),
+                  title: Text(l10n.sessionsManage),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.sessions),
                 ),
                 const Divider(height: 1),
                 ListTile(

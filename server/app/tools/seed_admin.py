@@ -18,7 +18,7 @@ from __future__ import annotations
 from sqlalchemy import select
 
 from app.core.security import hash_secret
-from app.db import SessionLocal, create_all
+from app.db import SessionLocal, ensure_schema
 from app.models import Account, UserRole
 
 # Identifiants de l'unique administrateur. A changer avant la production :
@@ -34,7 +34,7 @@ ADMIN_PHONE = "+261340000000"
 
 
 def main() -> int:
-    create_all()
+    ensure_schema()
 
     with SessionLocal() as db:
         account = db.scalar(select(Account).where(Account.email == ADMIN_EMAIL))

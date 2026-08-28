@@ -5,6 +5,8 @@
 ///   flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=https://api.majichrono.mg/v2
 library;
 
+import 'package:flutter/foundation.dart' show kReleaseMode;
+
 enum ApiMode { mock, live }
 
 enum BuildFlavor { dev, staging, prod }
@@ -40,7 +42,12 @@ class AppConfig {
       apiBaseUrl: baseUrl,
       flavor: flavor,
       apiVersion: 2,
-      enableDevPanel: flavor != BuildFlavor.prod,
+      // Les outils de developpement — panneau dev, code affiche a l'ecran —
+      // n'apparaissent qu'en build **debug** et hors flavor prod. Un APK release,
+      // meme construit par megarde avec le flavor dev, ne les montre jamais : on
+      // ne laisse pas fuiter un code de connexion sur le telephone d'un vrai
+      // utilisateur (EXI-SEC08).
+      enableDevPanel: flavor != BuildFlavor.prod && !kReleaseMode,
       sentryDsn: dsn.isEmpty ? null : dsn,
     );
   }

@@ -27,6 +27,18 @@ class AppRoutes {
   static const String authPin = '/auth/pin';
   static const String authLock = '/auth/lock';
 
+  /// « Mot de passe oublie », accessible depuis l'entree par mot de passe.
+  static const String authForgotPassword = '/auth/forgot';
+
+  /// Edition des informations personnelles (nom, photo, e-mail, numero).
+  static const String profileEdit = '/profile/edit';
+
+  /// Changement (ou pose) du mot de passe du compte connecte.
+  static const String passwordChange = '/profile/password';
+
+  /// Appareils connectes : liste et revocation des sessions actives.
+  static const String sessions = '/profile/sessions';
+
   /// Vrai pour toute route du parcours d'authentification.
   /// L'accueil compte comme une etape du parcours d'entree : un visiteur non
   /// identifie doit pouvoir y rester sans etre renvoye sur la saisie du numero.

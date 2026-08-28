@@ -98,6 +98,306 @@ abstract class AppLocalizations {
     Locale('mg'),
   ];
 
+  /// No description provided for @profileEdit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier le profil'**
+  String get profileEdit;
+
+  /// No description provided for @profilePersonalInfo.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations personnelles'**
+  String get profilePersonalInfo;
+
+  /// No description provided for @profilePhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo de profil'**
+  String get profilePhoto;
+
+  /// No description provided for @profilePhotoFromGallery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans la galerie'**
+  String get profilePhotoFromGallery;
+
+  /// No description provided for @profilePhotoFromCamera.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prendre une photo'**
+  String get profilePhotoFromCamera;
+
+  /// No description provided for @profilePhotoRemove.
+  ///
+  /// In fr, this message translates to:
+  /// **'Retirer la photo'**
+  String get profilePhotoRemove;
+
+  /// No description provided for @profileName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom affiche'**
+  String get profileName;
+
+  /// No description provided for @profileFirstName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Prenom'**
+  String get profileFirstName;
+
+  /// No description provided for @profileLastName.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom'**
+  String get profileLastName;
+
+  /// No description provided for @profileNameEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le nom ne peut pas etre vide'**
+  String get profileNameEmpty;
+
+  /// No description provided for @sessionsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareils connectes'**
+  String get sessionsTitle;
+
+  /// No description provided for @sessionsManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareils connectes'**
+  String get sessionsManage;
+
+  /// No description provided for @sessionsEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune session active'**
+  String get sessionsEmpty;
+
+  /// No description provided for @sessionCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Cet appareil'**
+  String get sessionCurrent;
+
+  /// No description provided for @sessionRevoke.
+  ///
+  /// In fr, this message translates to:
+  /// **'Deconnecter'**
+  String get sessionRevoke;
+
+  /// No description provided for @sessionRevoked.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareil deconnecte'**
+  String get sessionRevoked;
+
+  /// No description provided for @sessionUnknownDevice.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appareil'**
+  String get sessionUnknownDevice;
+
+  /// No description provided for @sessionSince.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connecte le {date}'**
+  String sessionSince(String date);
+
+  /// No description provided for @profilePhoneLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero de telephone'**
+  String get profilePhoneLabel;
+
+  /// No description provided for @profileEmailLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail'**
+  String get profileEmailLabel;
+
+  /// No description provided for @profileChange.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer'**
+  String get profileChange;
+
+  /// No description provided for @profileSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Profil mis a jour'**
+  String get profileSaved;
+
+  /// No description provided for @passwordTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get passwordTitle;
+
+  /// No description provided for @passwordManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe'**
+  String get passwordManage;
+
+  /// No description provided for @passwordChangeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer le mot de passe'**
+  String get passwordChangeTitle;
+
+  /// No description provided for @passwordSetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Definir un mot de passe'**
+  String get passwordSetTitle;
+
+  /// No description provided for @passwordCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe actuel'**
+  String get passwordCurrent;
+
+  /// No description provided for @passwordNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau mot de passe'**
+  String get passwordNew;
+
+  /// No description provided for @passwordConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer le mot de passe'**
+  String get passwordConfirm;
+
+  /// No description provided for @passwordMismatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Les mots de passe ne correspondent pas'**
+  String get passwordMismatch;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'8 caracteres minimum'**
+  String get passwordTooShort;
+
+  /// No description provided for @passwordChanged.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe mis a jour'**
+  String get passwordChanged;
+
+  /// No description provided for @passwordWrongCurrent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe actuel incorrect'**
+  String get passwordWrongCurrent;
+
+  /// No description provided for @passwordForgot.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublie ?'**
+  String get passwordForgot;
+
+  /// No description provided for @passwordForgotTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mot de passe oublie'**
+  String get passwordForgotTitle;
+
+  /// No description provided for @passwordForgotHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez votre adresse e-mail : un code vous sera envoye pour reposer votre mot de passe.'**
+  String get passwordForgotHelp;
+
+  /// No description provided for @passwordReset.
+  ///
+  /// In fr, this message translates to:
+  /// **'Reinitialiser le mot de passe'**
+  String get passwordReset;
+
+  /// No description provided for @codeEnterTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Entrez le code'**
+  String get codeEnterTitle;
+
+  /// No description provided for @codeSentToEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un code a ete envoye a {dest}.'**
+  String codeSentToEmail(String dest);
+
+  /// No description provided for @codeSentToPhone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un code a ete envoye au {dest}.'**
+  String codeSentToPhone(String dest);
+
+  /// No description provided for @emailChangeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer d\'adresse e-mail'**
+  String get emailChangeTitle;
+
+  /// No description provided for @emailNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouvelle adresse e-mail'**
+  String get emailNew;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse e-mail invalide'**
+  String get emailInvalid;
+
+  /// No description provided for @phoneChangeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Changer de numero'**
+  String get phoneChangeTitle;
+
+  /// No description provided for @phoneNew.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nouveau numero'**
+  String get phoneNew;
+
+  /// No description provided for @phoneInvalid.
+  ///
+  /// In fr, this message translates to:
+  /// **'Numero malgache invalide'**
+  String get phoneInvalid;
+
+  /// No description provided for @changeSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modification enregistree'**
+  String get changeSaved;
+
+  /// No description provided for @commonSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer'**
+  String get commonSend;
+
+  /// No description provided for @commonVerify.
+  ///
+  /// In fr, this message translates to:
+  /// **'Verifier'**
+  String get commonVerify;
+
+  /// No description provided for @commonNext.
+  ///
+  /// In fr, this message translates to:
+  /// **'Continuer'**
+  String get commonNext;
+
   /// Nom du produit
   ///
   /// In fr, this message translates to:

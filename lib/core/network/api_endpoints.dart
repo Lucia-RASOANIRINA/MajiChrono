@@ -15,6 +15,11 @@ class ApiEndpoints {
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
 
+  /// Sessions actives du compte (un appareil = une session) : liste, et
+  /// révocation à distance d'un appareil donné.
+  static const String sessions = '/auth/sessions';
+  static String session(String family) => '/auth/sessions/$family';
+
   /// Entree acceleree par adresse e-mail (compagnon du bouton « Continuer avec
   /// Google »). Le code part dans la boite mail, jamais par SMS : c'est
   /// justement l'interet du parcours pour qui n'a pas de reseau GSM au moment ou
@@ -30,8 +35,29 @@ class ApiEndpoints {
   static const String passwordSignIn = '/auth/password/signin';
   static const String passwordSignUp = '/auth/password/signup';
 
+  /// Change le mot de passe du compte connecte (ancien + nouveau), ou le pose
+  /// pour un compte entre par numero qui n'en avait pas.
+  static const String passwordChange = '/auth/password/change';
+
+  /// « Mot de passe oublie » : repose le mot de passe apres un code recu par
+  /// e-mail (via [emailRequest]).
+  static const String passwordReset = '/auth/password/reset';
+
+  /// Changement d'adresse e-mail du compte connecte, en deux temps : un code
+  /// part a la **nouvelle** adresse, puis on la rattache.
+  static const String emailChangeRequest = '/auth/email/change/request';
+  static const String emailChangeVerify = '/auth/email/change/verify';
+
+  /// Changement de numero du compte connecte, verifie par SMS a la nouvelle
+  /// ligne avant de deplacer la cle du compte.
+  static const String phoneChangeRequest = '/auth/phone/change/request';
+  static const String phoneChangeVerify = '/auth/phone/change/verify';
+
   // --- Profil ----------------------------------------------------------
   static const String me = '/me';
+
+  /// Photo de profil : POST pour poser/remplacer, DELETE pour retirer. L'image
+  /// est ensuite servie par l'URL portee par `avatarUrl` du compte.
   static const String meAvatar = '/me/avatar';
 
   // --- Courses ---------------------------------------------------------

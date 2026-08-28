@@ -58,6 +58,66 @@ class AuthRemoteDataSource {
   Future<void> linkEmail(String email) =>
       _client.post<void>(ApiEndpoints.emailLink, body: {'email': email});
 
+  Future<void> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  }) => _client.post<void>(
+    ApiEndpoints.passwordChange,
+    body: {'currentPassword': ?currentPassword, 'newPassword': newPassword},
+  );
+
+  Future<void> resetPassword({
+    required String challengeId,
+    required String code,
+    required String newPassword,
+  }) => _client.post<void>(
+    ApiEndpoints.passwordReset,
+    body: {
+      'challengeId': challengeId,
+      'code': code,
+      'newPassword': newPassword,
+    },
+  );
+
+  Future<Map<String, dynamic>> requestEmailChange(String email) =>
+      _client.post<Map<String, dynamic>>(
+        ApiEndpoints.emailChangeRequest,
+        body: {'email': email},
+      );
+
+  Future<Map<String, dynamic>> verifyEmailChange({
+    required String challengeId,
+    required String code,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.emailChangeVerify,
+    body: {'challengeId': challengeId, 'code': code},
+  );
+
+  Future<Map<String, dynamic>> requestPhoneChange(String phoneE164) =>
+      _client.post<Map<String, dynamic>>(
+        ApiEndpoints.phoneChangeRequest,
+        body: {'phone': phoneE164},
+      );
+
+  Future<Map<String, dynamic>> verifyPhoneChange({
+    required String challengeId,
+    required String code,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.phoneChangeVerify,
+    body: {'challengeId': challengeId, 'code': code},
+  );
+
+  Future<Map<String, dynamic>> uploadAvatar({
+    required String imageBase64,
+    required String contentType,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.meAvatar,
+    body: {'imageBase64': imageBase64, 'contentType': contentType},
+  );
+
+  Future<Map<String, dynamic>> deleteAvatar() =>
+      _client.delete<Map<String, dynamic>>(ApiEndpoints.meAvatar);
+
   Future<Map<String, dynamic>> refresh(String refreshToken) =>
       _client.post<Map<String, dynamic>>(
         ApiEndpoints.refresh,
@@ -69,9 +129,24 @@ class AuthRemoteDataSource {
   Future<Map<String, dynamic>> me() =>
       _client.get<Map<String, dynamic>>(ApiEndpoints.me);
 
-  Future<Map<String, dynamic>> patchMe({String? role, String? displayName}) =>
-      _client.patch<Map<String, dynamic>>(
-        ApiEndpoints.me,
-        body: {'role': ?role, 'displayName': ?displayName},
-      );
+  Future<Map<String, dynamic>> patchMe({
+    String? role,
+    String? displayName,
+    String? firstName,
+    String? lastName,
+  }) => _client.patch<Map<String, dynamic>>(
+    ApiEndpoints.me,
+    body: {
+      'role': ?role,
+      'displayName': ?displayName,
+      'firstName': ?firstName,
+      'lastName': ?lastName,
+    },
+  );
+
+  Future<List<dynamic>> getSessions() =>
+      _client.get<List<dynamic>>(ApiEndpoints.sessions);
+
+  Future<void> revokeSession(String id) =>
+      _client.delete<void>(ApiEndpoints.session(id));
 }

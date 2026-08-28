@@ -17,7 +17,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
 from app.core.security import new_opaque_token
-from app.db import SessionLocal, create_all
+from app.db import SessionLocal, ensure_schema
 from app.models import (
     Account,
     Delivery,
@@ -59,7 +59,7 @@ TSARALALANA = (-18.9080, 47.5210)
 
 
 def main() -> int:
-    create_all()
+    ensure_schema()
 
     with SessionLocal() as db:
         client = _upsert_account(

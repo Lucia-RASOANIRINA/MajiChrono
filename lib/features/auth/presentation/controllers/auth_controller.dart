@@ -94,13 +94,29 @@ class AuthController extends AsyncNotifier<AuthState> {
   /// Pose le profil choisi a l'inscription (EXI-T02).
   Future<void> chooseProfile({
     required UserRole role,
-    required String displayName,
+    required String firstName,
+    required String lastName,
   }) async {
     final account = await _repository.chooseProfile(
       role: role,
-      displayName: displayName,
+      firstName: firstName,
+      lastName: lastName,
     );
     state = AsyncData(AuthAuthenticated(account));
+  }
+
+  /// Adopte un compte fraichement modifie (nom, photo, e-mail, numero) pour que
+  /// l'interface se remette a jour sans rejouer la session. On conserve l'etat
+  /// courant — connecte ou verrouille — en n'en changeant que le compte porte.
+  void applyAccount(UserAccount account) {
+    final current = state.valueOrNull;
+    state = AsyncData(switch (current) {
+      AuthLocked(:final biometricsAvailable) => AuthLocked(
+        account,
+        biometricsAvailable: biometricsAvailable,
+      ),
+      _ => AuthAuthenticated(account),
+    });
   }
 
   // --- Verrouillage (EXI-T04, EXI-SEC07) ---------------------------------

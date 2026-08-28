@@ -45,11 +45,27 @@ class McCard extends StatelessWidget {
     Widget content = Padding(padding: padding, child: child);
 
     if (accent != null) {
-      content = Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      // Le lisere de statut longe tout le bord gauche. On le pose en
+      // `Positioned` (top et bottom a 0) dans un `Stack` qui se dimensionne sur
+      // le contenu : il epouse ainsi la hauteur de la carte sans imposer la
+      // moindre contrainte de hauteur au contenu.
+      //
+      // Un `Row(CrossAxisAlignment.stretch)` le faisait aussi, mais sous une
+      // hauteur **non bornee** — cas d'une carte dans une liste defilante — le
+      // stretch exige une hauteur infinie et fait planter le layout du viewport
+      // (« BoxConstraints forces an infinite height »). Tout le corps de
+      // l'ecran devenait alors blanc : c'etait le bug de l'accueil livreur des
+      // qu'une course active (carte a lisere) etait affichee.
+      content = Stack(
         children: [
-          Container(width: 4, color: accent),
-          Expanded(child: content),
+          Padding(padding: const EdgeInsets.only(left: 4), child: content),
+          Positioned(
+            top: 0,
+            bottom: 0,
+            left: 0,
+            width: 4,
+            child: ColoredBox(color: accent!),
+          ),
         ],
       );
     }

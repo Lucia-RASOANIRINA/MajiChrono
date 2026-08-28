@@ -184,7 +184,6 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
         // resserre l'espacement et on masque le rappel d'entete implicite.
         final grouped =
             !showDay &&
-            previous != null &&
             previous.senderId == message.senderId &&
             message.createdAt.difference(previous.createdAt).inMinutes < 5;
 

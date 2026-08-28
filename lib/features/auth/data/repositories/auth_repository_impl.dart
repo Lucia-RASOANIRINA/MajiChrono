@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/session/user_role.dart';
@@ -135,13 +136,128 @@ class AuthRepositoryImpl implements AuthRepository {
       _remote.linkEmail(email.trim().toLowerCase());
 
   @override
+  Future<void> changePassword({
+    String? currentPassword,
+    required String newPassword,
+  }) => _remote.changePassword(
+    currentPassword: currentPassword,
+    newPassword: newPassword,
+  );
+
+  @override
+  Future<void> resetPassword({
+    required String challengeId,
+    required String code,
+    required String newPassword,
+  }) => _remote.resetPassword(
+    challengeId: challengeId,
+    code: code,
+    newPassword: newPassword,
+  );
+
+  @override
+  Future<EmailChallenge> requestEmailChange(String email) async {
+    final normalized = email.trim().toLowerCase();
+    final json = await _remote.requestEmailChange(normalized);
+    return EmailChallenge(
+      challengeId: json['challengeId'] as String,
+      email: json['email'] as String? ?? normalized,
+      expiresAt: DateTime.parse(json['expiresAt'] as String).toLocal(),
+      attemptsLeft: (json['attemptsLeft'] as num?)?.toInt() ?? 3,
+      debugCode: json['debugCode'] as String?,
+    );
+  }
+
+  @override
+  Future<UserAccount> confirmEmailChange({
+    required String challengeId,
+    required String code,
+  }) async => _adoptAccount(
+    await _remote.verifyEmailChange(challengeId: challengeId, code: code),
+  );
+
+  @override
+  Future<OtpChallenge> requestPhoneChange(MalagasyPhone phone) async {
+    final json = await _remote.requestPhoneChange(phone.e164);
+    return OtpChallenge(
+      challengeId: json['challengeId'] as String,
+      phone: phone,
+      expiresAt: DateTime.parse(json['expiresAt'] as String).toLocal(),
+      attemptsLeft: (json['attemptsLeft'] as num?)?.toInt() ?? 3,
+      debugCode: json['debugCode'] as String?,
+    );
+  }
+
+  @override
+  Future<UserAccount> confirmPhoneChange({
+    required String challengeId,
+    required String code,
+  }) async => _adoptAccount(
+    await _remote.verifyPhoneChange(challengeId: challengeId, code: code),
+  );
+
+  @override
+  Future<UserAccount> updateName({String? firstName, String? lastName}) async =>
+      _adoptAccount(
+        await _remote.patchMe(firstName: firstName, lastName: lastName),
+      );
+
+  @override
+  Future<List<SessionInfo>> listSessions() async {
+    final rows = await _remote.getSessions();
+    return [
+      for (final row in rows.cast<Map<String, dynamic>>())
+        SessionInfo(
+          id: row['id'] as String,
+          deviceLabel: row['deviceLabel'] as String?,
+          createdAt:
+              DateTime.tryParse('${row['createdAt']}')?.toLocal() ??
+              DateTime.now(),
+          isCurrent: row['current'] == true,
+        ),
+    ];
+  }
+
+  @override
+  Future<void> revokeSession(String id) => _remote.revokeSession(id);
+
+  @override
+  Future<UserAccount> uploadAvatar({
+    required List<int> bytes,
+    required String contentType,
+  }) async => _adoptAccount(
+    await _remote.uploadAvatar(
+      imageBase64: base64Encode(bytes),
+      contentType: contentType,
+    ),
+  );
+
+  @override
+  Future<UserAccount> deleteAvatar() async =>
+      _adoptAccount(await _remote.deleteAvatar());
+
+  /// Enregistre le compte renvoye par le serveur (cache hors ligne) et le rend.
+  /// Un compte que l'on edite garde son role : l'absence de role signalerait un
+  /// contrat casse, qu'on refuse plutot que de propager.
+  Future<UserAccount> _adoptAccount(Map<String, dynamic> json) async {
+    await _local.saveAccount(json);
+    final result = _accountFrom(json);
+    if (result is! AccountReady) {
+      throw const ServerFailure(statusCode: 500, code: 'account_not_ready');
+    }
+    return result.account;
+  }
+
+  @override
   Future<UserAccount> chooseProfile({
     required UserRole role,
-    required String displayName,
+    required String firstName,
+    required String lastName,
   }) async {
     final json = await _remote.patchMe(
       role: role.wireName,
-      displayName: displayName,
+      firstName: firstName,
+      lastName: lastName,
     );
 
     // Le serveur reemet la session quand une information d'identite portee par
@@ -290,6 +406,8 @@ class AuthRepositoryImpl implements AuthRepository {
         phone: phone,
         role: role,
         displayName: json['displayName'] as String? ?? '',
+        firstName: json['firstName'] as String?,
+        lastName: json['lastName'] as String?,
         email: json['email'] as String?,
         createdAt:
             DateTime.tryParse('${json['createdAt']}')?.toLocal() ??

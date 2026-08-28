@@ -14,13 +14,20 @@ import logging
 import re
 from datetime import datetime, timedelta, timezone
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Header, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.core.errors import ApiError, conflict, unauthorized, unprocessable
+from app.core.errors import (
+    ApiError,
+    conflict,
+    forbidden,
+    not_found,
+    unauthorized,
+    unprocessable,
+)
 from app.core.deps import current_account
 from app.core.mail import send_login_code
 from app.core.sms import send_login_code as send_sms_code
@@ -29,6 +36,7 @@ from app.core.security import (
     issue_access_token,
     new_numeric_code,
     new_opaque_token,
+    read_access_token,
     verify_secret,
 )
 from app.db import get_db
@@ -75,10 +83,16 @@ class RefreshRequest(BaseModel):
 # --- Fabrique de session ----------------------------------------------------
 
 
-def _issue_session(db: Session, account: Account, family: str | None = None) -> dict:
+def _issue_session(
+    db: Session,
+    account: Account,
+    family: str | None = None,
+    device_label: str | None = None,
+) -> dict:
     settings = get_settings()
+    fam = family or new_opaque_token()[:32]
     access, access_expires = issue_access_token(
-        account.id, account.role.value if account.role else None
+        account.id, account.role.value if account.role else None, fam
     )
 
     refresh = new_opaque_token()
@@ -87,7 +101,8 @@ def _issue_session(db: Session, account: Account, family: str | None = None) -> 
         RefreshToken(
             account_id=account.id,
             token_hash=hash_secret(refresh),
-            family=family or new_opaque_token()[:32],
+            family=fam,
+            device_label=device_label,
             expires_at=refresh_expires,
         )
     )
@@ -180,7 +195,11 @@ async def request_otp(body: PhoneRequest, db: Session = Depends(get_db)) -> dict
 
 
 @router.post("/otp/verify")
-async def verify_otp(body: VerifyRequest, db: Session = Depends(get_db)) -> dict:
+async def verify_otp(
+    body: VerifyRequest,
+    db: Session = Depends(get_db),
+    x_device: str | None = Header(default=None, alias="X-Device"),
+) -> dict:
     challenge = _consume(db, body.challengeId, body.code)
 
     account = db.scalar(select(Account).where(Account.phone == challenge.destination))
@@ -191,7 +210,10 @@ async def verify_otp(body: VerifyRequest, db: Session = Depends(get_db)) -> dict
         db.add(account)
         db.commit()
 
-    return {"session": _issue_session(db, account), "account": account.to_json()}
+    return {
+        "session": _issue_session(db, account, device_label=x_device),
+        "account": account.to_json(),
+    }
 
 
 # --- Adresse e-mail ---------------------------------------------------------
@@ -254,12 +276,18 @@ async def request_email_code(body: EmailRequest, db: Session = Depends(get_db)) 
 
 
 @router.post("/email/verify")
-async def verify_email_code(body: VerifyRequest, db: Session = Depends(get_db)) -> dict:
+async def verify_email_code(
+    body: VerifyRequest,
+    db: Session = Depends(get_db),
+    x_device: str | None = Header(default=None, alias="X-Device"),
+) -> dict:
     challenge = _consume(db, body.challengeId, body.code)
-    return _session_for_email(db, challenge.destination)
+    return _session_for_email(db, challenge.destination, device_label=x_device)
 
 
-def _session_for_email(db: Session, email: str) -> dict:
+def _session_for_email(
+    db: Session, email: str, device_label: str | None = None
+) -> dict:
     account = db.scalar(select(Account).where(Account.email == email))
     if account is None:
         # Adresse prouvee, compte inconnu. Aucune session : un compte sans
@@ -269,7 +297,7 @@ def _session_for_email(db: Session, email: str) -> dict:
 
     return {
         "linked": True,
-        "session": _issue_session(db, account),
+        "session": _issue_session(db, account, device_label=device_label),
         "account": account.to_json(),
     }
 
@@ -298,7 +326,11 @@ async def link_email(
 
 
 @router.post("/password/signin")
-async def sign_in_with_password(body: PasswordRequest, db: Session = Depends(get_db)) -> dict:
+async def sign_in_with_password(
+    body: PasswordRequest,
+    db: Session = Depends(get_db),
+    x_device: str | None = Header(default=None, alias="X-Device"),
+) -> dict:
     email = body.email.strip().lower()
     account = db.scalar(select(Account).where(Account.email == email))
 
@@ -312,7 +344,7 @@ async def sign_in_with_password(body: PasswordRequest, db: Session = Depends(get
 
     return {
         "linked": True,
-        "session": _issue_session(db, account),
+        "session": _issue_session(db, account, device_label=x_device),
         "account": account.to_json(),
     }
 
@@ -379,7 +411,14 @@ async def refresh_session(body: RefreshRequest, db: Session = Depends(get_db)) -
     stored.revoked_at = now
     db.commit()
 
-    return {"session": _issue_session(db, stored.account, family=stored.family)}
+    return {
+        "session": _issue_session(
+            db,
+            stored.account,
+            family=stored.family,
+            device_label=stored.device_label,
+        )
+    }
 
 
 @router.post("/logout", status_code=204, response_class=Response)
@@ -393,4 +432,275 @@ async def logout(
         )
     ).all():
         token.revoked_at = now
+    db.commit()
+
+
+# --- Changement / reinitialisation de mot de passe --------------------------
+
+
+class ChangePasswordRequest(BaseModel):
+    # Absent pour un compte qui n'avait pas encore de mot de passe (entre par
+    # numero) et s'en ajoute un : il n'y a alors rien a confirmer.
+    currentPassword: str | None = None
+    newPassword: str = Field(min_length=1)
+
+
+class ResetPasswordRequest(BaseModel):
+    challengeId: str
+    code: str
+    newPassword: str = Field(min_length=1)
+
+
+@router.post("/password/change", status_code=204, response_class=Response)
+async def change_password(
+    body: ChangePasswordRequest,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+):
+    """Change (ou pose) le mot de passe du compte connecte.
+
+    Si un mot de passe existe deja, l'ancien doit etre fourni et exact — sans
+    quoi un telephone laisse deverrouille suffirait a en changer. S'il n'y en a
+    pas encore, on le pose sans rien demander de plus : la session prouve deja
+    l'identite.
+    """
+    if len(body.newPassword) < MIN_PASSWORD_LENGTH:
+        raise unprocessable(
+            "weak_password", "Mot de passe trop court", {"minLength": MIN_PASSWORD_LENGTH}
+        )
+
+    if account.password_hash:
+        if not body.currentPassword or not verify_secret(
+            account.password_hash, body.currentPassword
+        ):
+            # 403 et non 401 : un 401 signifierait « jeton expire » et
+            # declencherait cote mobile une rotation de session puis un rejeu de
+            # la requete — une boucle, la ou l'ancien mot de passe est juste
+            # faux. Ici la session est valide ; c'est la preuve fournie qui ne
+            # l'est pas.
+            raise forbidden(
+                "wrong_current_password", "Mot de passe actuel incorrect"
+            )
+
+    account.password_hash = hash_secret(body.newPassword)
+    db.commit()
+
+
+@router.post("/password/reset", status_code=204, response_class=Response)
+async def reset_password(body: ResetPasswordRequest, db: Session = Depends(get_db)):
+    """Repose le mot de passe apres preuve de possession de la boite mail.
+
+    Le parcours « mot de passe oublie » reutilise le code e-mail : le mobile
+    demande d'abord un code via `/auth/email/request`, puis le presente ici avec
+    le nouveau mot de passe. On ne dit pas si l'adresse porte un compte — brancher
+    un mot de passe sur une adresse inconnue ne cree rien et repond pareil, pour
+    ne pas transformer ce point en revelateur de comptes.
+    """
+    if len(body.newPassword) < MIN_PASSWORD_LENGTH:
+        raise unprocessable(
+            "weak_password", "Mot de passe trop court", {"minLength": MIN_PASSWORD_LENGTH}
+        )
+
+    challenge = _consume(db, body.challengeId, body.code)
+    if challenge.channel is not ChallengeChannel.email:
+        raise unprocessable("wrong_channel", "Ce code ne vaut pas pour un mot de passe")
+
+    account = db.scalar(select(Account).where(Account.email == challenge.destination))
+    if account is not None:
+        account.password_hash = hash_secret(body.newPassword)
+        db.commit()
+
+
+# --- Changement d'adresse e-mail (compte connecte) --------------------------
+
+
+@router.post("/email/change/request")
+async def request_email_change(
+    body: EmailRequest,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    """Envoie un code a la **nouvelle** adresse : on ne la rattache qu'une fois
+    la possession prouvee, jamais sur simple saisie."""
+    email = body.email.strip().lower()
+    if not EMAIL_PATTERN.match(email):
+        raise unprocessable("invalid_email", "Adresse e-mail invalide")
+
+    taken = db.scalar(select(Account).where(Account.email == email))
+    if taken is not None and taken.id != account.id:
+        raise conflict("email_taken", "Cette adresse est deja rattachee a un autre compte")
+
+    challenge, code = _open_challenge(db, ChallengeChannel.email, email)
+    settings = get_settings()
+    try:
+        await send_login_code(email, code)
+    except Exception:  # noqa: BLE001
+        if settings.environment != "dev":
+            challenge.consumed_at = datetime.now(timezone.utc)
+            db.commit()
+            raise ApiError(
+                502, "mail_delivery_failed", "Impossible d'envoyer le code pour le moment"
+            ) from None
+        logger.warning("AUCUN ENVOI E-MAIL en dev — code via debugCode")
+
+    body_out = {
+        "challengeId": challenge.id,
+        "email": email,
+        "expiresAt": challenge.expires_at.isoformat(),
+        "attemptsLeft": challenge.attempts_left,
+    }
+    if settings.environment != "prod":
+        body_out["debugCode"] = code
+    return body_out
+
+
+@router.post("/email/change/verify")
+async def verify_email_change(
+    body: VerifyRequest,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    challenge = _consume(db, body.challengeId, body.code)
+    if challenge.channel is not ChallengeChannel.email:
+        raise unprocessable("wrong_channel", "Ce code ne vaut pas pour un e-mail")
+
+    email = challenge.destination
+    taken = db.scalar(select(Account).where(Account.email == email))
+    if taken is not None and taken.id != account.id:
+        raise conflict("email_taken", "Cette adresse est deja rattachee a un autre compte")
+
+    account.email = email
+    db.commit()
+    return account.to_json()
+
+
+# --- Changement de numero (compte connecte) ---------------------------------
+
+
+@router.post("/phone/change/request")
+async def request_phone_change(
+    body: PhoneRequest,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    """Envoie un SMS au **nouveau** numero. Le numero etant la cle du compte,
+    on ne le deplace qu'apres reception du code sur la nouvelle ligne."""
+    if not PHONE_PATTERN.match(body.phone):
+        raise unprocessable("invalid_phone", "Numero de telephone malgache invalide")
+
+    taken = db.scalar(select(Account).where(Account.phone == body.phone))
+    if taken is not None and taken.id != account.id:
+        raise conflict("phone_taken", "Ce numero est deja utilise par un autre compte")
+
+    challenge, code = _open_challenge(db, ChallengeChannel.sms, body.phone)
+    try:
+        await send_sms_code(body.phone, code)
+    except Exception:  # noqa: BLE001
+        challenge.consumed_at = datetime.now(timezone.utc)
+        db.commit()
+        raise ApiError(
+            502, "sms_delivery_failed", "Impossible d'envoyer le SMS pour le moment"
+        ) from None
+
+    settings = get_settings()
+    body_out = {
+        "challengeId": challenge.id,
+        "expiresAt": challenge.expires_at.isoformat(),
+        "attemptsLeft": challenge.attempts_left,
+    }
+    if settings.environment != "prod":
+        body_out["debugCode"] = code
+    return body_out
+
+
+@router.post("/phone/change/verify")
+async def verify_phone_change(
+    body: VerifyRequest,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    challenge = _consume(db, body.challengeId, body.code)
+    if challenge.channel is not ChallengeChannel.sms:
+        raise unprocessable("wrong_channel", "Ce code ne vaut pas pour un numero")
+
+    phone = challenge.destination
+    taken = db.scalar(select(Account).where(Account.phone == phone))
+    if taken is not None and taken.id != account.id:
+        raise conflict("phone_taken", "Ce numero est deja utilise par un autre compte")
+
+    account.phone = phone
+    db.commit()
+    return account.to_json()
+
+
+# --- Sessions actives -------------------------------------------------------
+
+
+@router.get("/sessions")
+async def list_sessions(
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+    authorization: str | None = Header(default=None),
+) -> list[dict]:
+    """Liste les sessions actives du compte — une par appareil connecte.
+
+    Une session = une **famille** de jetons de rafraichissement. La rotation en
+    cree de nouveaux au fil de l'usage ; on n'en montre qu'un par famille, et on
+    marque « cet appareil-ci » grace a la famille portee par le jeton d'acces
+    courant.
+    """
+    current_fam: str | None = None
+    if authorization and authorization.lower().startswith("bearer "):
+        claims = read_access_token(authorization[7:].strip())
+        current_fam = claims.get("fam") if claims else None
+
+    now = datetime.now(timezone.utc)
+    rows = db.scalars(
+        select(RefreshToken)
+        .where(
+            RefreshToken.account_id == account.id,
+            RefreshToken.revoked_at.is_(None),
+            RefreshToken.expires_at > now,
+        )
+        .order_by(RefreshToken.created_at.asc())
+    ).all()
+
+    # `setdefault` sur une liste triee du plus ancien au plus recent : on garde,
+    # pour chaque session, l'instant ou elle a commence.
+    by_family: dict[str, RefreshToken] = {}
+    for token in rows:
+        by_family.setdefault(token.family, token)
+
+    return [
+        {
+            "id": family,
+            "deviceLabel": token.device_label,
+            "createdAt": token.created_at.isoformat(),
+            "current": family == current_fam,
+        }
+        for family, token in by_family.items()
+    ]
+
+
+@router.delete("/sessions/{family}", status_code=204, response_class=Response)
+async def revoke_session(
+    family: str,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+):
+    """Revoque une session (un appareil) a distance : toute sa famille de jetons
+    tombe, et l'appareil vise ne pourra plus se rafraichir — il se retrouve
+    deconnecte au plus tard a l'expiration du jeton d'acces en cours."""
+    now = datetime.now(timezone.utc)
+    tokens = db.scalars(
+        select(RefreshToken).where(
+            RefreshToken.account_id == account.id,
+            RefreshToken.family == family,
+        )
+    ).all()
+    if not tokens:
+        raise not_found("Session inconnue")
+    for token in tokens:
+        if token.revoked_at is None:
+            token.revoked_at = now
     db.commit()

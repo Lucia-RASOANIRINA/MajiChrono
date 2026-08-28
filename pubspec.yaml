@@ -67,6 +67,10 @@ dependencies:
   camera: ^0.11.0+2
   # Compression maitrisee : 1280 px, 200 Ko par photo (EXI-CC41).
   image: ^4.3.0
+  # Choix d'une photo de profil depuis la galerie ou l'appareil photo. Sur
+  # Android 13+, la galerie passe par le selecteur systeme (aucune permission a
+  # demander). L'image choisie est redimensionnee via `image` avant l'envoi.
+  image_picker: ^1.1.2
   # Capture vectorielle de la signature (EXI-CC40).
   signature: ^5.5.0
   # Chiffrement au repos des constats non transmis (EXI-CC46, EXI-SEC04).

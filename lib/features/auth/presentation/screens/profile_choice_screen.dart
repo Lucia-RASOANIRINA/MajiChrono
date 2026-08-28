@@ -83,9 +83,15 @@ class _ProfileChoiceScreenState extends ConsumerState<ProfileChoiceScreen>
     });
 
     try {
+      // Le champ recueille le nom complet ; on le scinde en prenom (premier
+      // mot) et nom (le reste). L'ecran « Modifier le profil » permet ensuite
+      // d'ajuster chaque partie separement.
+      final parts = _name.text.trim().split(RegExp(r'\s+'));
+      final firstName = parts.first;
+      final lastName = parts.length > 1 ? parts.sublist(1).join(' ') : '';
       await ref
           .read(authControllerProvider.notifier)
-          .chooseProfile(role: role, displayName: _name.text.trim());
+          .chooseProfile(role: role, firstName: firstName, lastName: lastName);
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.localizedMessage(l10n));
