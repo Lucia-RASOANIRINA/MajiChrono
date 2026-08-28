@@ -21,10 +21,12 @@ from app.core.errors import not_found, unprocessable
 from app.db import get_db
 from app.models import (
     DELIVERED_STATES,
+    KYC_KINDS,
     Account,
     Delivery,
     DeliveryStatus,
     DriverState,
+    KycDocument,
     KycStatus,
     ModerationLog,
     UserRole,
@@ -155,6 +157,18 @@ async def kyc_queue(
         .order_by(Account.created_at)
     ).all()
 
+    # Pieces fournies par livreur, en une seule requete plutot qu'une par
+    # dossier : la file affiche la completude sans attendre.
+    uploaded_by: dict[str, set[str]] = {}
+    if pending:
+        rows = db.execute(
+            select(KycDocument.account_id, KycDocument.kind).where(
+                KycDocument.account_id.in_([a.id for a in pending])
+            )
+        ).all()
+        for account_id, kind in rows:
+            uploaded_by.setdefault(account_id, set()).add(kind)
+
     return {
         "items": [
             {
@@ -163,9 +177,41 @@ async def kyc_queue(
                 "phone": a.phone,
                 "status": a.kyc_status.value,
                 "submittedAt": as_utc(a.created_at).isoformat(),
+                "documents": [
+                    {
+                        "code": kind,
+                        "provided": kind in uploaded_by.get(a.id, set()),
+                        "url": f"/accounts/{a.id}/kyc/{kind}",
+                    }
+                    for kind in KYC_KINDS
+                ],
             }
             for a in pending
         ]
+    }
+
+
+@router.get("/kyc/{driver_id}/documents")
+async def kyc_documents(
+    driver_id: str,
+    db: Session = Depends(get_db),
+    _: Account = Depends(require_role(UserRole.admin)),
+) -> dict:
+    """Pieces fournies par un livreur, pour que l'exploitation les examine avant
+    de trancher. On rend le type de chaque piece et son URL de lecture (servie,
+    jeton exige, par `/accounts/{id}/kyc/{kind}`)."""
+    driver = db.get(Account, driver_id)
+    if driver is None or driver.role is not UserRole.driver:
+        raise not_found("Livreur inconnu")
+    rows = db.scalars(
+        select(KycDocument.kind).where(KycDocument.account_id == driver_id)
+    ).all()
+    return {
+        "driverId": driver_id,
+        "documents": [
+            {"kind": kind, "url": f"/accounts/{driver_id}/kyc/{kind}"}
+            for kind in rows
+        ],
     }
 
 

@@ -192,6 +192,19 @@ class ApiClient {
     ),
   );
 
+  /// Recupere un corps binaire (une image servie par l'API, avec le jeton pose
+  /// par l'intercepteur). Sert a afficher une piece KYC protegee, qu'une balise
+  /// image ne saurait charger seule faute d'en-tete d'autorisation.
+  Future<List<int>> getBytes(String path) => _run<List<int>>(
+    () => _dio.get<List<int>>(
+      path,
+      options: Options(
+        responseType: ResponseType.bytes,
+        extra: {DataMeterInterceptor.extraKey: DataCategory.api},
+      ),
+    ),
+  );
+
   Future<T> _run<T>(Future<Response<T>> Function() call) async {
     try {
       final response = await call();

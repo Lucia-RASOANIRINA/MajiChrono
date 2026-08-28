@@ -48,14 +48,31 @@ class DriverMockModule extends MockModule {
     backend.get('/drivers/earnings', _earnings);
     backend.get(ApiEndpoints.kycStatus, _kycStatus);
     backend.post(ApiEndpoints.kycSubmit, _kycSubmit);
+    backend.post('/drivers/kyc/documents/{kind}', _kycUpload);
+    backend.delete('/drivers/kyc/documents/{kind}', _kycDelete);
   }
 
   @override
   Future<void> reset() async {
     _offers.clear();
     _kyc = 'draft';
+    _kycDocs.clear();
     _completed.clear();
   }
+
+  static const List<String> _kycKinds = [
+    'cin_front',
+    'cin_back',
+    'licence',
+    'selfie',
+    'registration',
+    'vehicle',
+    'plate',
+  ];
+
+  /// Pieces deposees (par cle). En memoire : le simulateur ne conserve que
+  /// l'avancement, pas les images.
+  final Set<String> _kycDocs = {};
 
   String _kyc = 'draft';
   final List<Map<String, dynamic>> _completed = [];
@@ -249,22 +266,50 @@ class DriverMockModule extends MockModule {
     Map<String, String> _,
   ) async => MockResponse.ok({
     'status': _kyc,
-    'documents': const [
-      'cin_front',
-      'cin_back',
-      'licence',
-      'selfie',
-      'registration',
-      'vehicle',
-      'plate',
-    ],
+    'documents': _kycKinds,
+    'uploaded': _kycKinds.where(_kycDocs.contains).toList(),
+    'missing': _kycKinds.where((k) => !_kycDocs.contains(k)).toList(),
     'rejectionReason': null,
   });
+
+  Future<MockResponse> _kycUpload(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final kind = params['kind'];
+    if (kind == null || !_kycKinds.contains(kind)) {
+      return MockResponse.error(422, 'unknown_kind', 'Piece inconnue');
+    }
+    _kycDocs.add(kind);
+    return MockResponse.ok({
+      'uploaded': _kycKinds.where(_kycDocs.contains).toList(),
+    });
+  }
+
+  Future<MockResponse> _kycDelete(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    _kycDocs.remove(params['kind']);
+    return MockResponse.ok({
+      'uploaded': _kycKinds.where(_kycDocs.contains).toList(),
+    });
+  }
 
   Future<MockResponse> _kycSubmit(
     MockRequest req,
     Map<String, String> _,
   ) async {
+    // On ne soumet pas un dossier incomplet — meme regle que le vrai serveur.
+    final missing = _kycKinds.where((k) => !_kycDocs.contains(k)).toList();
+    if (missing.isNotEmpty) {
+      return MockResponse.error(
+        422,
+        'kyc_incomplete',
+        'Dossier incomplet',
+        details: {'missing': missing},
+      );
+    }
     _kyc = 'submitted';
     return MockResponse.ok({'status': _kyc});
   }

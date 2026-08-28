@@ -16,10 +16,12 @@ sont les mots francais que porte le fil, si bien que `to_json` emet et
 
 from __future__ import annotations
 
+import base64
+import binascii
 import json
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
@@ -36,10 +38,32 @@ from app.models import (
     Delivery,
     DeliveryStatus,
     DriverState,
+    KYC_KINDS,
+    KycDocument,
     KycStatus,
     PositionSample,
     UserRole,
 )
+
+# Toutes les pieces sont requises pour soumettre : un dossier incomplet ne se
+# juge pas.
+KYC_REQUIRED = set(KYC_KINDS)
+_MAX_KYC_BYTES = 1024 * 1024  # 1 Mo par piece, redimensionnee cote mobile
+_ALLOWED_KYC_TYPES = {"image/jpeg", "image/png", "image/webp"}
+
+
+class KycDocUpload(BaseModel):
+    imageBase64: str
+    contentType: str
+
+
+def _uploaded_kinds(db: Session, account_id: str) -> list[str]:
+    rows = db.scalars(
+        select(KycDocument.kind).where(KycDocument.account_id == account_id)
+    ).all()
+    # Rendus dans l'ordre de l'ecran, pour un affichage stable.
+    present = set(rows)
+    return [kind for kind in KYC_KINDS if kind in present]
 from app.routers.deliveries import _record, _visible_to
 
 router = APIRouter(tags=["compat"])
@@ -333,21 +357,89 @@ async def earnings(
 
 @router.get("/drivers/kyc/status")
 async def kyc_status(
+    db: Session = Depends(get_db),
     account: Account = Depends(require_role(UserRole.driver)),
 ) -> dict:
+    uploaded = _uploaded_kinds(db, account.id)
     return {
         "status": account.kyc_status.value if account.kyc_status else "draft",
-        "documents": [
-            "cin_front",
-            "cin_back",
-            "licence",
-            "selfie",
-            "registration",
-            "vehicle",
-            "plate",
-        ],
+        # Toutes les pieces attendues, et celles deja fournies : de quoi
+        # afficher l'avancement du dossier piece par piece.
+        "documents": list(KYC_KINDS),
+        "uploaded": uploaded,
+        "missing": [k for k in KYC_KINDS if k not in uploaded],
         "rejectionReason": None,
     }
+
+
+@router.post("/drivers/kyc/documents/{kind}")
+async def kyc_upload_document(
+    kind: str,
+    body: KycDocUpload,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Depose (ou remplace) une piece du dossier. Image en base64, rangee en
+    base — donnee d'identite sensible, jamais servie publiquement."""
+    if kind not in KYC_REQUIRED:
+        raise unprocessable("unknown_kind", "Piece inconnue")
+    content_type = body.contentType.strip().lower()
+    if content_type not in _ALLOWED_KYC_TYPES:
+        raise unprocessable("unsupported_type", "Format d'image non accepte")
+
+    raw = body.imageBase64
+    if "," in raw and raw.strip().startswith("data:"):
+        raw = raw.split(",", 1)[1]
+    try:
+        data = base64.b64decode(raw, validate=True)
+    except (binascii.Error, ValueError):
+        raise unprocessable("invalid_image", "Image illisible") from None
+    if not data:
+        raise unprocessable("invalid_image", "Image vide")
+    if len(data) > _MAX_KYC_BYTES:
+        raise unprocessable(
+            "image_too_large", "Image trop lourde", {"maxBytes": _MAX_KYC_BYTES}
+        )
+
+    doc = db.get(KycDocument, (account.id, kind))
+    if doc is None:
+        doc = KycDocument(account_id=account.id, kind=kind)
+        db.add(doc)
+    doc.data = data
+    doc.content_type = content_type
+    doc.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return {"uploaded": _uploaded_kinds(db, account.id)}
+
+
+@router.delete("/drivers/kyc/documents/{kind}")
+async def kyc_delete_document(
+    kind: str,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    doc = db.get(KycDocument, (account.id, kind))
+    if doc is not None:
+        db.delete(doc)
+        db.commit()
+    return {"uploaded": _uploaded_kinds(db, account.id)}
+
+
+@router.get("/accounts/{account_id}/kyc/{kind}")
+async def kyc_read_document(
+    account_id: str,
+    kind: str,
+    db: Session = Depends(get_db),
+    viewer: Account = Depends(current_account),
+) -> Response:
+    """Sert une piece. Contrairement a l'avatar, elle **exige un jeton** : seul
+    le proprietaire du dossier ou l'exploitation peut la voir."""
+    if viewer.id != account_id and viewer.role is not UserRole.admin:
+        raise forbidden("not_allowed", "Acces reserve")
+    doc = db.get(KycDocument, (account_id, kind))
+    if doc is None:
+        raise not_found("Piece inconnue")
+    return Response(content=doc.data, media_type=doc.content_type)
 
 
 @router.post("/drivers/kyc")
@@ -358,10 +450,20 @@ async def kyc_submit(
     """Soumission du dossier : il passe en **verification** (EXI-L02).
 
     On ne valide pas soi-meme son dossier — c'est l'exploitation qui tranche
-    (EXI-A04). La soumission ne fait donc que le mettre dans la file.
+    (EXI-A04). La soumission ne fait que le mettre dans la file, et seulement si
+    **toutes les pieces** sont fournies : un dossier incomplet renverrait la file
+    a l'expediteur pour rien.
     """
     if account.kyc_status in (KycStatus.approved, KycStatus.submitted):
         return {"status": account.kyc_status.value}
+
+    uploaded = set(_uploaded_kinds(db, account.id))
+    missing = [k for k in KYC_KINDS if k not in uploaded]
+    if missing:
+        raise unprocessable(
+            "kyc_incomplete", "Dossier incomplet", {"missing": missing}
+        )
+
     account.kyc_status = KycStatus.submitted
     db.commit()
     return {"status": account.kyc_status.value}

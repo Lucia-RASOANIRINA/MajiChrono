@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -7,6 +9,7 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/security/device_integrity.dart';
 import 'package:majichrono/core/security/secure_screen.dart';
 import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/features/admin/domain/entities/admin_entities.dart';
 import 'package:majichrono/features/admin/presentation/providers/admin_providers.dart';
 import 'package:majichrono/features/admin/presentation/widgets/reason_sheet.dart';
@@ -114,6 +117,17 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
     }
   }
 
+  void _viewDocument(KycDocument document) {
+    final l10n = AppLocalizations.of(context);
+    showDialog<void>(
+      context: context,
+      builder: (_) => _DocumentViewer(
+        title: _documentLabel(l10n, document.code),
+        load: () => ref.read(apiClientProvider).getBytes(document.url!),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -176,26 +190,33 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
             ),
 
             const SizedBox(height: AppSpacing.md),
-            // Visionneuse des pieces : ce qui est fourni, ce qui manque. Les
-            // images elles-memes arrivent avec la capture KYC du module 10 ; ce
-            // qui compte deja ici, c'est de savoir sur quoi porte la decision.
+            // Visionneuse des pieces : une piece fournie s'ouvre d'une touche
+            // pour examiner l'image avant de trancher ; une piece manquante est
+            // signalee, non cliquable.
             Wrap(
               spacing: AppSpacing.sm,
               runSpacing: AppSpacing.sm,
               children: [
                 for (final document in application.documents)
-                  Chip(
-                    avatar: Icon(
-                      document.provided
-                          ? Icons.description_outlined
-                          : Icons.block_outlined,
-                      size: 16,
-                      color: document.provided
-                          ? AppColors.success
-                          : AppColors.danger,
+                  if (document.provided && document.url != null)
+                    ActionChip(
+                      avatar: const Icon(
+                        Icons.image_outlined,
+                        size: 16,
+                        color: AppColors.success,
+                      ),
+                      label: Text(_documentLabel(l10n, document.code)),
+                      onPressed: () => _viewDocument(document),
+                    )
+                  else
+                    Chip(
+                      avatar: const Icon(
+                        Icons.block_outlined,
+                        size: 16,
+                        color: AppColors.danger,
+                      ),
+                      label: Text(_documentLabel(l10n, document.code)),
                     ),
-                    label: Text(_documentLabel(l10n, document.code)),
-                  ),
               ],
             ),
 
@@ -251,4 +272,61 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
     'plate' => l10n.kycDocPlate,
     _ => code,
   };
+}
+
+/// Boite d'examen d'une piece : charge l'image (jeton pose par le client) puis
+/// la montre, zoomable. L'ecran est deja protege contre la capture (SecureScreen
+/// englobant), ce qui vaut aussi pour cette vue.
+class _DocumentViewer extends StatelessWidget {
+  const _DocumentViewer({required this.title, required this.load});
+
+  final String title;
+  final Future<List<int>> Function() load;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return Dialog(
+      insetPadding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          ListTile(
+            title: Text(title),
+            trailing: IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ),
+          const Divider(height: 1),
+          Flexible(
+            child: FutureBuilder<List<int>>(
+              future: load(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(AppSpacing.xxl),
+                    child: Center(child: McLoader()),
+                  );
+                }
+                if (snapshot.hasError || snapshot.data == null) {
+                  return Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Text(l10n.errorNetwork),
+                  );
+                }
+                return InteractiveViewer(
+                  maxScale: 5,
+                  child: Image.memory(
+                    Uint8List.fromList(snapshot.data!),
+                    fit: BoxFit.contain,
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 }

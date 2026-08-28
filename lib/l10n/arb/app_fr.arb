@@ -708,6 +708,10 @@
   "kycDocPlate": "Photo de la plaque",
   "kycCaptureLater": "La prise de vue des pieces arrive au module 5.",
   "kycSubmit": "Transmettre le dossier",
+  "kycSubmitted": "Dossier transmis pour verification",
+  "kycUnderReviewHelp": "Votre dossier est en cours de verification.",
+  "kycProgress": "{done} pieces sur {total} fournies",
+  "@kycProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
 
   "pickLocationTitle": "Placer le point",
   "pickLocationAction": "Placer sur la carte",

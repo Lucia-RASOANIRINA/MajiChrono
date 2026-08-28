@@ -134,6 +134,39 @@ class Avatar(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+# Pieces attendues au dossier KYC d'un livreur, dans l'ordre de l'ecran. Defini
+# ici pour etre partage sans dependance croisee entre routeurs.
+KYC_KINDS: tuple[str, ...] = (
+    "cin_front",
+    "cin_back",
+    "licence",
+    "selfie",
+    "registration",
+    "vehicle",
+    "plate",
+)
+
+
+class KycDocument(Base):
+    """Une piece du dossier KYC d'un livreur (CIN, permis, selfie, carte grise,
+    photo du vehicule, plaque...), rangee en base comme l'avatar.
+
+    Une ligne par (compte, type de piece) : reposer une piece remplace la
+    precedente. Ce sont des donnees d'identite sensibles — elles ne sont servies
+    qu'a leur proprietaire et a l'exploitation, jamais publiquement.
+    """
+
+    __tablename__ = "kyc_documents"
+
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True
+    )
+    kind: Mapped[str] = mapped_column(String(40), primary_key=True)
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    content_type: Mapped[str] = mapped_column(String(80))
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
 class ChallengeChannel(str, enum.Enum):
     sms = "sms"
     email = "email"

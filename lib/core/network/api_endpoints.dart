@@ -97,6 +97,17 @@ class ApiEndpoints {
   static const String kycSubmit = '/drivers/kyc';
   static const String kycStatus = '/drivers/kyc/status';
 
+  /// Depot (POST) / retrait (DELETE) d'une piece du dossier KYC.
+  static String kycDocument(String kind) => '/drivers/kyc/documents/$kind';
+
+  /// Lecture d'une piece (jeton exige) — proprietaire ou exploitation.
+  static String kycDocumentOf(String accountId, String kind) =>
+      '/accounts/$accountId/kyc/$kind';
+
+  /// Pieces d'un livreur, cote exploitation, pour la revue du dossier.
+  static String adminKycDocuments(String driverId) =>
+      '/admin/kyc/$driverId/documents';
+
   // --- Paiement (§11.2) ------------------------------------------------
   static const String paymentBalance = '/payments/balance';
   static const String paymentIntent = '/payments/intent';

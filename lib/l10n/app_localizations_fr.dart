@@ -2034,6 +2034,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get kycSubmit => 'Transmettre le dossier';
 
   @override
+  String get kycSubmitted => 'Dossier transmis pour verification';
+
+  @override
+  String get kycUnderReviewHelp =>
+      'Votre dossier est en cours de verification.';
+
+  @override
+  String kycProgress(int done, int total) {
+    return '$done pieces sur $total fournies';
+  }
+
+  @override
   String get pickLocationTitle => 'Placer le point';
 
   @override

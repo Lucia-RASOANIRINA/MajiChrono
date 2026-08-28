@@ -703,6 +703,10 @@
   "kycDocPlate": "Sarin'ny laharana",
   "kycCaptureLater": "Ho avy amin'ny modely 5 ny fakana sary.",
   "kycSubmit": "Alefaso ny antontan-taratasy",
+  "kycSubmitted": "Nalefa hamarinina ny antontan-taratasy",
+  "kycUnderReviewHelp": "Eo am-pamerenana ny antontan-taratasinao.",
+  "kycProgress": "{done} amin'ny {total} taratasy voaray",
+  "@kycProgress": { "placeholders": { "done": { "type": "int" }, "total": { "type": "int" } } },
 
   "pickLocationTitle": "Apetraho ny teboka",
   "pickLocationAction": "Apetraho eo amin'ny sarintany",

@@ -54,8 +54,14 @@ class MockResponse {
   final Object? body;
   final Map<String, List<String>> headers;
 
-  List<int> get bytes =>
-      body == null ? const <int>[] : utf8.encode(jsonEncode(body));
+  List<int> get bytes {
+    final b = body;
+    if (b == null) return const <int>[];
+    // Corps deja binaire (une image servie telle quelle) : on ne le re-encode
+    // pas en JSON, on le rend octet pour octet.
+    if (b is List<int>) return b;
+    return utf8.encode(jsonEncode(b));
+  }
 }
 
 typedef MockHandler =

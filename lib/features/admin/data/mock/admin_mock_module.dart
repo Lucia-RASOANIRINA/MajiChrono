@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:majichrono/core/network/mock/mock_backend.dart';
@@ -41,6 +42,10 @@ class AdminMockModule extends MockModule {
     backend.get('/admin/fleet', _fleetList);
     backend.get('/admin/kyc', _kycQueue);
     backend.post('/admin/kyc/{id}/review', _kycReview);
+    // Lecture d'une piece KYC (l'exploitant l'examine). Le simulateur ne
+    // conserve pas les images : il rend une vignette de remplacement, de quoi
+    // faire vivre la visionneuse en mode `mock`.
+    backend.get('/accounts/{id}/kyc/{kind}', _kycDocumentImage);
     backend.post('/admin/drivers/{id}/suspension', _suspension);
     backend.post('/admin/deliveries/{id}/reassign', _reassign);
     backend.get('/disputes', _disputeList);
@@ -141,6 +146,22 @@ class AdminMockModule extends MockModule {
 
     return MockResponse.ok({'items': items});
   }
+
+  // PNG 1x1 : la plus petite image valide, de quoi decoder la visionneuse.
+  static const String _placeholderPng =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk'
+      'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+  Future<MockResponse> _kycDocumentImage(
+    MockRequest req,
+    Map<String, String> _,
+  ) async => MockResponse(
+    200,
+    base64Decode(_placeholderPng),
+    headers: const {
+      'content-type': ['image/png'],
+    },
+  );
 
   Future<MockResponse> _kycReview(
     MockRequest req,
@@ -462,7 +483,12 @@ class AdminMockModule extends MockModule {
             .toIso8601String(),
         'documents': [
           for (final code in documents)
-            {'code': code, 'provided': true, 'uploadId': 'up_$code'},
+            {
+              'code': code,
+              'provided': true,
+              'uploadId': 'up_$code',
+              'url': '/accounts/drv_6/kyc/$code',
+            },
         ],
         'rejectionReason': null,
       },
@@ -480,6 +506,9 @@ class AdminMockModule extends MockModule {
               'code': code,
               'provided': code != 'registration' && code != 'vehicle',
               'uploadId': null,
+              'url': (code != 'registration' && code != 'vehicle')
+                  ? '/accounts/drv_7/kyc/$code'
+                  : null,
             },
         ],
         'rejectionReason': null,

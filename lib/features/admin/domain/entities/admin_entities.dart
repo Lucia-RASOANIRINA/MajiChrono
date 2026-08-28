@@ -210,11 +210,15 @@ class KycDocument {
     required this.code,
     required this.provided,
     this.uploadId,
+    this.url,
   });
 
   final String code;
   final bool provided;
   final String? uploadId;
+
+  /// Chemin de lecture de l'image (jeton exige), quand la piece est fournie.
+  final String? url;
 
   static KycDocument? fromJson(Map<String, dynamic> json) {
     final code = json['code'] as String?;
@@ -223,6 +227,7 @@ class KycDocument {
       code: code,
       provided: json['provided'] == true,
       uploadId: json['uploadId'] as String?,
+      url: json['url'] as String?,
     );
   }
 }

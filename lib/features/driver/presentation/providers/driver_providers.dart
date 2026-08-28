@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -102,11 +103,42 @@ final earningsProvider = FutureProvider.autoDispose<EarningsSummary>((
   return EarningsSummary.fromJson(json);
 });
 
-final kycStatusProvider = FutureProvider.autoDispose<String>((ref) async {
+/// Etat du dossier KYC : statut global + pieces attendues, fournies, manquantes.
+class KycDossier {
+  const KycDossier({
+    required this.status,
+    required this.documents,
+    required this.uploaded,
+    required this.missing,
+  });
+
+  final String status;
+
+  /// Toutes les pieces attendues, dans l'ordre d'affichage.
+  final List<String> documents;
+
+  /// Pieces deja deposees.
+  final Set<String> uploaded;
+
+  /// Pieces qui restent a fournir avant de pouvoir soumettre.
+  final List<String> missing;
+
+  bool get isComplete => missing.isEmpty;
+}
+
+final kycDossierProvider = FutureProvider.autoDispose<KycDossier>((ref) async {
   final json = await ref
       .watch(apiClientProvider)
       .get<Map<String, dynamic>>(ApiEndpoints.kycStatus);
-  return '${json['status'] ?? 'draft'}';
+  final docs = (json['documents'] as List?)?.cast<String>() ?? const [];
+  final uploaded = (json['uploaded'] as List?)?.cast<String>() ?? const [];
+  final missing = (json['missing'] as List?)?.cast<String>() ?? const [];
+  return KycDossier(
+    status: '${json['status'] ?? 'draft'}',
+    documents: docs,
+    uploaded: uploaded.toSet(),
+    missing: missing,
+  );
 });
 
 /// Actions du livreur.
@@ -222,5 +254,41 @@ class DriverActions {
             priority: SyncPriority.transition,
           );
     }
+  }
+
+  // --- Dossier KYC ------------------------------------------------------
+
+  /// Depose une piece (image redimensionnee) et rafraichit l'avancement.
+  Future<void> uploadKycDocument({
+    required String kind,
+    required List<int> bytes,
+    required String contentType,
+  }) async {
+    await _ref
+        .read(apiClientProvider)
+        .post<Map<String, dynamic>>(
+          ApiEndpoints.kycDocument(kind),
+          body: {
+            'imageBase64': base64Encode(bytes),
+            'contentType': contentType,
+          },
+        );
+    _ref.invalidate(kycDossierProvider);
+  }
+
+  /// Retire une piece (pour la reprendre).
+  Future<void> deleteKycDocument(String kind) async {
+    await _ref
+        .read(apiClientProvider)
+        .delete<Map<String, dynamic>>(ApiEndpoints.kycDocument(kind));
+    _ref.invalidate(kycDossierProvider);
+  }
+
+  /// Soumet le dossier a l'exploitation. Echoue si une piece manque encore.
+  Future<void> submitKyc() async {
+    await _ref
+        .read(apiClientProvider)
+        .post<Map<String, dynamic>>(ApiEndpoints.kycSubmit);
+    _ref.invalidate(kycDossierProvider);
   }
 }

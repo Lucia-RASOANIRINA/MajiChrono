@@ -2036,6 +2036,17 @@ class AppLocalizationsMg extends AppLocalizations {
   String get kycSubmit => 'Alefaso ny antontan-taratasy';
 
   @override
+  String get kycSubmitted => 'Nalefa hamarinina ny antontan-taratasy';
+
+  @override
+  String get kycUnderReviewHelp => 'Eo am-pamerenana ny antontan-taratasinao.';
+
+  @override
+  String kycProgress(int done, int total) {
+    return '$done amin\'ny $total taratasy voaray';
+  }
+
+  @override
   String get pickLocationTitle => 'Apetraho ny teboka';
 
   @override

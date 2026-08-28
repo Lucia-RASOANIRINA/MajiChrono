@@ -3878,6 +3878,24 @@ abstract class AppLocalizations {
   /// **'Transmettre le dossier'**
   String get kycSubmit;
 
+  /// No description provided for @kycSubmitted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dossier transmis pour verification'**
+  String get kycSubmitted;
+
+  /// No description provided for @kycUnderReviewHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre dossier est en cours de verification.'**
+  String get kycUnderReviewHelp;
+
+  /// No description provided for @kycProgress.
+  ///
+  /// In fr, this message translates to:
+  /// **'{done} pieces sur {total} fournies'**
+  String kycProgress(int done, int total);
+
   /// No description provided for @pickLocationTitle.
   ///
   /// In fr, this message translates to:
