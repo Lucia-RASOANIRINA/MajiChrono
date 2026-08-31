@@ -1745,6 +1745,18 @@ class AppLocalizationsMg extends AppLocalizations {
   String get adminKycReject => 'Lavina ny antontan-taratasy';
 
   @override
+  String get adminKycThreadButton => 'Hafatry ny mpitatitra';
+
+  @override
+  String get adminKycThreadTitle => 'Fanaraha-maso';
+
+  @override
+  String get adminKycReplyHint => 'Mamalia ny mpitatitra';
+
+  @override
+  String get adminKycThreadEmpty => 'Tsy misy hafatra avy amin\'ny mpitatitra';
+
+  @override
   String get adminKycApproveHelp =>
       'Hiditra ao amin\'ny ekipa ny mpanatitra, tsy miasa mandra-piasany.';
 
@@ -2151,6 +2163,35 @@ class AppLocalizationsMg extends AppLocalizations {
   }
 
   @override
+  String get dashAvailable => 'Misy';
+
+  @override
+  String get dashActive => 'An-dalana';
+
+  @override
+  String get dashDoneToday => 'Vita';
+
+  @override
+  String get dashBalance => 'Volabola';
+
+  @override
+  String get driverRefuse => 'Ariana';
+
+  @override
+  String get driverDetails => 'Antsipirian\'ny dia';
+
+  @override
+  String driverEta(int min) {
+    return '~$min min';
+  }
+
+  @override
+  String get driverEtaLabel => 'Fotoana tombanana';
+
+  @override
+  String get driverPackageType => 'Karazana entana';
+
+  @override
   String get driverAlreadyTaken => 'Efa nalain\'ny mpanatitra hafa ilay dia';
 
   @override
@@ -2182,16 +2223,34 @@ class AppLocalizationsMg extends AppLocalizations {
   String get driverIncident => 'Hitatitra olana';
 
   @override
+  String get incidentSenderAbsent => 'Tsy eo ny mpandefa';
+
+  @override
   String get incidentRecipientAbsent => 'Tsy eo ny mpandray';
 
   @override
-  String get incidentAddressNotFound => 'Tsy hita ny adiresy';
+  String get incidentAddressIncorrect => 'Diso ny adiresy';
 
   @override
-  String get incidentRefused => 'Nolavina ny fandraisana';
+  String get incidentPackageDamaged => 'Simba ny entana';
 
   @override
-  String get incidentBreakdown => 'Simba ny fiara';
+  String get incidentPackageRefused => 'Nolavina ny entana';
+
+  @override
+  String get incidentAccident => 'Loza';
+
+  @override
+  String get incidentGpsProblem => 'Olana GPS';
+
+  @override
+  String get incidentVehicleProblem => 'Olana amin\'ny fiara';
+
+  @override
+  String get incidentPaymentProblem => 'Olana amin\'ny fandoavam-bola';
+
+  @override
+  String get incidentOther => 'Olana hafa';
 
   @override
   String get outcomeWaitThenReturn =>
@@ -2205,6 +2264,42 @@ class AppLocalizationsMg extends AppLocalizations {
 
   @override
   String get outcomeReassign => 'Homena mpanatitra hafa ny dia';
+
+  @override
+  String get outcomeDocumentThenContinue => 'Raketo, mitohy ny dia';
+
+  @override
+  String get incidentDetailTitle => 'Antsipirian\'ny olana';
+
+  @override
+  String get incidentDescriptionLabel => 'Fanoritsoritana (tsy voatery)';
+
+  @override
+  String get incidentDescriptionHint => 'Izay hitanao';
+
+  @override
+  String get incidentAddPhoto => 'Hanampy sary';
+
+  @override
+  String get incidentPhotoAdded => 'Voampiditra ny sary';
+
+  @override
+  String get incidentGpsAttached => 'Voarakitra ny toerana';
+
+  @override
+  String get incidentSubmit => 'Alefa ny tatitra';
+
+  @override
+  String get incidentReported => 'Voatatitra ny olana';
+
+  @override
+  String get incidentHistoryTitle => 'Olana voatatitra';
+
+  @override
+  String get incidentResolutionOpen => 'Andalam-pikarakarana';
+
+  @override
+  String get incidentResolutionResolved => 'Voavaha';
 
   @override
   String get earningsTitle => 'Ny tomboko';
@@ -2400,6 +2495,100 @@ class AppLocalizationsMg extends AppLocalizations {
   String kycProgress(int done, int total) {
     return '$done amin\'ny $total taratasy voaray';
   }
+
+  @override
+  String get vehicleTitle => 'Ny fiarako';
+
+  @override
+  String get vehicleManage => 'Mombamomba ny fiara';
+
+  @override
+  String get vehicleManageHelp =>
+      'Karazana, marika, modely, plaka ary fiantohana.';
+
+  @override
+  String get vehicleType => 'Karazana fiara';
+
+  @override
+  String get vehicleTypeMoto => 'Moto';
+
+  @override
+  String get vehicleTypeBicycle => 'Bisikileta';
+
+  @override
+  String get vehicleTypeCar => 'Fiara';
+
+  @override
+  String get vehicleTypeTricycle => 'Tricycle';
+
+  @override
+  String get vehicleBrand => 'Marika';
+
+  @override
+  String get vehicleModel => 'Modely';
+
+  @override
+  String get vehiclePlate => 'Laharana plaka';
+
+  @override
+  String get vehicleInsurance => 'Faharipahan\'ny fiantohana (AAAA-MM-JJ)';
+
+  @override
+  String get vehicleSave => 'Tehirizo';
+
+  @override
+  String get vehicleSaved => 'Voatahiry ny fiara';
+
+  @override
+  String get vehicleValidationPending => 'Miandry fankatoavana';
+
+  @override
+  String get vehicleValidationValidated => 'Nekena ny fiara';
+
+  @override
+  String get vehicleValidationRejected => 'Nolavina ny fiara';
+
+  @override
+  String get vehicleRevalidateNote =>
+      'Ny fanovana rehetra dia mamerina ny fiche ho miandry fankatoavana.';
+
+  @override
+  String get kycInactiveTitle => 'Mbola tsy mavitrika ny kaonty';
+
+  @override
+  String get kycInactiveMessage =>
+      'Mbola dinihina ny antontan-taratasinao. Afaka mandray dia ianao rehefa voamarina izany.';
+
+  @override
+  String get kycInactiveContact => 'Araho ny antontan-taratasy';
+
+  @override
+  String get kycInactiveClose => 'Azoko';
+
+  @override
+  String get kycFollowupTitle => 'Fanaraha-maso ny antontan-taratasy';
+
+  @override
+  String get kycFollowupManage => 'Hifandray amin\'ny mpandrindra';
+
+  @override
+  String get kycFollowupHelp =>
+      'Manana fanontaniana momba ny fankatoavana? Manorata amin\'ny mpandrindra, hamaly eto izy.';
+
+  @override
+  String get kycFollowupHint => 'Ny hafatrao ho an\'ny mpandrindra';
+
+  @override
+  String get kycFollowupEmpty => 'Mbola tsy misy hafatra';
+
+  @override
+  String get kycFollowupSent => 'Voalefa ny hafatra';
+
+  @override
+  String get kycFollowupAdmin => 'Mpandrindra';
+
+  @override
+  String get kycFollowupYou => 'Ianao';
 
   @override
   String get pickLocationTitle => 'Apetraho ny teboka';
@@ -2628,6 +2817,21 @@ class AppLocalizationsMg extends AppLocalizations {
   @override
   String shellModuleWipDesc(String module) {
     return 'Halefa amin\'ny modely $module ity efijery ity.';
+  }
+
+  @override
+  String get messagesTitle => 'Hafatra';
+
+  @override
+  String get messagesEmpty => 'Tsy misy resaka';
+
+  @override
+  String get messagesEmptyHelp =>
+      'Hiseho eto ny resaka amin\'ny mpitatitra (na mpandefa) rehefa misy dia ekena.';
+
+  @override
+  String messagesYouPrefix(String message) {
+    return 'Ianao : $message';
   }
 
   @override

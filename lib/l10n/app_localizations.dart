@@ -3326,6 +3326,30 @@ abstract class AppLocalizations {
   /// **'Refuser le dossier'**
   String get adminKycReject;
 
+  /// No description provided for @adminKycThreadButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages du livreur'**
+  String get adminKycThreadButton;
+
+  /// No description provided for @adminKycThreadTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi du dossier'**
+  String get adminKycThreadTitle;
+
+  /// No description provided for @adminKycReplyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Repondre au livreur'**
+  String get adminKycReplyHint;
+
+  /// No description provided for @adminKycThreadEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun message du livreur'**
+  String get adminKycThreadEmpty;
+
   /// No description provided for @adminKycApproveHelp.
   ///
   /// In fr, this message translates to:
@@ -4064,6 +4088,60 @@ abstract class AppLocalizations {
   /// **'Accepter ({seconds} s)'**
   String driverAcceptIn(int seconds);
 
+  /// No description provided for @dashAvailable.
+  ///
+  /// In fr, this message translates to:
+  /// **'Disponibles'**
+  String get dashAvailable;
+
+  /// No description provided for @dashActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get dashActive;
+
+  /// No description provided for @dashDoneToday.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminees'**
+  String get dashDoneToday;
+
+  /// No description provided for @dashBalance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde'**
+  String get dashBalance;
+
+  /// No description provided for @driverRefuse.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ignorer'**
+  String get driverRefuse;
+
+  /// No description provided for @driverDetails.
+  ///
+  /// In fr, this message translates to:
+  /// **'Details de la course'**
+  String get driverDetails;
+
+  /// No description provided for @driverEta.
+  ///
+  /// In fr, this message translates to:
+  /// **'~{min} min'**
+  String driverEta(int min);
+
+  /// No description provided for @driverEtaLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps estime'**
+  String get driverEtaLabel;
+
+  /// No description provided for @driverPackageType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de colis'**
+  String get driverPackageType;
+
   /// No description provided for @driverAlreadyTaken.
   ///
   /// In fr, this message translates to:
@@ -4124,29 +4202,65 @@ abstract class AppLocalizations {
   /// **'Signaler un incident'**
   String get driverIncident;
 
+  /// No description provided for @incidentSenderAbsent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Expediteur absent'**
+  String get incidentSenderAbsent;
+
   /// No description provided for @incidentRecipientAbsent.
   ///
   /// In fr, this message translates to:
   /// **'Destinataire absent'**
   String get incidentRecipientAbsent;
 
-  /// No description provided for @incidentAddressNotFound.
+  /// No description provided for @incidentAddressIncorrect.
   ///
   /// In fr, this message translates to:
-  /// **'Adresse introuvable'**
-  String get incidentAddressNotFound;
+  /// **'Adresse incorrecte'**
+  String get incidentAddressIncorrect;
 
-  /// No description provided for @incidentRefused.
+  /// No description provided for @incidentPackageDamaged.
   ///
   /// In fr, this message translates to:
-  /// **'Refus de reception'**
-  String get incidentRefused;
+  /// **'Colis endommage'**
+  String get incidentPackageDamaged;
 
-  /// No description provided for @incidentBreakdown.
+  /// No description provided for @incidentPackageRefused.
   ///
   /// In fr, this message translates to:
-  /// **'Vehicule en panne'**
-  String get incidentBreakdown;
+  /// **'Colis refuse'**
+  String get incidentPackageRefused;
+
+  /// No description provided for @incidentAccident.
+  ///
+  /// In fr, this message translates to:
+  /// **'Accident'**
+  String get incidentAccident;
+
+  /// No description provided for @incidentGpsProblem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Probleme GPS'**
+  String get incidentGpsProblem;
+
+  /// No description provided for @incidentVehicleProblem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Probleme de vehicule'**
+  String get incidentVehicleProblem;
+
+  /// No description provided for @incidentPaymentProblem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Probleme de paiement'**
+  String get incidentPaymentProblem;
+
+  /// No description provided for @incidentOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre incident'**
+  String get incidentOther;
 
   /// No description provided for @outcomeWaitThenReturn.
   ///
@@ -4171,6 +4285,78 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'La course sera reaffectee'**
   String get outcomeReassign;
+
+  /// No description provided for @outcomeDocumentThenContinue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Documentez, la course continue'**
+  String get outcomeDocumentThenContinue;
+
+  /// No description provided for @incidentDetailTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Detail de l\'incident'**
+  String get incidentDetailTitle;
+
+  /// No description provided for @incidentDescriptionLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Description (facultatif)'**
+  String get incidentDescriptionLabel;
+
+  /// No description provided for @incidentDescriptionHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce que vous avez constate'**
+  String get incidentDescriptionHint;
+
+  /// No description provided for @incidentAddPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une photo'**
+  String get incidentAddPhoto;
+
+  /// No description provided for @incidentPhotoAdded.
+  ///
+  /// In fr, this message translates to:
+  /// **'Photo ajoutee'**
+  String get incidentPhotoAdded;
+
+  /// No description provided for @incidentGpsAttached.
+  ///
+  /// In fr, this message translates to:
+  /// **'Position jointe'**
+  String get incidentGpsAttached;
+
+  /// No description provided for @incidentSubmit.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer le signalement'**
+  String get incidentSubmit;
+
+  /// No description provided for @incidentReported.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incident signale'**
+  String get incidentReported;
+
+  /// No description provided for @incidentHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents signales'**
+  String get incidentHistoryTitle;
+
+  /// No description provided for @incidentResolutionOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours de traitement'**
+  String get incidentResolutionOpen;
+
+  /// No description provided for @incidentResolutionResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Traite'**
+  String get incidentResolutionResolved;
 
   /// No description provided for @earningsTitle.
   ///
@@ -4543,6 +4729,186 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{done} pieces sur {total} fournies'**
   String kycProgress(int done, int total);
+
+  /// No description provided for @vehicleTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon vehicule'**
+  String get vehicleTitle;
+
+  /// No description provided for @vehicleManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Informations du vehicule'**
+  String get vehicleManage;
+
+  /// No description provided for @vehicleManageHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type, marque, modele, plaque et assurance.'**
+  String get vehicleManageHelp;
+
+  /// No description provided for @vehicleType.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type de vehicule'**
+  String get vehicleType;
+
+  /// No description provided for @vehicleTypeMoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Moto'**
+  String get vehicleTypeMoto;
+
+  /// No description provided for @vehicleTypeBicycle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Velo'**
+  String get vehicleTypeBicycle;
+
+  /// No description provided for @vehicleTypeCar.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voiture'**
+  String get vehicleTypeCar;
+
+  /// No description provided for @vehicleTypeTricycle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Tricycle'**
+  String get vehicleTypeTricycle;
+
+  /// No description provided for @vehicleBrand.
+  ///
+  /// In fr, this message translates to:
+  /// **'Marque'**
+  String get vehicleBrand;
+
+  /// No description provided for @vehicleModel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modele'**
+  String get vehicleModel;
+
+  /// No description provided for @vehiclePlate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Immatriculation'**
+  String get vehiclePlate;
+
+  /// No description provided for @vehicleInsurance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Echeance d\'assurance (AAAA-MM-JJ)'**
+  String get vehicleInsurance;
+
+  /// No description provided for @vehicleSave.
+  ///
+  /// In fr, this message translates to:
+  /// **'Enregistrer'**
+  String get vehicleSave;
+
+  /// No description provided for @vehicleSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vehicule enregistre'**
+  String get vehicleSaved;
+
+  /// No description provided for @vehicleValidationPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En attente de validation'**
+  String get vehicleValidationPending;
+
+  /// No description provided for @vehicleValidationValidated.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vehicule valide'**
+  String get vehicleValidationValidated;
+
+  /// No description provided for @vehicleValidationRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vehicule refuse'**
+  String get vehicleValidationRejected;
+
+  /// No description provided for @vehicleRevalidateNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute modification remet la fiche en attente de validation.'**
+  String get vehicleRevalidateNote;
+
+  /// No description provided for @kycInactiveTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compte pas encore actif'**
+  String get kycInactiveTitle;
+
+  /// No description provided for @kycInactiveMessage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre dossier est en cours de validation. Vous pourrez accepter des courses une fois qu\'il sera valide.'**
+  String get kycInactiveMessage;
+
+  /// No description provided for @kycInactiveContact.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivre mon dossier'**
+  String get kycInactiveContact;
+
+  /// No description provided for @kycInactiveClose.
+  ///
+  /// In fr, this message translates to:
+  /// **'Compris'**
+  String get kycInactiveClose;
+
+  /// No description provided for @kycFollowupTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suivi de mon dossier'**
+  String get kycFollowupTitle;
+
+  /// No description provided for @kycFollowupManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contacter l\'exploitation'**
+  String get kycFollowupManage;
+
+  /// No description provided for @kycFollowupHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Une question sur la validation de votre dossier ? Ecrivez a l\'exploitation, elle vous repond ici.'**
+  String get kycFollowupHelp;
+
+  /// No description provided for @kycFollowupHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Votre message a l\'exploitation'**
+  String get kycFollowupHint;
+
+  /// No description provided for @kycFollowupEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun message pour l\'instant'**
+  String get kycFollowupEmpty;
+
+  /// No description provided for @kycFollowupSent.
+  ///
+  /// In fr, this message translates to:
+  /// **'Message envoye'**
+  String get kycFollowupSent;
+
+  /// No description provided for @kycFollowupAdmin.
+  ///
+  /// In fr, this message translates to:
+  /// **'Exploitation'**
+  String get kycFollowupAdmin;
+
+  /// No description provided for @kycFollowupYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous'**
+  String get kycFollowupYou;
 
   /// No description provided for @pickLocationTitle.
   ///
@@ -4969,6 +5335,30 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Cet ecran sera livre au module {module}.'**
   String shellModuleWipDesc(String module);
+
+  /// No description provided for @messagesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Messages'**
+  String get messagesTitle;
+
+  /// No description provided for @messagesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune conversation'**
+  String get messagesEmpty;
+
+  /// No description provided for @messagesEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos discussions avec les livreurs (ou expediteurs) apparaitront ici, des qu\'une course est acceptee.'**
+  String get messagesEmptyHelp;
+
+  /// No description provided for @messagesYouPrefix.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous : {message}'**
+  String messagesYouPrefix(String message);
 
   /// No description provided for @chatTitle.
   ///

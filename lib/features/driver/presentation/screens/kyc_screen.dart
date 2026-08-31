@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -210,6 +212,29 @@ class _KycScreenState extends ConsumerState<KycScreen> {
                         const Divider(height: 1),
                     ],
                   ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              // Informations structurees du vehicule (§22), en complement des
+              // pieces ci-dessus.
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.two_wheeler_outlined),
+                  title: Text(l10n.vehicleManage),
+                  subtitle: Text(l10n.vehicleManageHelp),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.driverVehicle),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              // Contact avec l'exploitation pour suivre la validation du dossier.
+              Card(
+                child: ListTile(
+                  leading: const Icon(Icons.support_agent_outlined),
+                  title: Text(l10n.kycFollowupManage),
+                  subtitle: Text(l10n.kycFollowupHelp),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.kycFollowup),
                 ),
               ),
             ],

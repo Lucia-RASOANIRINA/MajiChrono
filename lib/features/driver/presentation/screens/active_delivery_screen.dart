@@ -1,6 +1,10 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:geolocator/geolocator.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import 'package:majichrono/app/router/app_routes.dart';
@@ -102,6 +106,17 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
       'geo:${target.latitude},${target.longitude}'
       '?q=${target.latitude},${target.longitude}',
     );
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  /// Appelle le contact de l'etape en cours (EXI-L07, §17).
+  ///
+  /// A Antananarivo, le telephone reste le premier outil de coordination : un
+  /// livreur appelle pour se faire ouvrir un portail bien plus souvent qu'il ne
+  /// consulte une carte.
+  Future<void> _call(String phone) async {
+    if (phone.isEmpty) return;
+    final uri = Uri(scheme: 'tel', path: phone);
     if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 
@@ -225,7 +240,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
                       ),
                       const SizedBox(width: AppSpacing.sm),
                       IconButton.outlined(
-                        onPressed: () {},
+                        onPressed: () => _call(target.contactPhone.e164),
                         icon: const Icon(Icons.phone_outlined),
                         tooltip: l10n.driverCall,
                       ),
@@ -271,6 +286,7 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
             label: Text(l10n.driverIncident),
             style: OutlinedButton.styleFrom(foregroundColor: AppColors.warning),
           ),
+          _IncidentHistory(deliveryId: delivery.id),
           const SizedBox(height: AppSpacing.md),
           // EXI-L13, D10. Volontairement **sous** le signalement d'incident et
           // visuellement distinct : ce sont deux gestes differents. Un incident
@@ -290,49 +306,362 @@ class _ActiveDeliveryScreenState extends ConsumerState<ActiveDeliveryScreen> {
     );
   }
 
-  /// Signalement d'incident (EXI-L14).
+  /// Signalement d'incident (EXI-L14, §19).
   ///
   /// Chaque motif affiche **sa consequence** : l'exigence demande que la suite
   /// soit definie, et un livreur planté devant un portail a besoin de savoir ce
-  /// qui se passe ensuite, pas seulement d'avoir coche une case.
+  /// qui se passe ensuite, pas seulement d'avoir coche une case. Le choix ouvre
+  /// un formulaire — description, photo, position — qui **envoie vraiment** le
+  /// signalement, la ou l'ancienne feuille se contentait de se refermer.
   void _showIncidentSheet(BuildContext context, Delivery delivery) {
-    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final l10n = AppLocalizations.of(sheetContext);
+        return SafeArea(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.lg,
+              AppSpacing.sm,
+              AppSpacing.lg,
+              AppSpacing.lg,
+            ),
+            children: [
+              Text(
+                l10n.driverIncident,
+                style: Theme.of(sheetContext).textTheme.titleLarge,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              for (final type in IncidentType.values)
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.report_problem_outlined),
+                  title: Text(incidentTypeLabel(l10n, type)),
+                  subtitle: Text(incidentOutcomeLabel(l10n, type.outcome)),
+                  trailing: const Icon(Icons.chevron_right),
+                  // Le choix ferme la feuille et ouvre un ecran plein — un
+                  // formulaire tient mieux sur une page que dans une feuille qui
+                  // se redimensionne.
+                  onTap: () {
+                    Navigator.of(sheetContext).pop();
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) =>
+                            IncidentReportScreen(delivery: delivery, type: type),
+                      ),
+                    );
+                  },
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+}
 
-    String title(IncidentType type) => switch (type) {
+/// Rappel des incidents deja signales sur la course, avec leur statut de
+/// resolution (§19). Absent tant qu'il n'y en a aucun : une section vide
+/// n'apprendrait rien.
+class _IncidentHistory extends ConsumerWidget {
+  const _IncidentHistory({required this.deliveryId});
+
+  final String deliveryId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final incidents =
+        ref.watch(deliveryIncidentsProvider(deliveryId)).valueOrNull ??
+        const [];
+    if (incidents.isEmpty) return const SizedBox.shrink();
+
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.md),
+      child: Card(
+        child: Padding(
+          padding: AppSpacing.card,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                l10n.incidentHistoryTitle,
+                style: theme.textTheme.titleSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              for (final incident in incidents)
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(
+                        incident.resolution == IncidentResolution.resolved
+                            ? Icons.check_circle_outline
+                            : Icons.schedule,
+                        size: 18,
+                        color:
+                            incident.resolution == IncidentResolution.resolved
+                            ? AppColors.success
+                            : AppColors.warning,
+                      ),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              incidentTypeLabel(l10n, incident.type),
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Text(
+                              incident.resolution ==
+                                      IncidentResolution.resolved
+                                  ? l10n.incidentResolutionResolved
+                                  : l10n.incidentResolutionOpen,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant,
+                              ),
+                            ),
+                            if (incident.description != null &&
+                                incident.description!.isNotEmpty)
+                              Text(
+                                incident.description!,
+                                style: theme.textTheme.bodySmall,
+                              ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Libelle d'un type d'incident (§19), partage entre la feuille et l'historique.
+String incidentTypeLabel(AppLocalizations l10n, IncidentType type) =>
+    switch (type) {
+      IncidentType.senderAbsent => l10n.incidentSenderAbsent,
       IncidentType.recipientAbsent => l10n.incidentRecipientAbsent,
-      IncidentType.addressNotFound => l10n.incidentAddressNotFound,
-      IncidentType.refusedByRecipient => l10n.incidentRefused,
-      IncidentType.vehicleBreakdown => l10n.incidentBreakdown,
+      IncidentType.addressIncorrect => l10n.incidentAddressIncorrect,
+      IncidentType.packageDamaged => l10n.incidentPackageDamaged,
+      IncidentType.packageRefused => l10n.incidentPackageRefused,
+      IncidentType.accident => l10n.incidentAccident,
+      IncidentType.gpsProblem => l10n.incidentGpsProblem,
+      IncidentType.vehicleProblem => l10n.incidentVehicleProblem,
+      IncidentType.paymentProblem => l10n.incidentPaymentProblem,
+      IncidentType.other => l10n.incidentOther,
     };
 
-    String outcome(IncidentOutcome o) => switch (o) {
+String incidentOutcomeLabel(AppLocalizations l10n, IncidentOutcome o) =>
+    switch (o) {
       IncidentOutcome.waitThenReturn => l10n.outcomeWaitThenReturn,
       IncidentOutcome.contactSupport => l10n.outcomeContactSupport,
       IncidentOutcome.returnToSender => l10n.outcomeReturnToSender,
       IncidentOutcome.reassign => l10n.outcomeReassign,
+      IncidentOutcome.documentThenContinue => l10n.outcomeDocumentThenContinue,
     };
 
-    showModalBottomSheet<void>(
-      context: context,
-      showDragHandle: true,
-      builder: (sheetContext) => SafeArea(
-        child: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.all(AppSpacing.lg),
-          children: [
-            Text(
-              l10n.driverIncident,
-              style: Theme.of(sheetContext).textTheme.titleMedium,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            for (final type in IncidentType.values)
-              ListTile(
-                leading: const Icon(Icons.report_problem_outlined),
-                title: Text(title(type)),
-                subtitle: Text(outcome(type.outcome)),
-                onTap: () => Navigator.of(sheetContext).pop(),
+/// Ecran plein de signalement d'incident (§19) : le motif est deja choisi ; on
+/// saisit une description, une photo facultative et la position best-effort,
+/// puis on envoie vraiment. Une page — et non une feuille qui se redimensionne —
+/// garantit que l'en-tete et le bouton d'envoi restent toujours visibles.
+class IncidentReportScreen extends ConsumerStatefulWidget {
+  const IncidentReportScreen({
+    required this.delivery,
+    required this.type,
+    super.key,
+  });
+
+  final Delivery delivery;
+  final IncidentType type;
+
+  @override
+  ConsumerState<IncidentReportScreen> createState() =>
+      _IncidentReportScreenState();
+}
+
+class _IncidentReportScreenState extends ConsumerState<IncidentReportScreen> {
+  final _description = TextEditingController();
+  List<int>? _photoBytes;
+  String? _photoId;
+  bool _submitting = false;
+
+  @override
+  void dispose() {
+    _description.dispose();
+    super.dispose();
+  }
+
+  Future<void> _pickPhoto() async {
+    final picker = ImagePicker();
+    final shot = await picker.pickImage(
+      source: ImageSource.camera,
+      maxWidth: 1280,
+      imageQuality: 70,
+    );
+    if (shot == null) return;
+    final bytes = await shot.readAsBytes();
+    if (!mounted) return;
+    setState(() => _photoBytes = bytes);
+    try {
+      final id = await ref
+          .read(deliveryRepositoryProvider)
+          .uploadPackagePhoto(bytes: bytes, contentType: 'image/jpeg');
+      if (mounted) setState(() => _photoId = id);
+    } on Object {
+      // Une photo qui ne monte pas ne bloque pas le signalement : l'incident
+      // part sans elle plutot que d'etre retenu.
+    }
+  }
+
+  Future<void> _submit() async {
+    if (_submitting) return;
+    final type = widget.type;
+    setState(() => _submitting = true);
+
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+
+    // Position jointe au mieux : un dernier point connu, jamais une attente de
+    // fix GPS — un incident ne se retient pas pour une coordonnee.
+    double? lat;
+    double? lng;
+    try {
+      final last = await Geolocator.getLastKnownPosition();
+      lat = last?.latitude;
+      lng = last?.longitude;
+    } on Object {
+      // Permission refusee, service coupe : on envoie sans position.
+    }
+
+    try {
+      await ref
+          .read(driverActionsProvider)
+          .reportIncident(
+            widget.delivery.id,
+            type,
+            description: _description.text.trim(),
+            photoId: _photoId,
+            lat: lat,
+            lng: lng,
+          );
+      ref.invalidate(deliveryIncidentsProvider(widget.delivery.id));
+      if (!mounted) return;
+      Navigator.of(context).pop();
+      messenger.showSnackBar(
+        SnackBar(content: Text(l10n.incidentReported)),
+      );
+    } on Failure catch (failure) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      messenger.showSnackBar(
+        SnackBar(content: Text(failure.localizedMessage(l10n))),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final type = widget.type;
+
+    return Scaffold(
+      appBar: AppBar(title: Text(incidentTypeLabel(l10n, type))),
+      body: ListView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: [
+          // Consequence du motif : le livreur sait ce qui se passe ensuite.
+          Card(
+            color: theme.colorScheme.secondaryContainer,
+            child: Padding(
+              padding: AppSpacing.card,
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: Text(
+                      incidentOutcomeLabel(l10n, type.outcome),
+                      style: theme.textTheme.bodyMedium,
+                    ),
+                  ),
+                ],
               ),
-          ],
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          TextField(
+            controller: _description,
+            minLines: 3,
+            maxLines: 5,
+            enabled: !_submitting,
+            textCapitalization: TextCapitalization.sentences,
+            decoration: InputDecoration(
+              labelText: l10n.incidentDescriptionLabel,
+              hintText: l10n.incidentDescriptionHint,
+              border: const OutlineInputBorder(),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          Row(
+            children: [
+              OutlinedButton.icon(
+                onPressed: _submitting ? null : _pickPhoto,
+                icon: const Icon(Icons.photo_camera_outlined),
+                label: Text(
+                  _photoBytes == null
+                      ? l10n.incidentAddPhoto
+                      : l10n.incidentPhotoAdded,
+                ),
+              ),
+              if (_photoBytes != null) ...[
+                const SizedBox(width: AppSpacing.md),
+                ClipRRect(
+                  borderRadius: AppRadii.componentAll,
+                  child: Image.memory(
+                    Uint8List.fromList(_photoBytes!),
+                    width: 44,
+                    height: 44,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+      bottomNavigationBar: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: SizedBox(
+            width: double.infinity,
+            height: AppSizes.minTouchTarget,
+            child: FilledButton.icon(
+              onPressed: _submitting ? null : _submit,
+              icon: _submitting
+                  ? const SizedBox(
+                      width: 18,
+                      height: 18,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.send),
+              label: Text(l10n.incidentSubmit),
+            ),
+          ),
         ),
       ),
     );

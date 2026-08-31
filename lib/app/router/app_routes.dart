@@ -48,6 +48,9 @@ class AppRoutes {
   /// Portefeuille client : solde MajiPay et historique des paiements (§11).
   static const String wallet = '/wallet';
 
+  /// Espace « Messages » : la boite de reception des conversations.
+  static const String messages = '/messages';
+
   /// Litiges de l'utilisateur : liste et detail (§13, assistance).
   static const String disputes = '/support/disputes';
   static String dispute(String id) => '/support/disputes/$id';
@@ -83,6 +86,12 @@ class AppRoutes {
   static const String driverHome = '/driver';
   static const String driverDeliveries = '/driver/deliveries';
   static const String driverEarnings = '/driver/earnings';
+
+  /// Fiche vehicule structuree du livreur (§22).
+  static const String driverVehicle = '/driver/vehicle-info';
+
+  /// Fil de suivi du dossier KYC (livreur <-> exploitation).
+  static const String kycFollowup = '/driver/kyc-followup';
   static const String driverProfile = '/driver/profile';
   static String driverActive(String id) => '/driver/active/$id';
 

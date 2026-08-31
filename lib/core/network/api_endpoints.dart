@@ -70,6 +70,9 @@ class ApiEndpoints {
   static String deliveryAccept(String id) => '/deliveries/$id/accept';
   static String deliveryStatus(String id) => '/deliveries/$id/status';
 
+  /// Incidents declares sur une course (EXI-L14, §19).
+  static String deliveryIncidents(String id) => '/deliveries/$id/incidents';
+
   // --- Constats (§7.3) -------------------------------------------------
   static String custodyPickup(String id) => '/deliveries/$id/custody/pickup';
   static String custodyHandover(String id) =>
@@ -80,6 +83,9 @@ class ApiEndpoints {
   static const String uploads = '/uploads';
 
   // --- Discussion course (expediteur <-> livreur) ----------------------
+  /// Boite de reception : la liste des conversations (espace « Messages »).
+  static const String conversations = '/conversations';
+
   /// Messages d'une course. S'ouvre a l'acceptation ; seuls l'expediteur et le
   /// livreur assigne y ont acces.
   static String deliveryMessages(String id) => '/deliveries/$id/messages';
@@ -103,6 +109,14 @@ class ApiEndpoints {
   /// Lecture d'une piece (jeton exige) — proprietaire ou exploitation.
   static String kycDocumentOf(String accountId, String kind) =>
       '/accounts/$accountId/kyc/$kind';
+
+  /// Fiche vehicule structuree du livreur (§22).
+  static const String driverVehicle = '/driver/vehicle';
+
+  /// Fil de suivi du dossier KYC (livreur <-> exploitation).
+  static const String kycMessages = '/drivers/kyc/messages';
+  static String adminKycMessages(String driverId) =>
+      '/admin/kyc/$driverId/messages';
 
   /// Pieces d'un livreur, cote exploitation, pour la revue du dossier.
   static String adminKycDocuments(String driverId) =>

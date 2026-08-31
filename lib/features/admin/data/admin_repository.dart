@@ -125,6 +125,29 @@ class AdminRepository {
     return delivery;
   }
 
+  /// Fil de suivi du dossier KYC d'un livreur (cote exploitation).
+  Future<List<KycThreadMessage>> kycMessages(String driverId) async {
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.adminKycMessages(driverId),
+    );
+    return (json['items'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(KycThreadMessage.fromJson)
+        .whereType<KycThreadMessage>()
+        .toList();
+  }
+
+  /// Reponse de l'exploitation au livreur sur le suivi de son dossier.
+  Future<void> replyKyc({
+    required String driverId,
+    required String body,
+  }) async {
+    await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.adminKycMessages(driverId),
+      body: {'body': body},
+    );
+  }
+
   /// Litiges ouverts, les plus recents d'abord (EXI-A05).
   Future<List<Dispute>> disputes({DisputeStatus? status}) async {
     final json = await _client.get<Map<String, dynamic>>(

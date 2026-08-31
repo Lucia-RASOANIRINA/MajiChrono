@@ -42,6 +42,8 @@ class AdminMockModule extends MockModule {
     backend.get('/admin/fleet', _fleetList);
     backend.get('/admin/kyc', _kycQueue);
     backend.post('/admin/kyc/{id}/review', _kycReview);
+    backend.get('/admin/kyc/{id}/messages', _kycThreadList);
+    backend.post('/admin/kyc/{id}/messages', _kycThreadReply);
     // Lecture d'une piece KYC (l'exploitant l'examine). Le simulateur ne
     // conserve pas les images : il rend une vignette de remplacement, de quoi
     // faire vivre la visionneuse en mode `mock`.
@@ -60,6 +62,7 @@ class AdminMockModule extends MockModule {
     _fleet = _seedFleet();
     _kyc = _seedKyc();
     _disputes = _seedDisputes();
+    _kycThreads.clear();
     _sequence = 0;
   }
 
@@ -311,6 +314,36 @@ class AdminMockModule extends MockModule {
   }
 
   // --- Litiges (EXI-A05) ------------------------------------------------
+
+  /// Fils de suivi de dossier KYC, par livreur (cote exploitation).
+  final Map<String, List<Map<String, dynamic>>> _kycThreads = {};
+  int _kycThreadSeq = 0;
+
+  Future<MockResponse> _kycThreadList(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final thread = _kycThreads[params['id']] ?? const [];
+    return MockResponse.ok({'items': List<Map<String, dynamic>>.from(thread)});
+  }
+
+  Future<MockResponse> _kycThreadReply(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final body = '${req.json['body'] ?? ''}'.trim();
+    if (body.isEmpty) {
+      return MockResponse.error(422, 'empty_message', 'Message vide');
+    }
+    final message = {
+      'id': 'kmsg_${++_kycThreadSeq}',
+      'fromAdmin': true,
+      'body': body,
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    (_kycThreads[params['id']!] ??= []).add(message);
+    return MockResponse.ok(message);
+  }
 
   /// Ouverture d'un litige par une partie (client ou livreur), cote §13.
   ///

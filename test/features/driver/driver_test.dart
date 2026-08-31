@@ -38,6 +38,10 @@ void main() {
         DriverMockModule(
           deliveries: () => deliveryModule.store,
           random: Random(11),
+          // Ces tests portent sur l'acceptation et la progression : le livreur
+          // est deja valide, sinon l'acceptation serait refusee (EXI-L01), ce
+          // qui est teste ailleurs.
+          kycStatus: 'approved',
         ),
       );
 

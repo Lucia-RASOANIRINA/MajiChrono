@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -45,17 +46,35 @@ async def lifespan(app: FastAPI):
     legere, idempotente) : un deploiement suffit alors a faire apparaitre une
     nouvelle table ou une nouvelle colonne nullable sur Neon, sans intervention.
 
-    On **saute** l'operation en test : la suite remplace `get_db` par une base
-    en memoire creee de zero par la fixture, et toucher la vraie base n'aurait ni
-    sens ni interet. L'echec eventuel n'est pas fatal — le serveur demarre quand
-    meme, l'incident est journalise.
+    L'alignement tourne **en tache de fond**, sans bloquer la fin du demarrage.
+    Uvicorn n'ouvre le port qu'une fois le `lifespan` startup termine ; or une
+    base Neon « froide » peut rendre `ensure_schema` lent (connexion a etablir,
+    inspection, ALTER TABLE), assez pour que le **scan de port de Render** expire
+    (« no open ports detected ») alors que le serveur allait tres bien demarrer.
+    On ouvre donc le port tout de suite et on aligne le schema juste apres ; les
+    colonnes ajoutees sont additives, la breve fenetre avant la fin est sans
+    danger. L'echec eventuel n'est pas fatal — il est seulement journalise.
+
+    On **saute** l'operation en test : la suite remplace `get_db` par une base en
+    memoire creee de zero par la fixture, et toucher la vraie base n'aurait ni
+    sens ni interet.
     """
+    task: asyncio.Task[None] | None = None
     if get_db not in app.dependency_overrides:
-        try:
-            ensure_schema()
-        except Exception:  # noqa: BLE001 — un schema deja a jour ne doit pas empecher le boot
-            logger.exception("Alignement du schema au demarrage impossible")
+
+        async def _align() -> None:
+            try:
+                await asyncio.to_thread(ensure_schema)
+                logger.info("Schema aligne au demarrage")
+            except Exception:  # noqa: BLE001 — un schema deja a jour ne bloque pas le boot
+                logger.exception("Alignement du schema au demarrage impossible")
+
+        task = asyncio.create_task(_align())
     yield
+    # A l'arret, on laisse la tache d'alignement se terminer proprement si elle
+    # court encore, sans faire trainer la fermeture.
+    if task is not None and not task.done():
+        task.cancel()
 
 
 app = FastAPI(

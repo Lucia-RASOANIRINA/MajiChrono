@@ -9,10 +9,13 @@ import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/network/network_profile.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
+import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
+import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/features/driver/presentation/widgets/available_delivery_card.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_app_header.dart';
@@ -126,6 +129,11 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
             statusOnline: connected,
             actions: [
               IconButton(
+                tooltip: l10n.messagesTitle,
+                icon: const Icon(Icons.forum_outlined, color: Colors.white),
+                onPressed: () => context.push(AppRoutes.messages),
+              ),
+              IconButton(
                 tooltip: l10n.settingsTitle,
                 icon: const Icon(Icons.settings_outlined, color: Colors.white),
                 onPressed: () => context.push(AppRoutes.settings),
@@ -140,6 +148,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                 padding: const EdgeInsets.all(AppSpacing.lg),
                 children: [
                   const _OnlineSwitch(),
+                  const SizedBox(height: AppSpacing.md),
+                  const _DashboardStats(),
                   const SizedBox(height: AppSpacing.lg),
                   if (active != null) ...[
                     McSectionHeader(title: l10n.driverActiveDelivery),
@@ -183,7 +193,16 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                           ),
                         ),
                       ),
-                      data: (items) => items.isEmpty
+                      data: (all) {
+                        // Les offres ecartees a la main ne remontent plus
+                        // (EXI-L05, §15).
+                        final dismissed = ref.watch(dismissedOffersProvider);
+                        final items = all
+                            .where(
+                              (o) => !dismissed.contains(o.delivery.id),
+                            )
+                            .toList();
+                        return items.isEmpty
                           ? SizedBox(
                               height: 220,
                               child: Card(
@@ -206,7 +225,8 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
                                   const SizedBox(height: AppSpacing.md),
                                 ],
                               ],
-                            ),
+                            );
+                      },
                     ),
                 ],
               ),
@@ -225,6 +245,132 @@ class _DriverHomeScreenState extends ConsumerState<DriverHomeScreen> {
       AuthLocked(:final account) => account.displayName,
       _ => null,
     };
+  }
+}
+
+/// Tuiles de synthese du tableau de bord (§14) : ce qu'un livreur veut savoir
+/// d'un coup d'oeil en ouvrant l'application — combien de courses a prendre,
+/// combien en cours, combien terminees aujourd'hui, et son solde.
+///
+/// Rendu **statique** dans tous les etats (jamais d'indicateur qui tourne) :
+/// une tuile qui charge affiche un tiret, pour ne pas animer en boucle ni
+/// dependre du reseau au premier plan.
+class _DashboardStats extends ConsumerWidget {
+  const _DashboardStats();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final online = ref.watch(driverOnlineProvider);
+
+    final dismissed = ref.watch(dismissedOffersProvider);
+    final offers = ref.watch(availableDeliveriesProvider).valueOrNull;
+    final available = offers
+        ?.where((o) => !dismissed.contains(o.delivery.id))
+        .length;
+    final active = ref.watch(activeDriverDeliveriesProvider).length;
+    final earnings = ref.watch(earningsProvider).valueOrNull;
+    final balance = ref.watch(majiPayBalanceProvider(UserRole.driver)).valueOrNull;
+
+    String orDash(int? v) => v == null ? '—' : '$v';
+
+    return Row(
+      children: [
+        Expanded(
+          child: _StatTile(
+            icon: Icons.inbox_outlined,
+            // Hors service, la file n'est pas interrogee : on montre un tiret
+            // plutot qu'un zero trompeur.
+            value: online ? orDash(available) : '—',
+            label: l10n.dashAvailable,
+            color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.local_shipping_outlined,
+            value: '$active',
+            label: l10n.dashActive,
+            color: AppColors.info,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.check_circle_outline,
+            value: orDash(earnings?.todayCount),
+            label: l10n.dashDoneToday,
+            color: AppColors.success,
+          ),
+        ),
+        const SizedBox(width: AppSpacing.sm),
+        Expanded(
+          child: _StatTile(
+            icon: Icons.account_balance_wallet_outlined,
+            value: balance == null
+                ? '—'
+                : formatAriary(balance.availableAriary),
+            label: l10n.dashBalance,
+            color: AppColors.primary,
+            dense: true,
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _StatTile extends StatelessWidget {
+  const _StatTile({
+    required this.icon,
+    required this.value,
+    required this.label,
+    required this.color,
+    this.dense = false,
+  });
+
+  final IconData icon;
+  final String value;
+  final String label;
+  final Color color;
+  final bool dense;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Card(
+      margin: EdgeInsets.zero,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(
+          vertical: AppSpacing.md,
+          horizontal: AppSpacing.sm,
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(height: AppSpacing.xs),
+            Text(
+              value,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: (dense ? theme.textTheme.bodyMedium : theme.textTheme.titleMedium)
+                  ?.copyWith(fontWeight: FontWeight.w700),
+            ),
+            const SizedBox(height: 2),
+            Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }
 

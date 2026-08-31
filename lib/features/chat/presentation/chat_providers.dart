@@ -6,6 +6,59 @@ import 'package:majichrono/core/network/api_client.dart';
 import 'package:majichrono/core/network/api_endpoints.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 
+/// Une conversation dans la boite de reception (espace « Messages »).
+///
+/// Une conversation = une course ayant une discussion. On n'en tient pas de fil
+/// autonome : coordonner une livraison est la seule raison d'ecrire.
+class Conversation {
+  const Conversation({
+    required this.deliveryId,
+    required this.counterpartyName,
+    required this.lastMessage,
+    required this.lastAt,
+    required this.unread,
+    this.lastSenderId,
+  });
+
+  final String deliveryId;
+  final String counterpartyName;
+  final String lastMessage;
+  final DateTime lastAt;
+  final int unread;
+  final String? lastSenderId;
+
+  bool get hasUnread => unread > 0;
+
+  static Conversation? fromJson(Map<String, dynamic> json) {
+    final id = json['deliveryId'] as String?;
+    if (id == null) return null;
+    return Conversation(
+      deliveryId: id,
+      counterpartyName: '${json['counterpartyName'] ?? ''}',
+      lastMessage: '${json['lastMessage'] ?? ''}',
+      lastAt:
+          DateTime.tryParse('${json['lastAt']}')?.toLocal() ?? DateTime.now(),
+      unread: (json['unread'] as num?)?.toInt() ?? 0,
+      lastSenderId: json['lastSenderId'] as String?,
+    );
+  }
+}
+
+/// Boite de reception : la liste des conversations, relue a chaque ouverture de
+/// l'espace « Messages ».
+final conversationsProvider = FutureProvider.autoDispose<List<Conversation>>(
+  (ref) async {
+    final res = await ref
+        .watch(apiClientProvider)
+        .get<Map<String, dynamic>>(ApiEndpoints.conversations);
+    return (res['items'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(Conversation.fromJson)
+        .whereType<Conversation>()
+        .toList();
+  },
+);
+
 /// Un message de la discussion d'une course.
 class ChatMessage {
   const ChatMessage({

@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 from fastapi.testclient import TestClient
 
-from tests.conftest import sign_in
+from tests.conftest import approve_kyc, sign_in
 
 # Retrait a Analakely. Un livreur pose au meme point est a portee ; un livreur a
 # plus de cent kilometres ne l'est pas.
@@ -43,6 +43,7 @@ class TestDistanceAcceptation:
     def test_course_trop_loin_est_refusee(self, client: TestClient):
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
+        approve_kyc("+261330000002")
         course = _creer(client, expediteur)
 
         # Cent kilometres au sud : hors de portee.
@@ -55,6 +56,7 @@ class TestDistanceAcceptation:
     def test_course_proche_est_acceptee(self, client: TestClient):
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
+        approve_kyc("+261330000002")
         course = _creer(client, expediteur)
 
         _poser_position(client, livreur, -18.9, 47.5)
@@ -64,11 +66,25 @@ class TestDistanceAcceptation:
         assert response.json()["status"] == "acceptee"
         assert response.json()["driverId"] is not None
 
+    def test_un_livreur_non_valide_ne_peut_pas_accepter(self, client: TestClient):
+        # EXI-L01 : tant que le dossier n'est pas valide, pas de course. Le mobile
+        # reconnait `kyc_not_approved` pour afficher « compte pas encore actif ».
+        expediteur = sign_in(client, "+261340000001", role="client")
+        livreur = sign_in(client, "+261330000002", role="driver")
+        course = _creer(client, expediteur)
+
+        response = client.post(
+            f"/deliveries/{course['id']}/accept", headers=livreur
+        )
+        assert response.status_code == 403
+        assert response.json()["error"]["code"] == "kyc_not_approved"
+
     def test_sans_position_l_acceptation_passe(self, client: TestClient):
         # Faute de position, on ne peut pas juger : on laisse passer plutot que
         # de bloquer un livreur dont le GPS n'a pas encore accroche.
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
+        approve_kyc("+261330000002")
         course = _creer(client, expediteur)
 
         response = client.post(f"/deliveries/{course['id']}/accept", headers=livreur)
@@ -79,6 +95,7 @@ class TestDiscussion:
     def _course_acceptee(self, client: TestClient):
         expediteur = sign_in(client, "+261340000001", role="client")
         livreur = sign_in(client, "+261330000002", role="driver")
+        approve_kyc("+261330000002")
         course = _creer(client, expediteur)
         client.post(f"/deliveries/{course['id']}/accept", headers=livreur)
         return expediteur, livreur, course
@@ -181,3 +198,54 @@ class TestDiscussion:
             headers=expediteur,
         ).json()
         assert [m["body"] for m in apres["items"]] == ["deux"]
+
+
+class TestBoiteDeReception:
+    """Espace « Messages » : la liste des conversations."""
+
+    def _course_acceptee(self, client: TestClient):
+        expediteur = sign_in(client, "+261340000001", role="client")
+        livreur = sign_in(client, "+261330000002", role="driver")
+        approve_kyc("+261330000002")
+        course = _creer(client, expediteur)
+        client.post(f"/deliveries/{course['id']}/accept", headers=livreur)
+        return expediteur, livreur, course
+
+    def test_une_conversation_apparait_avec_dernier_message_et_non_lus(
+        self, client: TestClient
+    ):
+        expediteur, livreur, course = self._course_acceptee(client)
+        client.post(
+            f"/deliveries/{course['id']}/messages",
+            json={"body": "Je suis en bas"},
+            headers=livreur,
+        )
+
+        inbox = client.get("/conversations", headers=expediteur).json()["items"]
+        assert len(inbox) == 1
+        convo = inbox[0]
+        assert convo["deliveryId"] == course["id"]
+        assert convo["lastMessage"] == "Je suis en bas"
+        # Message recu du livreur, pas encore lu par l'expediteur.
+        assert convo["unread"] == 1
+
+        # Une fois lu, la conversation ne compte plus de non-lus.
+        client.post(f"/deliveries/{course['id']}/messages/read", headers=expediteur)
+        inbox = client.get("/conversations", headers=expediteur).json()["items"]
+        assert inbox[0]["unread"] == 0
+
+    def test_une_course_sans_message_n_apparait_pas(self, client: TestClient):
+        expediteur, _livreur, _course = self._course_acceptee(client)
+        inbox = client.get("/conversations", headers=expediteur).json()["items"]
+        assert inbox == []
+
+    def test_un_tiers_n_a_pas_la_conversation(self, client: TestClient):
+        _expediteur, livreur, course = self._course_acceptee(client)
+        client.post(
+            f"/deliveries/{course['id']}/messages",
+            json={"body": "coucou"},
+            headers=livreur,
+        )
+        intrus = sign_in(client, "+261340000055", role="client")
+        inbox = client.get("/conversations", headers=intrus).json()["items"]
+        assert inbox == []

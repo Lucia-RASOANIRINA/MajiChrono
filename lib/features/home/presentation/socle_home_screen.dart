@@ -15,6 +15,7 @@ import 'package:majichrono/features/delivery/domain/entities/address.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
+import 'package:majichrono/features/chat/presentation/chat_providers.dart';
 import 'package:majichrono/features/notifications/presentation/providers/notification_center_provider.dart';
 import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -296,6 +297,8 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
                           onPressed: onDevPanel!,
                         ),
                       const SizedBox(width: 8),
+                      const _HeaderMessages(),
+                      const SizedBox(width: 8),
                       const _HeaderBell(),
                       const SizedBox(width: 8),
                       _HeaderIconButton(
@@ -372,6 +375,32 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
         statusLabel != oldDelegate.statusLabel ||
         statusOnline != oldDelegate.statusOnline ||
         pendingCount != oldDelegate.pendingCount;
+  }
+}
+
+/// Acces a l'espace « Messages », avec la pastille des conversations non lues.
+///
+/// Elle lit elle-meme le total des non-lus (somme des conversations) : l'accueil
+/// n'a rien a lui transmettre. Sans donnee encore chargee, l'icone reste nue.
+class _HeaderMessages extends ConsumerWidget {
+  const _HeaderMessages();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final unread = ref
+        .watch(conversationsProvider)
+        .maybeWhen(
+          data: (items) => items.fold<int>(0, (sum, c) => sum + c.unread),
+          orElse: () => 0,
+        );
+    return Badge(
+      isLabelVisible: unread > 0,
+      label: Text(unread > 99 ? '99+' : '$unread'),
+      child: _HeaderIconButton(
+        icon: Icons.forum_outlined,
+        onPressed: () => context.push(AppRoutes.messages),
+      ),
+    );
   }
 }
 

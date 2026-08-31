@@ -54,6 +54,65 @@ def _delivery_for_chat(db: Session, delivery_id: str, account: Account) -> Deliv
     return delivery
 
 
+@router.get("/conversations")
+async def list_conversations(
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    """Boite de reception : une entree par course ou une discussion existe.
+
+    C'est l'espace « Messages » — la liste des conversations, la plus recente en
+    tete, avec le dernier message echange et le nombre de non-lus. Chaque
+    conversation est celle d'une course : on ne cree pas d'autre fil que celui
+    qui sert a coordonner une livraison. Les non-lus sont les messages **recus**
+    (ecrits par l'autre partie) sans accuse de lecture.
+    """
+    deliveries = db.scalars(
+        select(Delivery).where(
+            (Delivery.client_id == account.id)
+            | (Delivery.driver_id == account.id),
+            Delivery.driver_id.is_not(None),
+        )
+    ).all()
+
+    items = []
+    for delivery in deliveries:
+        messages = db.scalars(
+            select(Message)
+            .where(Message.delivery_id == delivery.id)
+            .order_by(Message.created_at)
+        ).all()
+        if not messages:
+            continue
+
+        last = messages[-1]
+        unread = sum(
+            1
+            for m in messages
+            if m.sender_id != account.id and m.read_at is None
+        )
+        other_id = (
+            delivery.driver_id
+            if account.id == delivery.client_id
+            else delivery.client_id
+        )
+        other = db.get(Account, other_id) if other_id else None
+        items.append(
+            {
+                "deliveryId": delivery.id,
+                "counterpartyName": (other.display_name if other else "")
+                or "Contact",
+                "lastMessage": last.body,
+                "lastSenderId": last.sender_id,
+                "lastAt": as_utc(last.created_at).isoformat(),
+                "unread": unread,
+            }
+        )
+
+    items.sort(key=lambda c: c["lastAt"], reverse=True)
+    return {"items": items}
+
+
 @router.get("/deliveries/{delivery_id}/messages")
 async def list_messages(
     delivery_id: str,

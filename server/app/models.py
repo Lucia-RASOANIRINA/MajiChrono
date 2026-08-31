@@ -902,3 +902,140 @@ class DisputeMessage(Base):
             "sentAt": as_utc(self.sent_at).isoformat(),
             "fromOperations": self.from_operations,
         }
+
+
+# Types d'incident que le livreur peut declarer (EXI-L14, §19). Un incident est
+# un **rapport**, pas une fatalite : la plupart (client absent, probleme GPS,
+# panne) n'echouent pas la course, ils la documentent. Seuls quelques-uns
+# debouchent sur un echec, decide par ailleurs via le constat de remise.
+INCIDENT_KINDS: tuple[str, ...] = (
+    "sender_absent",
+    "recipient_absent",
+    "address_incorrect",
+    "package_damaged",
+    "package_refused",
+    "accident",
+    "gps_problem",
+    "vehicle_problem",
+    "payment_problem",
+    "other",
+)
+
+
+class DeliveryIncident(Base):
+    """Incident declare par le livreur sur une course (EXI-L14, §19).
+
+    Ajout seul : un incident se documente et se resout, il ne s'efface pas. Il
+    porte de quoi instruire — type, description, photo, position, horodatage —
+    et un statut de resolution que l'exploitation fait avancer. Le decoupler de
+    l'etat de la course est deliberе : declarer « client absent » ne condamne
+    pas la livraison, cela ouvre une main courante.
+    """
+
+    __tablename__ = "delivery_incidents"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("inc"))
+    delivery_id: Mapped[str] = mapped_column(ForeignKey("deliveries.id", ondelete="CASCADE"), index=True)
+    reporter_id: Mapped[str] = mapped_column(String(40), index=True)
+
+    kind: Mapped[str] = mapped_column(String(30))
+    description: Mapped[str | None] = mapped_column(Text)
+
+    # Photo optionnelle, rangee comme les autres medias (table `media`).
+    photo_media_id: Mapped[str | None] = mapped_column(String(40))
+
+    # Position au moment du signalement, quand le telephone la connait.
+    lat: Mapped[float | None] = mapped_column()
+    lng: Mapped[float | None] = mapped_column()
+
+    # open / resolved. L'exploitation clot l'incident une fois traite.
+    resolution: Mapped[str] = mapped_column(String(20), default="open", index=True)
+
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "deliveryId": self.delivery_id,
+            "kind": self.kind,
+            "description": self.description,
+            "photoId": self.photo_media_id,
+            "lat": self.lat,
+            "lng": self.lng,
+            "resolution": self.resolution,
+            "createdAt": as_utc(self.created_at).isoformat(),
+        }
+
+
+# Types de vehicule d'un livreur (§22). La moto domine a Antananarivo, mais le
+# velo (courses legeres) et le tricycle (volumes) existent aussi.
+VEHICLE_TYPES: tuple[str, ...] = ("moto", "bicycle", "car", "tricycle")
+
+
+class DriverVehicle(Base):
+    """Fiche vehicule structuree d'un livreur (§22).
+
+    Complementaire du dossier KYC, qui porte les *pieces* (carte grise, photo,
+    plaque) : ici vivent les *informations* — type, marque, modele, plaque,
+    echeance d'assurance. Une ligne par livreur au plus. La validation suit le
+    meme cycle que le KYC : toute modification la remet en attente, car une fiche
+    changee n'est plus celle que l'exploitation avait vue.
+    """
+
+    __tablename__ = "driver_vehicles"
+
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), primary_key=True
+    )
+    vehicle_type: Mapped[str] = mapped_column(String(20), default="moto")
+    brand: Mapped[str | None] = mapped_column(String(80))
+    model: Mapped[str | None] = mapped_column(String(80))
+    plate: Mapped[str | None] = mapped_column(String(40))
+    insurance_expiry: Mapped[str | None] = mapped_column(String(20))
+
+    # pending / validated / rejected. Pose par l'exploitation ; remis a pending
+    # a chaque modification par le livreur.
+    validation: Mapped[str] = mapped_column(String(20), default="pending")
+
+    updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def to_json(self) -> dict:
+        return {
+            "type": self.vehicle_type,
+            "brand": self.brand,
+            "model": self.model,
+            "plate": self.plate,
+            "insuranceExpiry": self.insurance_expiry,
+            "validation": self.validation,
+        }
+
+
+class KycMessage(Base):
+    """Message du fil de suivi de dossier, entre un livreur et l'exploitation.
+
+    Tant que le dossier KYC n'est pas valide, le livreur ne peut pas prendre de
+    course (EXI-L01). Ce fil lui donne un canal pour demander ou en est son
+    dossier, et a l'exploitation pour repondre. Ajout seul : un echange sur une
+    validation d'identite se conserve. Rattache au **compte du livreur**, pas a
+    une course — un dossier n'est pas une livraison.
+    """
+
+    __tablename__ = "kyc_messages"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("kmsg"))
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), index=True
+    )
+    # Vrai quand le message vient de l'exploitation ; faux quand il vient du
+    # livreur. Sert a poser la bulle du bon cote, sans reveler d'identite.
+    from_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    body: Mapped[str] = mapped_column(Text)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "fromAdmin": self.from_admin,
+            "body": self.body,
+            "createdAt": as_utc(self.created_at).isoformat(),
+        }

@@ -61,6 +61,7 @@ Failure mapDioException(Object error, [StackTrace? stackTrace]) {
       details: details,
     ),
     401 || 403 => UnauthorizedFailure(
+      code: code,
       cause: error,
       stackTrace: stackTrace,
       details: details,

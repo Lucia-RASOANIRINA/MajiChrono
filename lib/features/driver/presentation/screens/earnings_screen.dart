@@ -138,10 +138,71 @@ class EarningsScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
+              const SizedBox(height: AppSpacing.lg),
+              const _TransactionsSection(),
             ],
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Historique des transactions MajiPay du livreur (EXI-L12, §20).
+///
+/// Complement du detail par course, qui melange especes et MajiPay : cette
+/// section montre les mouvements MajiPay a proprement parler — les
+/// encaissements captures. Absente tant qu'il n'y en a aucun.
+class _TransactionsSection extends ConsumerWidget {
+  const _TransactionsSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final history = ref.watch(paymentHistoryProvider(20)).valueOrNull;
+    if (history == null || history.isEmpty) return const SizedBox.shrink();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          l10n.walletHistoryTitle,
+          style: theme.textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Card(
+          child: Column(
+            children: [
+              for (final entry in history) ...[
+                ListTile(
+                  leading: Icon(
+                    entry.isOutgoing
+                        ? Icons.arrow_upward
+                        : Icons.arrow_downward,
+                    color: entry.isOutgoing
+                        ? AppColors.danger
+                        : AppColors.success,
+                  ),
+                  title: Text(
+                    entry.isOutgoing ? l10n.walletOutgoing : l10n.walletIncoming,
+                  ),
+                  trailing: Text(
+                    '${entry.isOutgoing ? '-' : '+'}'
+                    '${formatAriary(entry.intent.amountAriary)}',
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ),
+                if (entry != history.last) const Divider(height: 1),
+              ],
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

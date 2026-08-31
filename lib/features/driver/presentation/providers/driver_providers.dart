@@ -103,6 +103,39 @@ final earningsProvider = FutureProvider.autoDispose<EarningsSummary>((
   return EarningsSummary.fromJson(json);
 });
 
+/// Offres refusees par le livreur pendant la session (EXI-L05, §15).
+///
+/// « Refuser » n'a pas de sens cote serveur — une offre est diffusee, ne pas
+/// l'accepter suffit. Mais la masquer localement evite de la re-proposer en
+/// boucle a chaque rafraichissement : le livreur l'a ecartee, elle ne remonte
+/// plus jusqu'a ce qu'il redemarre l'application. Volontairement non persiste.
+final dismissedOffersProvider =
+    NotifierProvider<DismissedOffersController, Set<String>>(
+      DismissedOffersController.new,
+    );
+
+class DismissedOffersController extends Notifier<Set<String>> {
+  @override
+  Set<String> build() => <String>{};
+
+  void dismiss(String deliveryId) => state = {...state, deliveryId};
+}
+
+/// Incidents declares sur une course (§19), les plus recents d'abord.
+final deliveryIncidentsProvider = FutureProvider.autoDispose
+    .family<List<DeliveryIncident>, String>((ref, deliveryId) async {
+      final json = await ref
+          .watch(apiClientProvider)
+          .get<Map<String, dynamic>>(
+            ApiEndpoints.deliveryIncidents(deliveryId),
+          );
+      return (json['items'] as List<dynamic>? ?? [])
+          .whereType<Map<String, dynamic>>()
+          .map(DeliveryIncident.fromJson)
+          .whereType<DeliveryIncident>()
+          .toList();
+    });
+
 /// Etat du dossier KYC : statut global + pieces attendues, fournies, manquantes.
 class KycDossier {
   const KycDossier({
@@ -139,6 +172,31 @@ final kycDossierProvider = FutureProvider.autoDispose<KycDossier>((ref) async {
     uploaded: uploaded.toSet(),
     missing: missing,
   );
+});
+
+/// Fil de suivi du dossier KYC (livreur <-> exploitation).
+///
+/// `autoDispose` : on relit le fil a chaque ouverture ; une reponse de
+/// l'exploitation doit apparaitre sans garder en cache un fil qui a vieilli.
+final kycThreadProvider = FutureProvider.autoDispose<List<KycMessage>>((
+  ref,
+) async {
+  final json = await ref
+      .watch(apiClientProvider)
+      .get<Map<String, dynamic>>(ApiEndpoints.kycMessages);
+  return (json['items'] as List<dynamic>? ?? const [])
+      .whereType<Map<String, dynamic>>()
+      .map(KycMessage.fromJson)
+      .whereType<KycMessage>()
+      .toList();
+});
+
+/// Fiche vehicule du livreur (§22).
+final vehicleProvider = FutureProvider.autoDispose<Vehicle>((ref) async {
+  final json = await ref
+      .watch(apiClientProvider)
+      .get<Map<String, dynamic>>(ApiEndpoints.driverVehicle);
+  return Vehicle.fromJson(json);
 });
 
 /// Actions du livreur.
@@ -228,14 +286,36 @@ class DriverActions {
     _ref.invalidate(earningsProvider);
   }
 
-  /// Signale un incident (EXI-L14).
+  /// Declare un incident sur une course (EXI-L14, §19).
   ///
-  /// Un incident survient rarement au meilleur endroit du reseau : il est
-  /// depose en file plutot que perdu, mais sans bloquer le livreur.
-  Future<void> reportIncident(String deliveryId, IncidentType type) async {
-    final path = ApiEndpoints.deliveryStatus(deliveryId);
-    final body = {'incident': type.wireName};
-    final key = 'incident_${deliveryId}_${type.wireName}';
+  /// Un incident est une **main courante** : type, description libre, photo et
+  /// position, avec un statut de resolution. Il ne fait pas echouer la course de
+  /// lui-meme — le sort du colis se decide au constat de remise.
+  ///
+  /// Un incident survient rarement au meilleur endroit du reseau : en cas de
+  /// coupure il est depose en file plutot que perdu, sans bloquer le livreur.
+  Future<void> reportIncident(
+    String deliveryId,
+    IncidentType type, {
+    String? description,
+    String? photoId,
+    double? lat,
+    double? lng,
+  }) async {
+    final path = ApiEndpoints.deliveryIncidents(deliveryId);
+    final body = <String, dynamic>{
+      'kind': type.wireName,
+      if (description != null && description.isNotEmpty)
+        'description': description,
+      'photoId': ?photoId,
+      'lat': ?lat,
+      'lng': ?lng,
+    };
+    // La cle porte la course, le type et l'instant : deux incidents distincts
+    // (mais de meme type) restent possibles, un double appui non.
+    final key =
+        'incident_${deliveryId}_${type.wireName}_'
+        '${DateTime.now().millisecondsSinceEpoch}';
 
     try {
       await _ref
@@ -290,5 +370,44 @@ class DriverActions {
         .read(apiClientProvider)
         .post<Map<String, dynamic>>(ApiEndpoints.kycSubmit);
     _ref.invalidate(kycDossierProvider);
+  }
+
+  // --- Fiche vehicule (§22) --------------------------------------------
+
+  /// Ecrit a l'exploitation pour connaitre le suivi de son dossier KYC.
+  Future<void> sendKycMessage(String body) async {
+    final text = body.trim();
+    if (text.isEmpty) return;
+    await _ref
+        .read(apiClientProvider)
+        .post<Map<String, dynamic>>(
+          ApiEndpoints.kycMessages,
+          body: {'body': text},
+        );
+    _ref.invalidate(kycThreadProvider);
+  }
+
+  /// Enregistre la fiche vehicule. Le serveur remet la validation en attente.
+  Future<Vehicle> saveVehicle({
+    required VehicleType type,
+    String? brand,
+    String? model,
+    String? plate,
+    String? insuranceExpiry,
+  }) async {
+    final json = await _ref
+        .read(apiClientProvider)
+        .patch<Map<String, dynamic>>(
+          ApiEndpoints.driverVehicle,
+          body: {
+            'type': type.wireName,
+            'brand': ?brand,
+            'model': ?model,
+            'plate': ?plate,
+            'insuranceExpiry': ?insuranceExpiry,
+          },
+        );
+    _ref.invalidate(vehicleProvider);
+    return Vehicle.fromJson(json);
   }
 }

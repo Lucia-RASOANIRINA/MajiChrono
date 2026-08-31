@@ -29,9 +29,41 @@ class ChatMockModule extends MockModule {
 
   @override
   void register(MockBackend backend) {
+    backend.get('/conversations', _conversations);
     backend.get('/deliveries/{id}/messages', _list);
     backend.post('/deliveries/{id}/messages', _send);
     backend.post('/deliveries/{id}/messages/read', _markRead);
+  }
+
+  /// Boite de reception simulee : une entree par course ayant au moins un
+  /// message, la plus recente en tete, avec le dernier message et les non-lus.
+  Future<MockResponse> _conversations(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final me = _currentUser(req);
+    final items = <Map<String, dynamic>>[];
+    for (final entry in _threads.entries) {
+      final thread = entry.value;
+      if (thread.isEmpty) continue;
+      final last = thread.last;
+      final unread = thread
+          .where((m) => m['senderId'] != me && m['readAt'] == null)
+          .length;
+      items.add({
+        'deliveryId': entry.key,
+        // Cote client, l'interlocuteur est le livreur ; cote livreur, le client.
+        'counterpartyName': me == _botId ? 'Client' : 'Livreur',
+        'lastMessage': '${last['body'] ?? ''}',
+        'lastSenderId': last['senderId'],
+        'lastAt': '${last['createdAt']}',
+        'unread': unread,
+      });
+    }
+    items.sort(
+      (a, b) => '${b['lastAt']}'.compareTo('${a['lastAt']}'),
+    );
+    return MockResponse.ok({'items': items});
   }
 
   @override

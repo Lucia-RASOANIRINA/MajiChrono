@@ -40,6 +40,7 @@ from app.models import (
     DriverState,
     KYC_KINDS,
     KycDocument,
+    KycMessage,
     KycStatus,
     PositionSample,
     UserRole,
@@ -370,6 +371,41 @@ async def kyc_status(
         "missing": [k for k in KYC_KINDS if k not in uploaded],
         "rejectionReason": None,
     }
+
+
+class KycMessageBody(BaseModel):
+    body: str = Field(min_length=1, max_length=2000)
+
+
+@router.get("/drivers/kyc/messages")
+async def kyc_messages(
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Fil de suivi du dossier, cote livreur : ses echanges avec l'exploitation."""
+    rows = db.scalars(
+        select(KycMessage)
+        .where(KycMessage.account_id == account.id)
+        .order_by(KycMessage.created_at)
+    ).all()
+    return {"items": [m.to_json() for m in rows]}
+
+
+@router.post("/drivers/kyc/messages")
+async def kyc_send_message(
+    body: KycMessageBody,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Le livreur ecrit a l'exploitation pour connaitre le suivi de son dossier."""
+    text = body.body.strip()
+    if not text:
+        raise unprocessable("empty_message", "Message vide")
+    message = KycMessage(account_id=account.id, from_admin=False, body=text)
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return message.to_json()
 
 
 @router.post("/drivers/kyc/documents/{kind}")

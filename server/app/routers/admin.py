@@ -27,6 +27,7 @@ from app.models import (
     DeliveryStatus,
     DriverState,
     KycDocument,
+    KycMessage,
     KycStatus,
     ModerationLog,
     UserRole,
@@ -213,6 +214,49 @@ async def kyc_documents(
             for kind in rows
         ],
     }
+
+
+class KycReplyBody(BaseModel):
+    body: str
+
+
+@router.get("/kyc/{driver_id}/messages")
+async def kyc_thread(
+    driver_id: str,
+    db: Session = Depends(get_db),
+    _: Account = Depends(require_role(UserRole.admin)),
+) -> dict:
+    """Fil de suivi du dossier d'un livreur, cote exploitation."""
+    driver = db.get(Account, driver_id)
+    if driver is None or driver.role is not UserRole.driver:
+        raise not_found("Livreur inconnu")
+    rows = db.scalars(
+        select(KycMessage)
+        .where(KycMessage.account_id == driver_id)
+        .order_by(KycMessage.created_at)
+    ).all()
+    return {"items": [m.to_json() for m in rows]}
+
+
+@router.post("/kyc/{driver_id}/messages")
+async def kyc_reply(
+    driver_id: str,
+    body: KycReplyBody,
+    db: Session = Depends(get_db),
+    _: Account = Depends(require_role(UserRole.admin)),
+) -> dict:
+    """L'exploitation repond au livreur sur le suivi de son dossier."""
+    driver = db.get(Account, driver_id)
+    if driver is None or driver.role is not UserRole.driver:
+        raise not_found("Livreur inconnu")
+    text = body.body.strip()
+    if not text:
+        raise unprocessable("empty_message", "Message vide")
+    message = KycMessage(account_id=driver_id, from_admin=True, body=text)
+    db.add(message)
+    db.commit()
+    db.refresh(message)
+    return message.to_json()
 
 
 @router.post("/kyc/{driver_id}/review")

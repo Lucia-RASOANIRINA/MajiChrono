@@ -128,6 +128,15 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
     );
   }
 
+  void _openThread(BuildContext context) {
+    showModalBottomSheet<void>(
+      context: context,
+      isScrollControlled: true,
+      showDragHandle: true,
+      builder: (_) => _KycThreadSheet(driverId: widget.application.driverId),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -220,7 +229,16 @@ class _ApplicationCardState extends ConsumerState<_ApplicationCard> {
               ],
             ),
 
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.md),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _openThread(context),
+                icon: const Icon(Icons.forum_outlined, size: 18),
+                label: Text(l10n.adminKycThreadButton),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             if (_busy)
               const Center(child: McLoader())
             else
@@ -326,6 +344,158 @@ class _DocumentViewer extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Feuille de suivi du dossier : l'exploitation lit les messages du livreur et
+/// lui repond. Le meme fil que le livreur voit dans « Suivi de mon dossier ».
+class _KycThreadSheet extends ConsumerStatefulWidget {
+  const _KycThreadSheet({required this.driverId});
+
+  final String driverId;
+
+  @override
+  ConsumerState<_KycThreadSheet> createState() => _KycThreadSheetState();
+}
+
+class _KycThreadSheetState extends ConsumerState<_KycThreadSheet> {
+  final _controller = TextEditingController();
+  bool _sending = false;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  Future<void> _reply() async {
+    final text = _controller.text.trim();
+    if (text.isEmpty || _sending) return;
+    setState(() => _sending = true);
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await ref
+          .read(adminRepositoryProvider)
+          .replyKyc(driverId: widget.driverId, body: text);
+      _controller.clear();
+      ref.invalidate(adminKycThreadProvider(widget.driverId));
+    } on Failure catch (failure) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failure.localizedMessage(l10n))),
+      );
+    } finally {
+      if (mounted) setState(() => _sending = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final thread = ref.watch(adminKycThreadProvider(widget.driverId));
+
+    return SafeArea(
+      child: Padding(
+        padding: EdgeInsets.only(
+          left: AppSpacing.lg,
+          right: AppSpacing.lg,
+          bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.adminKycThreadTitle, style: theme.textTheme.titleLarge),
+            const SizedBox(height: AppSpacing.md),
+            ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.4,
+              ),
+              child: thread.when(
+                loading: () => const McSkeletonList(itemCount: 2, nested: true),
+                error: (_, _) => Text(l10n.errorNetwork),
+                data: (messages) => messages.isEmpty
+                    ? Padding(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: AppSpacing.lg,
+                        ),
+                        child: Text(
+                          l10n.adminKycThreadEmpty,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                      )
+                    : ListView(
+                        shrinkWrap: true,
+                        children: [
+                          for (final message in messages) ...[
+                            Align(
+                              alignment: message.fromAdmin
+                                  ? Alignment.centerRight
+                                  : Alignment.centerLeft,
+                              child: Container(
+                                constraints: BoxConstraints(
+                                  maxWidth:
+                                      MediaQuery.sizeOf(context).width * 0.72,
+                                ),
+                                padding: const EdgeInsets.all(AppSpacing.md),
+                                margin: const EdgeInsets.only(
+                                  bottom: AppSpacing.sm,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: message.fromAdmin
+                                      ? AppColors.primary.withValues(alpha: 0.12)
+                                      : theme.colorScheme.surfaceContainerHighest,
+                                  borderRadius: AppRadii.sheetAll,
+                                ),
+                                child: Text(
+                                  message.body,
+                                  style: theme.textTheme.bodyMedium,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    controller: _controller,
+                    minLines: 1,
+                    maxLines: 4,
+                    textCapitalization: TextCapitalization.sentences,
+                    decoration: InputDecoration(
+                      hintText: l10n.adminKycReplyHint,
+                      isDense: true,
+                      border: const OutlineInputBorder(
+                        borderRadius: AppRadii.componentAll,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.sm),
+                IconButton.filled(
+                  onPressed: _sending ? null : _reply,
+                  icon: _sending
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.send),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

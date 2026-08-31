@@ -96,3 +96,19 @@ def sign_in(client: TestClient, phone: str, role: str | None = None) -> dict[str
     if role:
         client.patch("/me", json={"role": role, "displayName": role}, headers=headers)
     return headers
+
+
+def approve_kyc(phone: str) -> None:
+    """Valide le dossier KYC d'un livreur, en base.
+
+    Depuis que l'acceptation d'une course exige un dossier valide (EXI-L01), un
+    test qui fait accepter une course doit d'abord approuver le livreur — comme
+    l'exploitation le ferait. On passe par la base : c'est un pre-requis du
+    scenario, pas le parcours teste.
+    """
+    from app.models import Account, KycStatus
+
+    db = next(app.dependency_overrides[get_db]())
+    account = db.query(Account).filter(Account.phone == phone).one()
+    account.kyc_status = KycStatus.approved
+    db.commit()

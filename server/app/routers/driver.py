@@ -18,15 +18,17 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.deps import current_account, require_role
-from app.core.errors import forbidden
+from app.core.errors import forbidden, unprocessable
 from app.core.geo import MAX_ACCEPT_KM, haversine_km, point_of
 from app.db import get_db
 from app.models import (
     DELIVERED_STATES,
+    VEHICLE_TYPES,
     Account,
     Delivery,
     DeliveryStatus,
     DriverState,
+    DriverVehicle,
     KycStatus,
     PositionSample,
     UserRole,
@@ -65,6 +67,53 @@ def _state(db: Session, account: Account) -> DriverState:
         db.add(state)
         db.commit()
     return state
+
+
+class VehicleBody(BaseModel):
+    type: str = "moto"
+    brand: str | None = None
+    model: str | None = None
+    plate: str | None = None
+    insuranceExpiry: str | None = None
+
+
+@router.get("/vehicle")
+async def read_vehicle(
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Fiche vehicule du livreur (§22). Vide tant qu'il n'a rien renseigne."""
+    vehicle = db.get(DriverVehicle, account.id)
+    if vehicle is None:
+        return {"type": None, "validation": "pending"}
+    return vehicle.to_json()
+
+
+@router.patch("/vehicle")
+async def upsert_vehicle(
+    body: VehicleBody,
+    db: Session = Depends(get_db),
+    account: Account = Depends(require_role(UserRole.driver)),
+) -> dict:
+    """Cree ou met a jour la fiche. Toute modification remet la validation en
+    attente : une fiche changee n'est plus celle que l'exploitation avait vue."""
+    if body.type not in VEHICLE_TYPES:
+        raise unprocessable("invalid_type", "Type de vehicule inconnu")
+
+    vehicle = db.get(DriverVehicle, account.id)
+    if vehicle is None:
+        vehicle = DriverVehicle(account_id=account.id)
+        db.add(vehicle)
+
+    vehicle.vehicle_type = body.type
+    vehicle.brand = (body.brand or "").strip() or None
+    vehicle.model = (body.model or "").strip() or None
+    vehicle.plate = (body.plate or "").strip() or None
+    vehicle.insurance_expiry = (body.insuranceExpiry or "").strip() or None
+    vehicle.validation = "pending"
+    vehicle.updated_at = datetime.now(timezone.utc)
+    db.commit()
+    return vehicle.to_json()
 
 
 @router.post("/status")

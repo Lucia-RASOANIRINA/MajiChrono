@@ -71,6 +71,16 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
     } on ConflictFailure {
       // Course prise par un autre : cas normal de la course a l'acceptation.
       messenger.showSnackBar(SnackBar(content: Text(l10n.driverAlreadyTaken)));
+    } on UnauthorizedFailure catch (failure) {
+      // Dossier pas encore valide : on ne se contente pas d'un message d'erreur,
+      // on explique et on propose de suivre le dossier aupres de l'exploitation.
+      if (failure.code == 'kyc_not_approved' && mounted) {
+        await _showInactiveDialog(context);
+      } else {
+        messenger.showSnackBar(
+          SnackBar(content: Text(failure.localizedMessage(l10n))),
+        );
+      }
     } on Failure catch (failure) {
       messenger.showSnackBar(
         SnackBar(content: Text(failure.localizedMessage(l10n))),
@@ -85,6 +95,33 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
     if (accepted && mounted) {
       unawaited(router.push(AppRoutes.chat(deliveryId)));
     }
+  }
+
+  /// Explique que le compte n'est pas encore actif (dossier en validation) et
+  /// propose d'ouvrir le fil de suivi aupres de l'exploitation.
+  Future<void> _showInactiveDialog(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        icon: const Icon(Icons.pending_actions_outlined),
+        title: Text(l10n.kycInactiveTitle),
+        content: Text(l10n.kycInactiveMessage),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(l10n.kycInactiveClose),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.of(dialogContext).pop();
+              GoRouter.of(context).push(AppRoutes.kycFollowup);
+            },
+            child: Text(l10n.kycInactiveContact),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -142,7 +179,30 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
                 offer.delivery.distanceKm.toStringAsFixed(1),
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.xs),
+            // Temps estime de la course (EXI-L04, §15) : une approximation a
+            // partir de la distance et d'une vitesse urbaine moyenne, de quoi
+            // juger l'engagement sans promettre une precision qu'on n'a pas.
+            _Line(
+              icon: Icons.schedule,
+              text: l10n.driverEtaLabel,
+              trailing: l10n.driverEta(_etaMinutes(offer)),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: TextButton.icon(
+                onPressed: () => _showDetails(context, l10n),
+                icon: const Icon(Icons.info_outline, size: 18),
+                label: Text(l10n.driverDetails),
+                style: TextButton.styleFrom(
+                  padding: EdgeInsets.zero,
+                  minimumSize: const Size(0, 0),
+                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.sm),
             SizedBox(
               height: AppSizes.minTouchTarget,
               width: double.infinity,
@@ -151,6 +211,21 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
                 child: Text(
                   expired ? l10n.driverAccept : l10n.driverAcceptIn(_remaining),
                 ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xs),
+            SizedBox(
+              width: double.infinity,
+              child: TextButton(
+                // Refuser (EXI-L05, §15) : l'offre est ecartee et ne remonte
+                // plus. Cote serveur il n'y a rien a faire — ne pas accepter
+                // suffit — mais la masquer evite qu'elle revienne en boucle.
+                onPressed: _busy
+                    ? null
+                    : () => ref
+                          .read(dismissedOffersProvider.notifier)
+                          .dismiss(offer.delivery.id),
+                child: Text(l10n.driverRefuse),
               ),
             ),
             if (!expired) ...[
@@ -163,6 +238,93 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  /// Temps estime, en minutes : distance a vide + course, a ~18 km/h (trafic
+  /// dense d'Antananarivo), plancher a 5 minutes.
+  int _etaMinutes(AvailableDelivery offer) {
+    final km = offer.pickupDistanceKm + offer.delivery.distanceKm;
+    final minutes = (km / 18.0 * 60).round();
+    return minutes < 5 ? 5 : minutes;
+  }
+
+  void _showDetails(BuildContext context, AppLocalizations l10n) {
+    final offer = widget.offer;
+    final d = offer.delivery;
+    showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) {
+        final theme = Theme.of(context);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(l10n.driverDetails, style: theme.textTheme.titleLarge),
+                const SizedBox(height: AppSpacing.lg),
+                _DetailRow(
+                  icon: Icons.trip_origin,
+                  label: d.pickup.landmark.isEmpty
+                      ? d.pickup.summary
+                      : '${d.pickup.landmark} · ${d.pickup.district}',
+                ),
+                _DetailRow(
+                  icon: Icons.place_outlined,
+                  label: d.dropoff.landmark.isEmpty
+                      ? d.dropoff.summary
+                      : '${d.dropoff.landmark} · ${d.dropoff.district}',
+                ),
+                _DetailRow(
+                  icon: Icons.straighten,
+                  label: l10n.deliveryDistance(
+                    d.distanceKm.toStringAsFixed(1),
+                  ),
+                ),
+                _DetailRow(
+                  icon: Icons.schedule,
+                  label: '${l10n.driverEtaLabel} : '
+                      '${l10n.driverEta(_etaMinutes(offer))}',
+                ),
+                _DetailRow(
+                  icon: Icons.payments_outlined,
+                  label: '${l10n.driverEarning} : '
+                      '${formatAriary(offer.estimatedEarningAriary)}',
+                ),
+                const SizedBox(height: AppSpacing.sm),
+                PackageTraits(delivery: d),
+                const SizedBox(height: AppSpacing.md),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _DetailRow extends StatelessWidget {
+  const _DetailRow({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 18, color: theme.colorScheme.primary),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
+        ],
       ),
     );
   }

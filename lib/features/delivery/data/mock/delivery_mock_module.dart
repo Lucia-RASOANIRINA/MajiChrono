@@ -36,6 +36,8 @@ class DeliveryMockModule extends MockModule {
     backend.get(ApiEndpoints.deliveries, _list);
     backend.get('/deliveries/{id}', _detail);
     backend.post('/deliveries/{id}/cancel', _cancel);
+    backend.post('/deliveries/{id}/incidents', _reportIncident);
+    backend.get('/deliveries/{id}/incidents', _listIncidents);
     backend.post('/deliveries/estimate', _estimate);
     backend.post(ApiEndpoints.media, _mediaUpload);
     backend.get('/media/{id}', _mediaGet);
@@ -45,6 +47,7 @@ class DeliveryMockModule extends MockModule {
   Future<void> reset() async {
     _deliveries.clear();
     _idempotency.clear();
+    _incidents.clear();
   }
 
   Future<MockResponse> _create(MockRequest req, Map<String, String> _) async {
@@ -128,6 +131,62 @@ class DeliveryMockModule extends MockModule {
     delivery['cancelReason'] = req.json['reason'];
     delivery['cancelFee'] = fee;
     return MockResponse.ok(delivery);
+  }
+
+  /// Incidents declares, par course (§19). L'etat vit en memoire comme le reste.
+  final Map<String, List<Map<String, dynamic>>> _incidents = {};
+
+  static const Set<String> _incidentKinds = {
+    'sender_absent',
+    'recipient_absent',
+    'address_incorrect',
+    'package_damaged',
+    'package_refused',
+    'accident',
+    'gps_problem',
+    'vehicle_problem',
+    'payment_problem',
+    'other',
+  };
+
+  Future<MockResponse> _reportIncident(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final id = params['id'];
+    if (!_deliveries.containsKey(id)) {
+      return MockResponse.error(404, 'not_found', 'Course inconnue');
+    }
+    final kind = '${req.json['kind'] ?? ''}';
+    if (!_incidentKinds.contains(kind)) {
+      return MockResponse.error(422, 'invalid_kind', 'Type inconnu');
+    }
+    final incident = <String, dynamic>{
+      'id': 'inc_${_random.nextInt(1 << 32)}',
+      'deliveryId': id,
+      'kind': kind,
+      'description': req.json['description'],
+      'photoId': req.json['photoId'],
+      'lat': req.json['lat'],
+      'lng': req.json['lng'],
+      'resolution': 'open',
+      'createdAt': DateTime.now().toUtc().toIso8601String(),
+    };
+    (_incidents[id!] ??= []).add(incident);
+    return MockResponse.created(incident);
+  }
+
+  Future<MockResponse> _listIncidents(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final id = params['id'];
+    if (!_deliveries.containsKey(id)) {
+      return MockResponse.error(404, 'not_found', 'Course inconnue');
+    }
+    final items = [...(_incidents[id] ?? const [])]
+      ..sort((a, b) => '${b['createdAt']}'.compareTo('${a['createdAt']}'));
+    return MockResponse.ok({'items': items});
   }
 
   Future<MockResponse> _estimate(MockRequest req, Map<String, String> _) async {

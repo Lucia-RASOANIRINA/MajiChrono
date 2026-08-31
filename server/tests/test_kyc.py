@@ -95,3 +95,46 @@ class TestRevueAdmin:
         assert client.get(url, headers=admin).status_code == 200
         other = sign_in(client, "+261330000075", role="driver")
         assert client.get(url, headers=other).status_code == 403
+
+
+class TestSuiviDossier:
+    """Fil de suivi du dossier : le livreur ecrit, l'exploitation repond."""
+
+    def test_echange_livreur_exploitation(self, client: TestClient):
+        driver = sign_in(client, "+261330000080", role="driver")
+
+        # Le livreur demande ou en est son dossier.
+        sent = client.post(
+            "/drivers/kyc/messages",
+            json={"body": "Bonjour, ou en est mon dossier ?"},
+            headers=driver,
+        )
+        assert sent.status_code == 200
+        assert sent.json()["fromAdmin"] is False
+
+        # L'exploitation lit le fil et repond.
+        admin = admin_headers(client)
+        driver_id = client.get("/me", headers=driver).json()["id"]
+        thread = client.get(
+            f"/admin/kyc/{driver_id}/messages", headers=admin
+        ).json()["items"]
+        assert len(thread) == 1
+
+        replied = client.post(
+            f"/admin/kyc/{driver_id}/messages",
+            json={"body": "Bonjour, dossier en cours d'examen."},
+            headers=admin,
+        )
+        assert replied.status_code == 200
+        assert replied.json()["fromAdmin"] is True
+
+        # Le livreur voit la reponse dans son fil.
+        seen = client.get("/drivers/kyc/messages", headers=driver).json()["items"]
+        assert [m["fromAdmin"] for m in seen] == [False, True]
+
+    def test_un_message_vide_est_refuse(self, client: TestClient):
+        driver = sign_in(client, "+261330000081", role="driver")
+        response = client.post(
+            "/drivers/kyc/messages", json={"body": "   "}, headers=driver
+        )
+        assert response.status_code == 422

@@ -31,11 +31,14 @@ from app.db import get_db
 from app.models import (
     ALLOWED_TRANSITIONS,
     CLIENT_CANCELLABLE,
+    INCIDENT_KINDS,
     Delivery,
     DeliveryEvent,
+    DeliveryIncident,
     DeliveryStatus,
     Account,
     DriverState,
+    KycStatus,
     UserRole,
 )
 
@@ -288,6 +291,15 @@ async def accept_delivery(
     second acceptant lit « course deja prise » ; un livreur qui reaccepte sa
     propre course relit simplement son etat, sans erreur.
     """
+    # Un livreur dont le dossier n'est pas valide ne peut pas prendre de course
+    # (EXI-L01) : on le refuse ici, avec un code que le mobile reconnait pour
+    # afficher « compte pas encore actif » et proposer de suivre le dossier.
+    if account.kyc_status is not KycStatus.approved:
+        raise forbidden(
+            "kyc_not_approved",
+            "Votre compte n'est pas encore actif : dossier en cours de validation",
+        )
+
     delivery = db.get(Delivery, delivery_id)
     if delivery is None:
         raise not_found("Course inconnue")
@@ -384,3 +396,79 @@ async def public_tracking(token: str, db: Session = Depends(get_db)) -> dict:
             for e in events
         ],
     }
+
+
+# --- Incidents (EXI-L14, §19) -----------------------------------------------
+
+
+class IncidentBody(BaseModel):
+    kind: str
+    description: str | None = None
+    # Photo optionnelle, deja televersee via `POST /media` : on ne stocke que
+    # sa reference.
+    photoId: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+
+
+@router.post("/deliveries/{delivery_id}/incidents", status_code=201)
+async def report_incident(
+    delivery_id: str,
+    body: IncidentBody,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+    idem: Idempotency = Depends(idempotency("POST /deliveries/incidents")),
+) -> dict:
+    """Declare un incident sur une course dont l'appelant est partie prenante.
+
+    L'incident est une **main courante**, pas un verdict : il n'echoue pas la
+    course de lui-meme (le sort du colis se joue au constat de remise). On le
+    documente — type, description, photo, position — et l'exploitation le clot.
+    """
+    replayed = idem.replay()
+    if replayed is not None:
+        return replayed[1]
+
+    delivery = db.get(Delivery, delivery_id)
+    if delivery is None or not _visible_to(delivery, account):
+        raise not_found("Course inconnue")
+
+    if body.kind not in INCIDENT_KINDS:
+        raise unprocessable("invalid_kind", "Type d'incident inconnu")
+
+    incident = DeliveryIncident(
+        delivery_id=delivery.id,
+        reporter_id=account.id,
+        kind=body.kind,
+        description=(body.description or "").strip() or None,
+        photo_media_id=body.photoId,
+        lat=body.lat,
+        lng=body.lng,
+    )
+    db.add(incident)
+    db.commit()
+    db.refresh(incident)
+
+    payload = incident.to_json()
+    idem.remember(201, payload)
+    return payload
+
+
+@router.get("/deliveries/{delivery_id}/incidents")
+async def list_incidents(
+    delivery_id: str,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    """Incidents d'une course, les plus recents d'abord. Visibles des deux
+    parties et de l'exploitation, comme la course elle-meme."""
+    delivery = db.get(Delivery, delivery_id)
+    if delivery is None or not _visible_to(delivery, account):
+        raise not_found("Course inconnue")
+
+    rows = db.scalars(
+        select(DeliveryIncident)
+        .where(DeliveryIncident.delivery_id == delivery.id)
+        .order_by(DeliveryIncident.created_at.desc())
+    ).all()
+    return {"items": [i.to_json() for i in rows]}

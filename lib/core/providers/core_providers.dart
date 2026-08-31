@@ -70,7 +70,16 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     // une copie : deux registres finiraient par diverger, et le suivi
     // afficherait un statut que la liste ne connait pas.
     ..register(TrackingMockModule(deliveries: () => deliveries.store))
-    ..register(DriverMockModule(deliveries: () => deliveries.store))
+    // En simulation, le livreur est deja valide : le parcours complet (accepter,
+    // executer, constat, incident) doit se derouler sans exploitation en face
+    // pour approuver le dossier. Le blocage a l'acceptation pour un dossier non
+    // valide (EXI-L01) reste verifie cote serveur et en test.
+    ..register(
+      DriverMockModule(
+        deliveries: () => deliveries.store,
+        kycStatus: 'approved',
+      ),
+    )
     ..register(CustodyMockModule())
     ..register(PaymentMockModule())
     ..register(AddressesMockModule())

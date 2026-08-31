@@ -66,7 +66,17 @@ class ServerFailure extends Failure {
 
 /// 401 / 403 : session invalide ou droits insuffisants.
 class UnauthorizedFailure extends Failure {
-  const UnauthorizedFailure({super.cause, super.stackTrace, super.details});
+  const UnauthorizedFailure({
+    this.code,
+    super.cause,
+    super.stackTrace,
+    super.details,
+  });
+
+  /// Code metier renvoye par le backend (ex. `kyc_not_approved`), quand le refus
+  /// n'est pas une simple perte de session mais un droit conditionnel a montrer
+  /// specifiquement.
+  final String? code;
 
   @override
   String get messageKey => 'errorUnauthorized';

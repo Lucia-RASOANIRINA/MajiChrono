@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import 'package:majichrono/app/router/app_routes.dart';
-import 'package:majichrono/shared/widgets/mc_moto_loader.dart';
+import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
@@ -49,6 +49,9 @@ import 'package:majichrono/features/profile/presentation/sessions_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
 import 'package:majichrono/features/support/presentation/help_center_screen.dart';
 import 'package:majichrono/features/payment/presentation/screens/wallet_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/vehicle_screen.dart';
+import 'package:majichrono/features/driver/presentation/screens/kyc_followup_screen.dart';
+import 'package:majichrono/features/chat/presentation/messages_screen.dart';
 import 'package:majichrono/features/support/presentation/screens/disputes_list_screen.dart';
 import 'package:majichrono/features/support/presentation/screens/dispute_detail_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -219,6 +222,18 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.wallet,
         builder: (_, _) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.messages,
+        builder: (_, _) => const MessagesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.driverVehicle,
+        builder: (_, _) => const VehicleScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.kycFollowup,
+        builder: (_, _) => const KycFollowupScreen(),
       ),
       GoRoute(
         path: AppRoutes.disputes,
@@ -515,18 +530,20 @@ String? _redirectForRole(UserRole role, String location) {
 
 /// Ecran d'attente pendant la relecture de la session.
 ///
-/// Le bleu de la marque, prolongeant l'ecran de lancement Android sans rupture,
-/// et par-dessus une moto qui file le long d'une barre de progression. Le geste
-/// reste dans l'univers du service — une livraison, c'est une moto qui roule —
-/// et occupe l'attente quand la lecture locale prend plus que quelques
-/// millisecondes (premiere ouverture, appareil lent).
+/// **Un simple aplat au bleu de la marque**, qui prolonge l'ecran de lancement
+/// Android (le meme bleu, le meme livreur pose par le systeme) sans aucune
+/// rupture. On n'y remet **pas** le livreur : le splash natif l'affiche deja, et
+/// le redoubler cote Flutter donnait une seconde page — un livreur qui saute de
+/// taille puis reapparait. Ici l'attente est invisible : l'ecran ne change pas
+/// de couleur entre le splash systeme et l'accueil.
+///
+/// `Scaffold` et non un simple `ColoredBox` : la route est posee directement
+/// sous le Navigator, sans contrainte de taille ; un `ColoredBox` y resterait
+/// sans dimension et peindrait noir — erreur qui ne se voit qu'en release.
 class _SplashScreen extends StatelessWidget {
   const _SplashScreen();
 
   @override
-  // `Scaffold` (porte par McMotoLoadingView) et non un simple `ColoredBox` : la
-  // route est posee directement sous le Navigator, sans contrainte de taille. Un
-  // `ColoredBox` y resterait sans dimension et peindrait noir — erreur qui ne se
-  // voit qu'en release.
-  Widget build(BuildContext context) => const McMotoLoadingView();
+  Widget build(BuildContext context) =>
+      const Scaffold(backgroundColor: AppColors.primary);
 }

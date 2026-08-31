@@ -52,6 +52,13 @@ final disputeProvider = FutureProvider.autoDispose.family<Dispute, String>(
   (ref, id) => ref.watch(adminRepositoryProvider).dispute(id),
 );
 
+/// Fil de suivi du dossier KYC d'un livreur, cote exploitation.
+final adminKycThreadProvider = FutureProvider.autoDispose
+    .family<List<KycThreadMessage>, String>(
+      (ref, driverId) =>
+          ref.watch(adminRepositoryProvider).kycMessages(driverId),
+    );
+
 /// Filtre de la liste des courses (EXI-A04).
 ///
 /// Il vit dans l'etat plutot que dans l'ecran : un exploitant qui ouvre une

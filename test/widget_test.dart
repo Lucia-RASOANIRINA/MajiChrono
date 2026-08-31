@@ -18,6 +18,8 @@ import 'package:majichrono/features/auth/presentation/controllers/auth_controlle
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
+import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
 import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
@@ -86,6 +88,14 @@ void main() {
         majiPayBalanceProvider(
           UserRole.client,
         ).overrideWith((ref) async => null),
+        // Le tableau de bord livreur lit aussi solde et gains : memes providers
+        // reseau a figer pour que la coquille livreur se stabilise.
+        majiPayBalanceProvider(
+          UserRole.driver,
+        ).overrideWith((ref) async => null),
+        earningsProvider.overrideWith(
+          (ref) async => EarningsSummary.fromJson(const {}),
+        ),
         // Le bandeau d'adresses favorites de l'accueil lit le carnet local, que
         // ces tests n'alimentent pas : on le fige a vide.
         addressBookProvider.overrideWith((ref) => Stream.value(const [])),

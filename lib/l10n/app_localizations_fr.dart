@@ -1741,6 +1741,18 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminKycReject => 'Refuser le dossier';
 
   @override
+  String get adminKycThreadButton => 'Messages du livreur';
+
+  @override
+  String get adminKycThreadTitle => 'Suivi du dossier';
+
+  @override
+  String get adminKycReplyHint => 'Repondre au livreur';
+
+  @override
+  String get adminKycThreadEmpty => 'Aucun message du livreur';
+
+  @override
   String get adminKycApproveHelp =>
       'Le livreur entrera dans la flotte, hors service jusqu\'a ce qu\'il se mette en ligne.';
 
@@ -2146,6 +2158,35 @@ class AppLocalizationsFr extends AppLocalizations {
   }
 
   @override
+  String get dashAvailable => 'Disponibles';
+
+  @override
+  String get dashActive => 'En cours';
+
+  @override
+  String get dashDoneToday => 'Terminees';
+
+  @override
+  String get dashBalance => 'Solde';
+
+  @override
+  String get driverRefuse => 'Ignorer';
+
+  @override
+  String get driverDetails => 'Details de la course';
+
+  @override
+  String driverEta(int min) {
+    return '~$min min';
+  }
+
+  @override
+  String get driverEtaLabel => 'Temps estime';
+
+  @override
+  String get driverPackageType => 'Type de colis';
+
+  @override
   String get driverAlreadyTaken => 'Course deja prise par un autre livreur';
 
   @override
@@ -2177,16 +2218,34 @@ class AppLocalizationsFr extends AppLocalizations {
   String get driverIncident => 'Signaler un incident';
 
   @override
+  String get incidentSenderAbsent => 'Expediteur absent';
+
+  @override
   String get incidentRecipientAbsent => 'Destinataire absent';
 
   @override
-  String get incidentAddressNotFound => 'Adresse introuvable';
+  String get incidentAddressIncorrect => 'Adresse incorrecte';
 
   @override
-  String get incidentRefused => 'Refus de reception';
+  String get incidentPackageDamaged => 'Colis endommage';
 
   @override
-  String get incidentBreakdown => 'Vehicule en panne';
+  String get incidentPackageRefused => 'Colis refuse';
+
+  @override
+  String get incidentAccident => 'Accident';
+
+  @override
+  String get incidentGpsProblem => 'Probleme GPS';
+
+  @override
+  String get incidentVehicleProblem => 'Probleme de vehicule';
+
+  @override
+  String get incidentPaymentProblem => 'Probleme de paiement';
+
+  @override
+  String get incidentOther => 'Autre incident';
 
   @override
   String get outcomeWaitThenReturn =>
@@ -2200,6 +2259,42 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get outcomeReassign => 'La course sera reaffectee';
+
+  @override
+  String get outcomeDocumentThenContinue => 'Documentez, la course continue';
+
+  @override
+  String get incidentDetailTitle => 'Detail de l\'incident';
+
+  @override
+  String get incidentDescriptionLabel => 'Description (facultatif)';
+
+  @override
+  String get incidentDescriptionHint => 'Ce que vous avez constate';
+
+  @override
+  String get incidentAddPhoto => 'Ajouter une photo';
+
+  @override
+  String get incidentPhotoAdded => 'Photo ajoutee';
+
+  @override
+  String get incidentGpsAttached => 'Position jointe';
+
+  @override
+  String get incidentSubmit => 'Envoyer le signalement';
+
+  @override
+  String get incidentReported => 'Incident signale';
+
+  @override
+  String get incidentHistoryTitle => 'Incidents signales';
+
+  @override
+  String get incidentResolutionOpen => 'En cours de traitement';
+
+  @override
+  String get incidentResolutionResolved => 'Traite';
 
   @override
   String get earningsTitle => 'Mes gains';
@@ -2397,6 +2492,99 @@ class AppLocalizationsFr extends AppLocalizations {
   String kycProgress(int done, int total) {
     return '$done pieces sur $total fournies';
   }
+
+  @override
+  String get vehicleTitle => 'Mon vehicule';
+
+  @override
+  String get vehicleManage => 'Informations du vehicule';
+
+  @override
+  String get vehicleManageHelp => 'Type, marque, modele, plaque et assurance.';
+
+  @override
+  String get vehicleType => 'Type de vehicule';
+
+  @override
+  String get vehicleTypeMoto => 'Moto';
+
+  @override
+  String get vehicleTypeBicycle => 'Velo';
+
+  @override
+  String get vehicleTypeCar => 'Voiture';
+
+  @override
+  String get vehicleTypeTricycle => 'Tricycle';
+
+  @override
+  String get vehicleBrand => 'Marque';
+
+  @override
+  String get vehicleModel => 'Modele';
+
+  @override
+  String get vehiclePlate => 'Immatriculation';
+
+  @override
+  String get vehicleInsurance => 'Echeance d\'assurance (AAAA-MM-JJ)';
+
+  @override
+  String get vehicleSave => 'Enregistrer';
+
+  @override
+  String get vehicleSaved => 'Vehicule enregistre';
+
+  @override
+  String get vehicleValidationPending => 'En attente de validation';
+
+  @override
+  String get vehicleValidationValidated => 'Vehicule valide';
+
+  @override
+  String get vehicleValidationRejected => 'Vehicule refuse';
+
+  @override
+  String get vehicleRevalidateNote =>
+      'Toute modification remet la fiche en attente de validation.';
+
+  @override
+  String get kycInactiveTitle => 'Compte pas encore actif';
+
+  @override
+  String get kycInactiveMessage =>
+      'Votre dossier est en cours de validation. Vous pourrez accepter des courses une fois qu\'il sera valide.';
+
+  @override
+  String get kycInactiveContact => 'Suivre mon dossier';
+
+  @override
+  String get kycInactiveClose => 'Compris';
+
+  @override
+  String get kycFollowupTitle => 'Suivi de mon dossier';
+
+  @override
+  String get kycFollowupManage => 'Contacter l\'exploitation';
+
+  @override
+  String get kycFollowupHelp =>
+      'Une question sur la validation de votre dossier ? Ecrivez a l\'exploitation, elle vous repond ici.';
+
+  @override
+  String get kycFollowupHint => 'Votre message a l\'exploitation';
+
+  @override
+  String get kycFollowupEmpty => 'Aucun message pour l\'instant';
+
+  @override
+  String get kycFollowupSent => 'Message envoye';
+
+  @override
+  String get kycFollowupAdmin => 'Exploitation';
+
+  @override
+  String get kycFollowupYou => 'Vous';
 
   @override
   String get pickLocationTitle => 'Placer le point';
@@ -2626,6 +2814,21 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String shellModuleWipDesc(String module) {
     return 'Cet ecran sera livre au module $module.';
+  }
+
+  @override
+  String get messagesTitle => 'Messages';
+
+  @override
+  String get messagesEmpty => 'Aucune conversation';
+
+  @override
+  String get messagesEmptyHelp =>
+      'Vos discussions avec les livreurs (ou expediteurs) apparaitront ici, des qu\'une course est acceptee.';
+
+  @override
+  String messagesYouPrefix(String message) {
+    return 'Vous : $message';
   }
 
   @override

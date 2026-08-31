@@ -14,8 +14,13 @@ import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart
 /// toutes les transitions, l'application donnerait l'illusion de fonctionner et
 /// le defaut n'apparaitrait qu'au branchement du vrai serveur.
 class DriverMockModule extends MockModule {
-  DriverMockModule({required this.deliveries, Random? random})
-    : _random = random ?? Random();
+  DriverMockModule({
+    required this.deliveries,
+    Random? random,
+    String kycStatus = 'draft',
+  }) : _random = random ?? Random(),
+       _kyc = kycStatus,
+       _initialKyc = kycStatus;
 
   final Map<String, Map<String, dynamic>> Function() deliveries;
   final Random _random;
@@ -50,14 +55,97 @@ class DriverMockModule extends MockModule {
     backend.post(ApiEndpoints.kycSubmit, _kycSubmit);
     backend.post('/drivers/kyc/documents/{kind}', _kycUpload);
     backend.delete('/drivers/kyc/documents/{kind}', _kycDelete);
+    backend.get(ApiEndpoints.driverVehicle, _vehicleRead);
+    backend.patch(ApiEndpoints.driverVehicle, _vehicleSave);
+    backend.get(ApiEndpoints.kycMessages, _kycMessagesList);
+    backend.post(ApiEndpoints.kycMessages, _kycMessagesSend);
   }
 
   @override
   Future<void> reset() async {
     _offers.clear();
-    _kyc = 'draft';
+    _kyc = _initialKyc;
     _kycDocs.clear();
     _completed.clear();
+    _vehicle = null;
+    _kycThread.clear();
+  }
+
+  /// Fil de suivi de dossier simule. Pour montrer l'aller-retour sur un seul
+  /// appareil, l'exploitation repond automatiquement apres le message du livreur.
+  final List<Map<String, dynamic>> _kycThread = [];
+  int _kycMsgSeq = 0;
+
+  Future<MockResponse> _kycMessagesList(
+    MockRequest req,
+    Map<String, String> _,
+  ) async =>
+      MockResponse.ok({'items': List<Map<String, dynamic>>.from(_kycThread)});
+
+  Future<MockResponse> _kycMessagesSend(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final body = '${req.json['body'] ?? ''}'.trim();
+    if (body.isEmpty) {
+      return MockResponse.error(422, 'empty_message', 'Message vide');
+    }
+    final now = DateTime.now();
+    final message = {
+      'id': 'kmsg_${++_kycMsgSeq}',
+      'fromAdmin': false,
+      'body': body,
+      'createdAt': now.toUtc().toIso8601String(),
+    };
+    _kycThread.add(message);
+    // Reponse simulee de l'exploitation, pour que le fil se lise des deux cotes.
+    _kycThread.add({
+      'id': 'kmsg_${++_kycMsgSeq}',
+      'fromAdmin': true,
+      'body': 'Bonjour, votre dossier est en cours d\'examen. '
+          'Nous revenons vers vous sous 48 h.',
+      'createdAt': now
+          .add(const Duration(seconds: 1))
+          .toUtc()
+          .toIso8601String(),
+    });
+    return MockResponse.ok(message);
+  }
+
+  /// Fiche vehicule en memoire (§22), nulle tant que rien n'est renseigne.
+  Map<String, dynamic>? _vehicle;
+
+  static const Set<String> _vehicleTypes = {
+    'moto',
+    'bicycle',
+    'car',
+    'tricycle',
+  };
+
+  Future<MockResponse> _vehicleRead(
+    MockRequest req,
+    Map<String, String> _,
+  ) async =>
+      MockResponse.ok(_vehicle ?? {'type': null, 'validation': 'pending'});
+
+  Future<MockResponse> _vehicleSave(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final type = '${req.json['type'] ?? 'moto'}';
+    if (!_vehicleTypes.contains(type)) {
+      return MockResponse.error(422, 'invalid_type', 'Type inconnu');
+    }
+    _vehicle = {
+      'type': type,
+      'brand': req.json['brand'],
+      'model': req.json['model'],
+      'plate': req.json['plate'],
+      'insuranceExpiry': req.json['insuranceExpiry'],
+      // Toute modification remet la validation en attente, comme le serveur.
+      'validation': 'pending',
+    };
+    return MockResponse.ok(_vehicle);
   }
 
   static const List<String> _kycKinds = [
@@ -74,7 +162,10 @@ class DriverMockModule extends MockModule {
   /// l'avancement, pas les images.
   final Set<String> _kycDocs = {};
 
-  String _kyc = 'draft';
+  String _kyc;
+
+  /// Statut KYC de depart, restaure a chaque `reset()`.
+  final String _initialKyc;
   final List<Map<String, dynamic>> _completed = [];
 
   // --- File des courses disponibles (EXI-L04) ---------------------------
@@ -166,6 +257,16 @@ class DriverMockModule extends MockModule {
     MockRequest req,
     Map<String, String> params,
   ) async {
+    // Dossier pas encore valide : refus comme le serveur reel (EXI-L01), avec
+    // le code que le mobile reconnait pour afficher « compte pas encore actif ».
+    if (_kyc != 'approved') {
+      return MockResponse.error(
+        403,
+        'kyc_not_approved',
+        'Votre compte n\'est pas encore actif : dossier en cours de validation',
+      );
+    }
+
     final id = params['id']!;
     final offer = _offers[id];
     if (offer == null) {

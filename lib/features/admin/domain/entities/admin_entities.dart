@@ -501,3 +501,31 @@ class DeliveryFilter {
         (delivery.driverName ?? '').toLowerCase().contains(needle);
   }
 }
+
+/// Un message du fil de suivi de dossier KYC, vu par l'exploitation.
+class KycThreadMessage {
+  const KycThreadMessage({
+    required this.id,
+    required this.fromAdmin,
+    required this.body,
+    required this.createdAt,
+  });
+
+  final String id;
+  final bool fromAdmin;
+  final String body;
+  final DateTime createdAt;
+
+  static KycThreadMessage? fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
+    if (id == null) return null;
+    return KycThreadMessage(
+      id: id,
+      fromAdmin: json['fromAdmin'] == true,
+      body: '${json['body'] ?? ''}',
+      createdAt:
+          DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+          DateTime.now(),
+    );
+  }
+}

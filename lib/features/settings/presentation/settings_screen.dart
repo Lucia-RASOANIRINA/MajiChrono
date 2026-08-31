@@ -8,7 +8,6 @@ import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/settings/economy_providers.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
-import 'package:majichrono/features/notifications/domain/entities/app_notification.dart';
 import 'package:majichrono/features/notifications/presentation/providers/notification_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -181,23 +180,6 @@ class SettingsScreen extends ConsumerWidget {
                         .read(commercialNotificationsProvider.notifier)
                         .set(enabled: on),
                   ),
-                ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.notifications_none_outlined),
-                  title: Text(l10n.notifTestButton),
-                  onTap: () async {
-                    final service = ref.read(notificationServiceProvider);
-                    await service.requestPermission();
-                    await service.show(
-                      AppNotification(
-                        channel: McNotificationChannel.courses,
-                        title: l10n.appName,
-                        body: l10n.notifChannelCoursesDesc,
-                        route: AppRoutes.settings,
-                      ),
-                    );
-                  },
                 ),
                 if (config.enableDevPanel) ...[
                   const Divider(height: 1),

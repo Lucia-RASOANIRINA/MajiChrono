@@ -105,15 +105,26 @@ class EarningEntry {
 /// absence doit savoir immediatement ce qui se passe ensuite, sinon il reste
 /// planté devant un portail sans instruction.
 enum IncidentType {
+  senderAbsent('sender_absent', IncidentOutcome.waitThenReturn),
   recipientAbsent('recipient_absent', IncidentOutcome.waitThenReturn),
-  addressNotFound('address_not_found', IncidentOutcome.contactSupport),
-  refusedByRecipient('refused', IncidentOutcome.returnToSender),
-  vehicleBreakdown('breakdown', IncidentOutcome.reassign);
+  addressIncorrect('address_incorrect', IncidentOutcome.contactSupport),
+  packageDamaged('package_damaged', IncidentOutcome.documentThenContinue),
+  packageRefused('package_refused', IncidentOutcome.returnToSender),
+  accident('accident', IncidentOutcome.contactSupport),
+  gpsProblem('gps_problem', IncidentOutcome.documentThenContinue),
+  vehicleProblem('vehicle_problem', IncidentOutcome.reassign),
+  paymentProblem('payment_problem', IncidentOutcome.contactSupport),
+  other('other', IncidentOutcome.contactSupport);
 
   const IncidentType(this.wireName, this.outcome);
 
   final String wireName;
   final IncidentOutcome outcome;
+
+  static IncidentType fromWire(String? value) => IncidentType.values.firstWhere(
+    (t) => t.wireName == value,
+    orElse: () => IncidentType.other,
+  );
 }
 
 enum IncidentOutcome {
@@ -121,6 +132,61 @@ enum IncidentOutcome {
   contactSupport,
   returnToSender,
   reassign,
+
+  /// L'incident est documente (photo, description) mais la course continue :
+  /// un colis legerement abime ou un GPS capricieux ne l'arrete pas.
+  documentThenContinue,
+}
+
+/// Statut de resolution d'un incident (§19).
+enum IncidentResolution {
+  open('open'),
+  resolved('resolved');
+
+  const IncidentResolution(this.wireName);
+
+  final String wireName;
+
+  static IncidentResolution fromWire(String? value) =>
+      IncidentResolution.values.firstWhere(
+        (r) => r.wireName == value,
+        orElse: () => IncidentResolution.open,
+      );
+}
+
+/// Un incident tel qu'il a ete declare et conserve (§19).
+class DeliveryIncident {
+  const DeliveryIncident({
+    required this.id,
+    required this.type,
+    required this.resolution,
+    required this.createdAt,
+    this.description,
+    this.photoId,
+  });
+
+  final String id;
+  final IncidentType type;
+  final IncidentResolution resolution;
+  final DateTime createdAt;
+  final String? description;
+  final String? photoId;
+
+  static DeliveryIncident? fromJson(Map<String, dynamic>? json) {
+    if (json == null) return null;
+    final id = json['id'] as String?;
+    if (id == null) return null;
+    return DeliveryIncident(
+      id: id,
+      type: IncidentType.fromWire(json['kind'] as String?),
+      resolution: IncidentResolution.fromWire(json['resolution'] as String?),
+      createdAt:
+          DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+          DateTime.now(),
+      description: json['description'] as String?,
+      photoId: json['photoId'] as String?,
+    );
+  }
 }
 
 /// Transition de statut demandee par le livreur (EXI-L08).
@@ -198,4 +264,102 @@ class PingCadence {
 
   static Duration forSpeed(double? speedKmh) =>
       (speedKmh ?? 0) >= movingSpeedKmh ? moving : stopped;
+}
+
+/// Type de vehicule d'un livreur (§22).
+enum VehicleType {
+  moto('moto'),
+  bicycle('bicycle'),
+  car('car'),
+  tricycle('tricycle');
+
+  const VehicleType(this.wireName);
+
+  final String wireName;
+
+  static VehicleType fromWire(String? value) => VehicleType.values.firstWhere(
+    (t) => t.wireName == value,
+    orElse: () => VehicleType.moto,
+  );
+}
+
+/// Statut de validation d'une fiche vehicule, calque sur le KYC (§22).
+enum VehicleValidation {
+  pending('pending'),
+  validated('validated'),
+  rejected('rejected');
+
+  const VehicleValidation(this.wireName);
+
+  final String wireName;
+
+  static VehicleValidation fromWire(String? value) =>
+      VehicleValidation.values.firstWhere(
+        (v) => v.wireName == value,
+        orElse: () => VehicleValidation.pending,
+      );
+}
+
+/// Fiche vehicule structuree du livreur (§22).
+///
+/// Complementaire des pieces KYC : ici les informations (type, marque, modele,
+/// plaque, assurance), la ou le dossier KYC porte les documents. `type` nul
+/// signale une fiche encore vierge.
+class Vehicle {
+  const Vehicle({
+    required this.type,
+    required this.validation,
+    this.brand,
+    this.model,
+    this.plate,
+    this.insuranceExpiry,
+  });
+
+  final VehicleType? type;
+  final VehicleValidation validation;
+  final String? brand;
+  final String? model;
+  final String? plate;
+  final String? insuranceExpiry;
+
+  bool get isEmpty => type == null;
+
+  static Vehicle fromJson(Map<String, dynamic> json) => Vehicle(
+    type: json['type'] == null
+        ? null
+        : VehicleType.fromWire(json['type'] as String?),
+    validation: VehicleValidation.fromWire(json['validation'] as String?),
+    brand: json['brand'] as String?,
+    model: json['model'] as String?,
+    plate: json['plate'] as String?,
+    insuranceExpiry: json['insuranceExpiry'] as String?,
+  );
+}
+
+/// Un message du fil de suivi de dossier KYC (livreur <-> exploitation).
+class KycMessage {
+  const KycMessage({
+    required this.id,
+    required this.fromAdmin,
+    required this.body,
+    required this.createdAt,
+  });
+
+  final String id;
+  final bool fromAdmin;
+  final String body;
+  final DateTime createdAt;
+
+  static KycMessage? fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
+    if (id == null) return null;
+    return KycMessage(
+      id: id,
+      fromAdmin: json['fromAdmin'] == true,
+      body: '${json['body'] ?? ''}',
+      createdAt:
+          DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
+          DateTime.now(),
+    );
+  }
 }
