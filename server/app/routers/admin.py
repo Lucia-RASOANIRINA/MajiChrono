@@ -24,7 +24,10 @@ from app.models import (
     KYC_KINDS,
     Account,
     Delivery,
+    DeliveryEvent,
+    DeliveryIncident,
     DeliveryStatus,
+    Dispute,
     DriverState,
     KycDocument,
     KycMessage,
@@ -85,22 +88,38 @@ async def dashboard(
         select(Delivery).where(Delivery.status.in_(DELIVERED_STATES))
     ).all()
 
+    def compter_comptes(*conditions) -> int:
+        return db.scalar(select(func.count()).select_from(Account).where(*conditions)) or 0
+
     return {
-        "pendingKyc": db.scalar(
-            select(func.count())
-            .select_from(Account)
-            .where(Account.kyc_status == KycStatus.submitted)
-        )
-        or 0,
+        "pendingKyc": compter_comptes(Account.kyc_status == KycStatus.submitted),
         "activeDeliveries": compter(Delivery.status.in_(actives)),
         "pendingDeliveries": compter(Delivery.status == DeliveryStatus.pending),
         "onlineDrivers": db.scalar(
             select(func.count()).select_from(DriverState).where(DriverState.online.is_(True))
         )
         or 0,
+        # Effectifs : combien de clients, combien de livreurs. Le tableau de bord
+        # les affiche pour donner la taille du reseau d'un coup d'oeil.
+        "totalClients": compter_comptes(Account.role == UserRole.client),
+        "totalDrivers": compter_comptes(Account.role == UserRole.driver),
+        # Litiges ouverts et incidents non resolus : ce qui attend l'exploitation.
+        # Calcules ici cote serveur (le simulateur les fournissait deja).
+        "openDisputes": db.scalar(
+            select(func.count())
+            .select_from(Dispute)
+            .where(Dispute.status.in_(["open", "investigating"]))
+        )
+        or 0,
+        "openIncidents": db.scalar(
+            select(func.count())
+            .select_from(DeliveryIncident)
+            .where(DeliveryIncident.resolution == "open")
+        )
+        or 0,
         # Recette du jour : seules les courses **remises**. Compter les courses
         # en cours gonflerait le chiffre d'affaires d'argent pas encore gagne.
-        "revenueTodayAriary": sum(
+        "revenueToday": sum(
             d.price_ariary or 0
             for d in delivered
             if as_utc(d.updated_at).date() == today
@@ -108,6 +127,121 @@ async def dashboard(
         "byStatus": {
             status.value: compter(Delivery.status == status) for status in DeliveryStatus
         },
+    }
+
+
+# Part reversee au livreur : le reste est la commission de la plateforme. Une
+# constante ici, arbitrable plus tard sans toucher au calcul.
+DRIVER_SHARE = 0.85
+
+
+@router.get("/stats")
+async def stats(
+    db: Session = Depends(get_db), _: Account = Depends(require_role(UserRole.admin))
+) -> dict:
+    """Rapport d'activite (§13, EXI-A08) : volumes, taux, temps, zones, heures.
+
+    Tout est calcule a la lecture, sur l'ensemble des courses. A l'echelle d'un
+    tableau de bord d'exploitation, c'est suffisant et toujours juste ; on
+    n'introduit pas de table d'agregats qui pourrait diverger de la realite.
+    """
+    import json as _json
+
+    deliveries = db.scalars(select(Delivery)).all()
+    total = len(deliveries)
+    delivered = [d for d in deliveries if d.status in DELIVERED_STATES]
+    cancelled = [d for d in deliveries if d.status == DeliveryStatus.cancelled]
+    refused = [d for d in deliveries if d.status == DeliveryStatus.failed]
+
+    done = len(delivered)
+    failed = len(cancelled) + len(refused)
+    # Taux de reussite : remis / (remis + echoue). Les courses encore en cours ne
+    # comptent dans aucun des deux — juger une course non finie fausserait le ratio.
+    settled = done + failed
+    success_rate = round(done / settled, 3) if settled else 0.0
+    cancellation_rate = round(len(cancelled) / total, 3) if total else 0.0
+
+    revenue = sum(d.price_ariary or 0 for d in delivered)
+
+    # Temps moyen de livraison : de la creation a l'evenement « livree ».
+    delivered_ids = [d.id for d in delivered]
+    durations: list[float] = []
+    if delivered_ids:
+        created_at = {d.id: as_utc(d.created_at) for d in delivered}
+        events = db.scalars(
+            select(DeliveryEvent).where(
+                DeliveryEvent.delivery_id.in_(delivered_ids),
+                DeliveryEvent.status.in_(DELIVERED_STATES),
+            )
+        ).all()
+        seen: set[str] = set()
+        for e in events:
+            if e.delivery_id in seen:
+                continue
+            seen.add(e.delivery_id)
+            start = created_at.get(e.delivery_id)
+            if start is not None:
+                durations.append((as_utc(e.occurred_at) - start).total_seconds() / 60)
+    avg_minutes = round(sum(durations) / len(durations)) if durations else 0
+
+    # Zones les plus actives : par libelle de destination.
+    zones: dict[str, int] = {}
+    hours = [0] * 24
+    for d in deliveries:
+        try:
+            zone = (_json.loads(d.dropoff_json).get("summary") or "").strip()
+        except Exception:  # noqa: BLE001
+            zone = ""
+        if zone:
+            zones[zone] = zones.get(zone, 0) + 1
+        hours[as_utc(d.created_at).hour] += 1
+    top_zones = sorted(zones.items(), key=lambda kv: kv[1], reverse=True)[:5]
+
+    # Performance des livreurs : nombre de courses remises, par livreur.
+    per_driver: dict[str, int] = {}
+    for d in delivered:
+        if d.driver_id:
+            per_driver[d.driver_id] = per_driver.get(d.driver_id, 0) + 1
+    drivers: dict[str, Account] = {}
+    if per_driver:
+        drivers = {
+            a.id: a
+            for a in db.scalars(
+                select(Account).where(Account.id.in_(list(per_driver)))
+            ).all()
+        }
+    performance = sorted(per_driver.items(), key=lambda kv: kv[1], reverse=True)[:5]
+
+    return {
+        "totalDeliveries": total,
+        "delivered": done,
+        "cancelled": len(cancelled),
+        "successRate": success_rate,
+        "cancellationRate": cancellation_rate,
+        "revenueAriary": revenue,
+        "driverEarningsAriary": round(revenue * DRIVER_SHARE),
+        "totalClients": db.scalar(
+            select(func.count()).select_from(Account).where(Account.role == UserRole.client)
+        )
+        or 0,
+        "totalDrivers": db.scalar(
+            select(func.count()).select_from(Account).where(Account.role == UserRole.driver)
+        )
+        or 0,
+        "avgDeliveryMinutes": avg_minutes,
+        "incidents": db.scalar(select(func.count()).select_from(DeliveryIncident)) or 0,
+        "disputes": db.scalar(select(func.count()).select_from(Dispute)) or 0,
+        "topZones": [{"zone": z, "count": c} for z, c in top_zones],
+        "peakHours": [{"hour": h, "count": hours[h]} for h in range(24)],
+        "driverPerformance": [
+            {
+                "driverId": did,
+                "displayName": drivers[did].display_name if did in drivers else "",
+                "delivered": count,
+                "rating": drivers[did].rating if did in drivers else None,
+            }
+            for did, count in performance
+        ],
     }
 
 
@@ -319,6 +453,85 @@ async def suspend_driver(
     db.commit()
 
     return {"driverId": driver.id, "suspended": driver.suspended_at is not None}
+
+
+@router.get("/users")
+async def list_users(
+    role: str | None = None,
+    q: str | None = None,
+    db: Session = Depends(get_db),
+    _: Account = Depends(require_role(UserRole.admin)),
+) -> dict:
+    """Annuaire des comptes (clients ou livreurs), cherchable par nom ou numero.
+
+    C'est la base de la gestion des utilisateurs : lister, retrouver, puis
+    suspendre ou reactiver. On plafonne a 200 lignes — au-dela, la recherche est
+    le bon outil, pas le defilement.
+    """
+    query = select(Account)
+    if role in ("client", "driver"):
+        query = query.where(Account.role == UserRole(role))
+    if q and q.strip():
+        like = f"%{q.strip()}%"
+        query = query.where(
+            Account.display_name.ilike(like) | Account.phone.ilike(like)
+        )
+    rows = db.scalars(
+        query.order_by(Account.created_at.desc()).limit(200)
+    ).all()
+    return {
+        "items": [
+            {
+                "id": a.id,
+                "displayName": a.display_name,
+                "phone": a.phone,
+                "role": a.role.value if a.role else None,
+                "kycStatus": a.kyc_status.value if a.kyc_status else None,
+                "rating": a.rating,
+                "suspended": a.suspended_at is not None,
+                "createdAt": as_utc(a.created_at).isoformat(),
+            }
+            for a in rows
+        ]
+    }
+
+
+@router.post("/users/{account_id}/suspension")
+async def suspend_user(
+    account_id: str,
+    body: Suspension,
+    db: Session = Depends(get_db),
+    admin: Account = Depends(require_role(UserRole.admin)),
+) -> dict:
+    """Suspend ou reactive un compte, client comme livreur, avec motif.
+
+    Un admin ne se suspend pas lui-meme, ni un autre admin : couper l'acces a
+    l'exploitation depuis l'exploitation serait une porte vers le blocage total.
+    """
+    reason = _require_reason(body.reason)
+
+    account = db.get(Account, account_id)
+    if account is None or account.role is UserRole.admin:
+        raise not_found("Compte inconnu")
+
+    account.suspended_at = datetime.now(timezone.utc) if body.suspend else None
+
+    # Un livreur suspendu passe hors ligne : il ne doit plus recevoir d'offres.
+    if account.role is UserRole.driver and body.suspend:
+        state = db.get(DriverState, account.id)
+        if state is not None:
+            state.online = False
+
+    db.add(
+        ModerationLog(
+            actor_id=admin.id,
+            subject_id=account.id,
+            action="suspended" if body.suspend else "unsuspended",
+            reason=reason,
+        )
+    )
+    db.commit()
+    return {"id": account.id, "suspended": account.suspended_at is not None}
 
 
 @router.get("/moderation")

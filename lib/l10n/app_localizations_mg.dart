@@ -1661,6 +1661,94 @@ class AppLocalizationsMg extends AppLocalizations {
   String get adminOnlineDrivers => 'Mpanatitra miasa';
 
   @override
+  String get adminTotalClients => 'Mpanjifa';
+
+  @override
+  String get adminTotalDrivers => 'Mpanatitra';
+
+  @override
+  String get adminStatsTitle => 'Antontan\'isa & tatitra';
+
+  @override
+  String get adminStatsManage => 'Antontan\'isa & tatitra';
+
+  @override
+  String get statTotalDeliveries => 'Fandefasana';
+
+  @override
+  String get statSuccessRate => 'Tahan\'ny fahombiazana';
+
+  @override
+  String get statCancellationRate => 'Tahan\'ny fanafoanana';
+
+  @override
+  String get statRevenue => 'Fidiram-bola';
+
+  @override
+  String get statDriverEarnings => 'Karaman\'ny mpanatitra';
+
+  @override
+  String get statAvgTime => 'Fotoana antonony';
+
+  @override
+  String statMinutes(int min) {
+    return '$min min';
+  }
+
+  @override
+  String get statIncidents => 'Olana';
+
+  @override
+  String get statDisputes => 'Fitarainana';
+
+  @override
+  String get statVolumes => 'Habetsahana';
+
+  @override
+  String get statRates => 'Tahan\'isa & kalitao';
+
+  @override
+  String get statTopZones => 'Faritra be indrindra';
+
+  @override
+  String get statPeakHours => 'Ora be olona';
+
+  @override
+  String get statDriverPerformance => 'Fahombiazan\'ny mpanatitra';
+
+  @override
+  String get statNoData => 'Mbola tsy misy angona';
+
+  @override
+  String statDeliveries(int count) {
+    return 'dia $count';
+  }
+
+  @override
+  String get adminUsersTitle => 'Mpampiasa';
+
+  @override
+  String get adminUsersManage => 'Hitantana ny mpampiasa';
+
+  @override
+  String get adminUsersSearch => 'Hitady anarana na laharana';
+
+  @override
+  String get adminUsersEmpty => 'Tsy misy mpampiasa';
+
+  @override
+  String get adminUsersTabClients => 'Mpanjifa';
+
+  @override
+  String get adminUsersTabDrivers => 'Mpanatitra';
+
+  @override
+  String get adminUserSuspended => 'Nahantona';
+
+  @override
+  String get adminUserActive => 'Mavitrika';
+
+  @override
   String get adminOpenIncidents => 'Olana misokatra';
 
   @override

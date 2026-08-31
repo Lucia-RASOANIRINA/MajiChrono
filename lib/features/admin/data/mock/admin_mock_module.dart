@@ -39,6 +39,7 @@ class AdminMockModule extends MockModule {
   @override
   void register(MockBackend backend) {
     backend.get('/admin/dashboard', _dashboard);
+    backend.get('/admin/stats', _stats);
     backend.get('/admin/fleet', _fleetList);
     backend.get('/admin/kyc', _kycQueue);
     backend.post('/admin/kyc/{id}/review', _kycReview);
@@ -49,6 +50,8 @@ class AdminMockModule extends MockModule {
     // faire vivre la visionneuse en mode `mock`.
     backend.get('/accounts/{id}/kyc/{kind}', _kycDocumentImage);
     backend.post('/admin/drivers/{id}/suspension', _suspension);
+    backend.get('/admin/users', _users);
+    backend.post('/admin/users/{id}/suspension', _userSuspension);
     backend.post('/admin/deliveries/{id}/reassign', _reassign);
     backend.post('/disputes', _disputeOpen);
     backend.get('/disputes', _disputeList);
@@ -63,6 +66,7 @@ class AdminMockModule extends MockModule {
     _kyc = _seedKyc();
     _disputes = _seedDisputes();
     _kycThreads.clear();
+    _suspendedUsers.clear();
     _sequence = 0;
   }
 
@@ -117,6 +121,10 @@ class AdminMockModule extends MockModule {
           )
           .length,
       'revenueToday': revenue,
+      // Effectifs simules : la flotte donne les livreurs ; on pose un nombre de
+      // clients plausible pour que la tuile ne soit pas vide en demonstration.
+      'totalDrivers': _fleet.length,
+      'totalClients': 128,
       'byStatus': byStatus,
     });
   }
@@ -314,6 +322,146 @@ class AdminMockModule extends MockModule {
   }
 
   // --- Litiges (EXI-A05) ------------------------------------------------
+
+  /// Rapport d'activite simule : des chiffres plausibles pour que l'ecran de
+  /// statistiques se lise vraiment en demonstration, histogrammes compris.
+  Future<MockResponse> _stats(MockRequest req, Map<String, String> _) async {
+    const total = 342;
+    const delivered = 298;
+    const cancelled = 21;
+    // Heures de pointe : deux bosses (midi et soir), comme une vraie journee.
+    final peakHours = [
+      for (var h = 0; h < 24; h++)
+        {
+          'hour': h,
+          'count':
+              (h >= 11 && h <= 13
+                  ? 30 + (13 - (h - 12).abs()) * 6
+                  : h >= 17 && h <= 20
+                  ? 34 + (20 - h) * 4
+                  : h >= 7 && h <= 22
+                  ? 8 + (h % 4) * 2
+                  : 1),
+        },
+    ];
+    return MockResponse.ok({
+      'totalDeliveries': total,
+      'delivered': delivered,
+      'cancelled': cancelled,
+      'successRate': 0.934,
+      'cancellationRate': 0.061,
+      'revenueAriary': 2148000,
+      'driverEarningsAriary': 1825800,
+      'totalClients': 128,
+      'totalDrivers': _fleet.length,
+      'avgDeliveryMinutes': 27,
+      'incidents': 9,
+      'disputes': 3,
+      'topZones': const [
+        {'zone': 'Analakely', 'count': 74},
+        {'zone': 'Ivandry', 'count': 61},
+        {'zone': 'Ambohipo', 'count': 48},
+        {'zone': 'Andraharo', 'count': 39},
+        {'zone': 'Ambohimanarina', 'count': 22},
+      ],
+      'peakHours': peakHours,
+      'driverPerformance': [
+        for (final d in _fleet.values.take(5))
+          {
+            'driverId': d['id'],
+            'displayName': d['displayName'],
+            'delivered': 40 + (('${d['id']}').hashCode % 30).abs(),
+            'rating': d['rating'],
+          },
+      ],
+    });
+  }
+
+  /// Annuaire simule (clients + livreurs) et l'ensemble des comptes suspendus.
+  final Set<String> _suspendedUsers = {};
+
+  static const List<Map<String, String>> _seedClients = [
+    {'id': 'cli_1', 'name': 'Hery Rakoto', 'phone': '+261340000001'},
+    {'id': 'cli_2', 'name': 'Vola Ranaivo', 'phone': '+261340000012'},
+    {'id': 'cli_3', 'name': 'Miora Andria', 'phone': '+261340000023'},
+    {'id': 'cli_4', 'name': 'Tanjona Rabe', 'phone': '+261340000034'},
+  ];
+
+  Future<MockResponse> _users(MockRequest req, Map<String, String> _) async {
+    final role = req.query['role'];
+    final q = (req.query['q'] ?? '').toLowerCase();
+
+    final items = <Map<String, dynamic>>[];
+    if (role != 'driver') {
+      for (final c in _seedClients) {
+        items.add({
+          'id': c['id'],
+          'displayName': c['name'],
+          'phone': c['phone'],
+          'role': 'client',
+          'kycStatus': null,
+          'rating': null,
+          'suspended': _suspendedUsers.contains(c['id']),
+        });
+      }
+    }
+    if (role != 'client') {
+      for (final d in _fleet.values) {
+        items.add({
+          'id': d['id'],
+          'displayName': d['displayName'],
+          'phone': '+261330000000',
+          'role': 'driver',
+          'kycStatus': 'approved',
+          'rating': d['rating'],
+          'suspended':
+              d['status'] == FleetStatus.suspended.wireName ||
+              _suspendedUsers.contains(d['id']),
+        });
+      }
+    }
+
+    final filtered = q.isEmpty
+        ? items
+        : items
+              .where(
+                (u) =>
+                    '${u['displayName']}'.toLowerCase().contains(q) ||
+                    '${u['phone']}'.toLowerCase().contains(q),
+              )
+              .toList();
+    return MockResponse.ok({'items': filtered});
+  }
+
+  Future<MockResponse> _userSuspension(
+    MockRequest req,
+    Map<String, String> params,
+  ) async {
+    final id = params['id']!;
+    final reason = '${req.json['reason'] ?? ''}';
+    if (!ModerationAction.isReasonAcceptable(reason)) {
+      return MockResponse.error(422, 'reason_required', 'Motif obligatoire');
+    }
+    if (req.json['suspend'] == true) {
+      _suspendedUsers.add(id);
+      // Un livreur suspendu passe hors ligne dans la flotte simulee.
+      final driver = _fleet[id];
+      if (driver != null) {
+        driver['status'] = FleetStatus.suspended.wireName;
+      }
+    } else {
+      _suspendedUsers.remove(id);
+      final driver = _fleet[id];
+      if (driver != null &&
+          driver['status'] == FleetStatus.suspended.wireName) {
+        driver['status'] = FleetStatus.offline.wireName;
+      }
+    }
+    return MockResponse.ok({
+      'id': id,
+      'suspended': _suspendedUsers.contains(id),
+    });
+  }
 
   /// Fils de suivi de dossier KYC, par livreur (cote exploitation).
   final Map<String, List<Map<String, dynamic>>> _kycThreads = {};

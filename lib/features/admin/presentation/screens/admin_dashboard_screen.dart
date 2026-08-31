@@ -132,7 +132,32 @@ class AdminDashboardScreen extends ConsumerWidget {
                           value: formatAriary(data.revenueTodayAriary),
                           tint: AppColors.accent,
                         ),
+                        McStatTile(
+                          icon: Icons.people_outline,
+                          label: l10n.adminTotalClients,
+                          value: '${data.totalClients}',
+                          onTap: () => context.push(
+                            '${AppRoutes.adminUsers}?role=client',
+                          ),
+                        ),
+                        McStatTile(
+                          icon: Icons.badge_outlined,
+                          label: l10n.adminTotalDrivers,
+                          value: '${data.totalDrivers}',
+                          onTap: () => context.push(
+                            '${AppRoutes.adminUsers}?role=driver',
+                          ),
+                        ),
                       ],
+                    ),
+                    const SizedBox(height: AppSpacing.lg),
+                    Card(
+                      child: ListTile(
+                        leading: const Icon(Icons.query_stats_outlined),
+                        title: Text(l10n.adminStatsManage),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => context.push(AppRoutes.adminStats),
+                      ),
                     ),
                     if (data.byStatus.isNotEmpty) ...[
                       const SizedBox(height: AppSpacing.xl),

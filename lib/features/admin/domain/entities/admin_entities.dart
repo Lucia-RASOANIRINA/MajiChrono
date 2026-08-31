@@ -25,6 +25,8 @@ class DashboardSummary {
     required this.pendingKyc,
     required this.revenueTodayAriary,
     required this.byStatus,
+    this.totalClients = 0,
+    this.totalDrivers = 0,
   });
 
   final int activeDeliveries;
@@ -33,6 +35,10 @@ class DashboardSummary {
   final int openDisputes;
   final int pendingKyc;
   final int revenueTodayAriary;
+
+  /// Effectifs du reseau : combien de clients, combien de livreurs inscrits.
+  final int totalClients;
+  final int totalDrivers;
 
   /// Repartition des courses par statut, pour montrer **ou** ca bloque.
   ///
@@ -50,6 +56,8 @@ class DashboardSummary {
       openDisputes: (json['openDisputes'] as num?)?.toInt() ?? 0,
       pendingKyc: (json['pendingKyc'] as num?)?.toInt() ?? 0,
       revenueTodayAriary: (json['revenueToday'] as num?)?.toInt() ?? 0,
+      totalClients: (json['totalClients'] as num?)?.toInt() ?? 0,
+      totalDrivers: (json['totalDrivers'] as num?)?.toInt() ?? 0,
       byStatus: {
         for (final entry in raw.entries)
           DeliveryStatus.fromWire(entry.key):
@@ -526,6 +534,142 @@ class KycThreadMessage {
       createdAt:
           DateTime.tryParse('${json['createdAt']}')?.toLocal() ??
           DateTime.now(),
+    );
+  }
+}
+
+/// Un compte vu depuis la gestion des utilisateurs (clients + livreurs).
+class AdminUser {
+  const AdminUser({
+    required this.id,
+    required this.displayName,
+    required this.phone,
+    required this.role,
+    required this.suspended,
+    this.kycStatus,
+    this.rating,
+  });
+
+  final String id;
+  final String displayName;
+  final String phone;
+
+  /// « client » ou « driver ».
+  final String role;
+  final bool suspended;
+  final String? kycStatus;
+  final double? rating;
+
+  bool get isDriver => role == 'driver';
+
+  static AdminUser? fromJson(Map<String, dynamic> json) {
+    final id = json['id'] as String?;
+    if (id == null) return null;
+    return AdminUser(
+      id: id,
+      displayName: '${json['displayName'] ?? ''}',
+      phone: '${json['phone'] ?? ''}',
+      role: '${json['role'] ?? ''}',
+      suspended: json['suspended'] == true,
+      kycStatus: json['kycStatus'] as String?,
+      rating: (json['rating'] as num?)?.toDouble(),
+    );
+  }
+}
+
+/// Une paire libelle/valeur pour les histogrammes (zones, heures, livreurs).
+class StatBar {
+  const StatBar({required this.label, required this.value, this.sub});
+
+  final String label;
+  final int value;
+
+  /// Complement facultatif (note d'un livreur, par exemple).
+  final String? sub;
+}
+
+/// Rapport d'activite de l'exploitation (§13, EXI-A08).
+class AdminStats {
+  const AdminStats({
+    required this.totalDeliveries,
+    required this.delivered,
+    required this.cancelled,
+    required this.successRate,
+    required this.cancellationRate,
+    required this.revenueAriary,
+    required this.driverEarningsAriary,
+    required this.totalClients,
+    required this.totalDrivers,
+    required this.avgDeliveryMinutes,
+    required this.incidents,
+    required this.disputes,
+    required this.topZones,
+    required this.peakHours,
+    required this.driverPerformance,
+  });
+
+  final int totalDeliveries;
+  final int delivered;
+  final int cancelled;
+
+  /// Fractions entre 0 et 1.
+  final double successRate;
+  final double cancellationRate;
+
+  final int revenueAriary;
+  final int driverEarningsAriary;
+  final int totalClients;
+  final int totalDrivers;
+  final int avgDeliveryMinutes;
+  final int incidents;
+  final int disputes;
+
+  final List<StatBar> topZones;
+
+  /// 24 valeurs, une par heure du jour.
+  final List<StatBar> peakHours;
+  final List<StatBar> driverPerformance;
+
+  static AdminStats fromJson(Map<String, dynamic> json) {
+    List<StatBar> bars(String key, String labelKey, String valueKey) =>
+        (json[key] as List<dynamic>? ?? const [])
+            .whereType<Map<String, dynamic>>()
+            .map(
+              (m) => StatBar(
+                label: '${m[labelKey] ?? ''}',
+                value: (m[valueKey] as num?)?.toInt() ?? 0,
+                sub: m['rating'] == null
+                    ? null
+                    : (m['rating'] as num).toStringAsFixed(1),
+              ),
+            )
+            .toList();
+
+    return AdminStats(
+      totalDeliveries: (json['totalDeliveries'] as num?)?.toInt() ?? 0,
+      delivered: (json['delivered'] as num?)?.toInt() ?? 0,
+      cancelled: (json['cancelled'] as num?)?.toInt() ?? 0,
+      successRate: (json['successRate'] as num?)?.toDouble() ?? 0,
+      cancellationRate: (json['cancellationRate'] as num?)?.toDouble() ?? 0,
+      revenueAriary: (json['revenueAriary'] as num?)?.toInt() ?? 0,
+      driverEarningsAriary: (json['driverEarningsAriary'] as num?)?.toInt() ?? 0,
+      totalClients: (json['totalClients'] as num?)?.toInt() ?? 0,
+      totalDrivers: (json['totalDrivers'] as num?)?.toInt() ?? 0,
+      avgDeliveryMinutes: (json['avgDeliveryMinutes'] as num?)?.toInt() ?? 0,
+      incidents: (json['incidents'] as num?)?.toInt() ?? 0,
+      disputes: (json['disputes'] as num?)?.toInt() ?? 0,
+      topZones: bars('topZones', 'zone', 'count'),
+      peakHours:
+          (json['peakHours'] as List<dynamic>? ?? const [])
+              .whereType<Map<String, dynamic>>()
+              .map(
+                (m) => StatBar(
+                  label: '${(m['hour'] as num?)?.toInt() ?? 0}h',
+                  value: (m['count'] as num?)?.toInt() ?? 0,
+                ),
+              )
+              .toList(),
+      driverPerformance: bars('driverPerformance', 'displayName', 'delivered'),
     );
   }
 }

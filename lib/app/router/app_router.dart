@@ -9,6 +9,8 @@ import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_s
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/disputes_screen.dart'
     hide DisputeDetailScreen;
+import 'package:majichrono/features/admin/presentation/screens/admin_users_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/admin_stats_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/fleet_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/kyc_queue_screen.dart';
 import 'package:majichrono/app/shell/role_shell.dart';
@@ -226,6 +228,16 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.messages,
         builder: (_, _) => const MessagesScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.adminUsers,
+        builder: (context, state) => AdminUsersScreen(
+          initialRole: state.uri.queryParameters['role'],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.adminStats,
+        builder: (_, _) => const AdminStatsScreen(),
       ),
       GoRoute(
         path: AppRoutes.driverVehicle,

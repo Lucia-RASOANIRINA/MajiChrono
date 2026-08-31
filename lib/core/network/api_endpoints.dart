@@ -172,6 +172,7 @@ class ApiEndpoints {
 
   // --- Administration --------------------------------------------------
   static const String adminDashboard = '/admin/dashboard';
+  static const String adminStats = '/admin/stats';
   static const String adminFleet = '/admin/fleet';
   static const String adminKyc = '/admin/kyc';
   static String adminKycReview(String id) => '/admin/kyc/$id/review';
@@ -179,6 +180,13 @@ class ApiEndpoints {
   /// Suspension et reintegration d'un compte (EXI-A06).
   static String adminDriverSuspension(String id) =>
       '/admin/drivers/$id/suspension';
+
+  /// Annuaire des comptes (clients + livreurs), cherchable.
+  static const String adminUsers = '/admin/users';
+
+  /// Suspension / reactivation d'un compte quelconque (client ou livreur).
+  static String adminUserSuspension(String id) =>
+      '/admin/users/$id/suspension';
 
   /// Reaffectation manuelle d'une course (EXI-A07).
   ///

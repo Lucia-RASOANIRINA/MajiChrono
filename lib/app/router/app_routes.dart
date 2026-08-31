@@ -106,6 +106,13 @@ class AppRoutes {
   /// plus sur un ecran de 320 dp (§15.1).
   static const String adminKyc = '/admin/kyc';
   static const String adminDeliveries = '/admin/deliveries';
+
+  /// Gestion des utilisateurs (clients + livreurs) : liste, recherche,
+  /// suspension/reactivation.
+  static const String adminUsers = '/admin/users';
+
+  /// Statistiques & rapports d'exploitation.
+  static const String adminStats = '/admin/statistics';
   static String adminDispute(String id) => '/admin/disputes/$id';
 
   // --- Liens profonds --------------------------------------------------

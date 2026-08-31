@@ -12,7 +12,7 @@ enum MobileOperator {
   /// Telma, qui exploite commercialement la marque YAS depuis 2025. Le libelle
   /// retenu est « Telma » : c'est le nom sous lequel les utilisateurs designent
   /// encore leur ligne, et celui qui figure sur leurs factures.
-  telma('Telma', {'34', '38'}),
+  telma('Telma', {'34', '38', '36'}),
 
   /// Ligne fixe Telma, en `020 XX XXX XX`.
   ///

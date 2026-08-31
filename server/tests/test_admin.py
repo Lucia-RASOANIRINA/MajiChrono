@@ -258,6 +258,122 @@ class TestTableauDeBord:
 
         # Compter les courses en cours gonflerait le chiffre d'affaires
         # d'argent pas encore gagne.
-        assert tableau["revenueTodayAriary"] == 6000
+        assert tableau["revenueToday"] == 6000
         assert tableau["pendingDeliveries"] == 1
         assert tableau["byStatus"]["livree"] == 1
+
+
+class TestGestionUtilisateurs:
+    """Annuaire des comptes et suspension client/livreur."""
+
+    def test_l_annuaire_liste_par_role_et_cherche(self, client: TestClient):
+        # On cree un client et un livreur, puis on interroge l'annuaire.
+        sign_in(client, "+261340000001", role="client")
+        sign_in(client, "+261330000002", role="driver")
+        admin = admin_headers(client)
+
+        clients = client.get(
+            "/admin/users", params={"role": "client"}, headers=admin
+        ).json()["items"]
+        assert all(u["role"] == "client" for u in clients)
+        assert any(u["phone"] == "+261340000001" for u in clients)
+
+        drivers = client.get(
+            "/admin/users", params={"role": "driver"}, headers=admin
+        ).json()["items"]
+        assert all(u["role"] == "driver" for u in drivers)
+
+        # Recherche par numero.
+        found = client.get(
+            "/admin/users", params={"q": "340000001"}, headers=admin
+        ).json()["items"]
+        assert len(found) == 1
+
+    def test_on_suspend_et_reactive_un_client(self, client: TestClient):
+        sign_in(client, "+261340000001", role="client")
+        db = _session()
+        client_id = (
+            db.query(Account).filter(Account.phone == "+261340000001").one().id
+        )
+        admin = admin_headers(client)
+
+        suspended = client.post(
+            f"/admin/users/{client_id}/suspension",
+            json={"suspend": True, "reason": "Comportement signale a repetition"},
+            headers=admin,
+        ).json()
+        assert suspended["suspended"] is True
+
+        back = client.post(
+            f"/admin/users/{client_id}/suspension",
+            json={"suspend": False, "reason": "Explication recue, compte retabli"},
+            headers=admin,
+        ).json()
+        assert back["suspended"] is False
+
+    def test_un_motif_est_obligatoire(self, client: TestClient):
+        sign_in(client, "+261340000001", role="client")
+        db = _session()
+        client_id = (
+            db.query(Account).filter(Account.phone == "+261340000001").one().id
+        )
+        admin = admin_headers(client)
+        response = client.post(
+            f"/admin/users/{client_id}/suspension",
+            json={"suspend": True, "reason": "non"},
+            headers=admin,
+        )
+        assert response.status_code == 422
+
+    def test_le_tableau_de_bord_compte_clients_livreurs_litiges(
+        self, client: TestClient
+    ):
+        sign_in(client, "+261340000001", role="client")
+        sign_in(client, "+261330000002", role="driver")
+        admin = admin_headers(client)
+        board = client.get("/admin/dashboard", headers=admin).json()
+        assert board["totalClients"] >= 1
+        assert board["totalDrivers"] >= 1
+        assert "openDisputes" in board
+        assert "openIncidents" in board
+
+
+class TestStatistiques:
+    """Rapport d'activite : volumes, taux, temps, zones, heures, performance."""
+
+    def test_le_rapport_calcule_volumes_taux_et_zones(self, client: TestClient):
+        expediteur = sign_in(client, "+261340000001", role="client")
+        livreur = sign_in(client, "+261330000002", role="driver")
+        db = _session()
+        db.query(Account).filter(Account.phone == "+261330000002").one().kyc_status = (
+            KycStatus.approved
+        )
+        db.commit()
+
+        # Une course menee jusqu'a la remise.
+        course = client.post(
+            "/deliveries", json=COURSE, headers={**expediteur, "Idempotency-Key": "s-1"}
+        ).json()
+        client.post(f"/deliveries/{course['id']}/accept", headers=livreur)
+        for step in ("prise_en_charge", "en_transit", "livree"):
+            client.post(
+                f"/deliveries/{course['id']}/transition",
+                json={"status": step},
+                headers=livreur,
+            )
+
+        admin = admin_headers(client)
+        report = client.get("/admin/stats", headers=admin).json()
+
+        assert report["totalDeliveries"] >= 1
+        assert report["delivered"] >= 1
+        assert 0.0 <= report["successRate"] <= 1.0
+        assert report["revenueAriary"] >= 6000
+        # Le livreur touche moins que la recette (commission plateforme).
+        assert report["driverEarningsAriary"] < report["revenueAriary"] or report[
+            "revenueAriary"
+        ] == 0
+        assert len(report["peakHours"]) == 24
+        # La zone de destination (« Ivandry ») remonte dans les zones actives.
+        assert any(z["zone"] == "Ivandry" for z in report["topZones"])
+        assert any(p["delivered"] >= 1 for p in report["driverPerformance"])

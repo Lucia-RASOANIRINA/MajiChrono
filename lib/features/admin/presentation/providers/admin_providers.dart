@@ -67,6 +67,21 @@ final deliveryFilterProvider = StateProvider<DeliveryFilter>(
   (_) => const DeliveryFilter(),
 );
 
+/// Rapport d'activite de l'exploitation (statistiques & rapports).
+final adminStatsProvider = FutureProvider.autoDispose<AdminStats>(
+  (ref) => ref.watch(adminRepositoryProvider).stats(),
+);
+
+/// Annuaire des utilisateurs, par role et terme de recherche.
+typedef AdminUsersQuery = ({String? role, String query});
+
+final adminUsersProvider = FutureProvider.autoDispose
+    .family<List<AdminUser>, AdminUsersQuery>(
+      (ref, q) => ref
+          .watch(adminRepositoryProvider)
+          .users(role: q.role, query: q.query),
+    );
+
 /// Actions d'exploitation. Toutes exigent une decision motivee.
 final adminActionsProvider = Provider<AdminActions>((ref) => AdminActions(ref));
 
@@ -93,6 +108,20 @@ class AdminActions {
       ..invalidate(adminFleetProvider)
       ..invalidate(adminDashboardProvider);
     return reviewed;
+  }
+
+  /// Suspend/reactive un compte quelconque (client ou livreur).
+  Future<void> suspendUser({
+    required String accountId,
+    required ModerationDecision decision,
+  }) async {
+    await _repository.setUserSuspension(
+      accountId: accountId,
+      decision: decision,
+    );
+    _ref
+      ..invalidate(adminFleetProvider)
+      ..invalidate(adminDashboardProvider);
   }
 
   Future<FleetDriver> setSuspension({

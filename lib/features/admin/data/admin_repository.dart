@@ -106,6 +106,47 @@ class AdminRepository {
     return driver;
   }
 
+  /// Rapport d'activite : volumes, taux, temps, zones, heures, performance.
+  Future<AdminStats> stats() async {
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.adminStats,
+    );
+    return AdminStats.fromJson(json);
+  }
+
+  /// Annuaire des comptes (clients ou livreurs), cherchable par nom/numero.
+  Future<List<AdminUser>> users({String? role, String? query}) async {
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.adminUsers,
+      query: {
+        'role': ?role,
+        if (query != null && query.isNotEmpty) 'q': query,
+      },
+    );
+    return (json['items'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(AdminUser.fromJson)
+        .whereType<AdminUser>()
+        .toList();
+  }
+
+  /// Suspend ou reactive un compte quelconque (client ou livreur), avec motif.
+  Future<void> setUserSuspension({
+    required String accountId,
+    required ModerationDecision decision,
+  }) async {
+    final suspend = decision.action == ModerationAction.suspendAccount;
+    await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.adminUserSuspension(accountId),
+      body: {'suspend': suspend, 'reason': decision.reason},
+      idempotencyKey: 'usersusp_${accountId}_${decision.action.wireName}',
+    );
+    AppLogger.instance.info(
+      'admin_user_suspension',
+      data: {'decision': decision.action.wireName},
+    );
+  }
+
   /// Reaffecte une course a un autre livreur (EXI-A07).
   Future<Delivery> reassign({
     required String deliveryId,

@@ -3170,6 +3170,174 @@ abstract class AppLocalizations {
   /// **'Livreurs en ligne'**
   String get adminOnlineDrivers;
 
+  /// No description provided for @adminTotalClients.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clients'**
+  String get adminTotalClients;
+
+  /// No description provided for @adminTotalDrivers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreurs'**
+  String get adminTotalDrivers;
+
+  /// No description provided for @adminStatsTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques & rapports'**
+  String get adminStatsTitle;
+
+  /// No description provided for @adminStatsManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Statistiques & rapports'**
+  String get adminStatsManage;
+
+  /// No description provided for @statTotalDeliveries.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livraisons'**
+  String get statTotalDeliveries;
+
+  /// No description provided for @statSuccessRate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taux de reussite'**
+  String get statSuccessRate;
+
+  /// No description provided for @statCancellationRate.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taux d\'annulation'**
+  String get statCancellationRate;
+
+  /// No description provided for @statRevenue.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chiffre d\'affaires'**
+  String get statRevenue;
+
+  /// No description provided for @statDriverEarnings.
+  ///
+  /// In fr, this message translates to:
+  /// **'Revenus livreurs'**
+  String get statDriverEarnings;
+
+  /// No description provided for @statAvgTime.
+  ///
+  /// In fr, this message translates to:
+  /// **'Temps moyen'**
+  String get statAvgTime;
+
+  /// No description provided for @statMinutes.
+  ///
+  /// In fr, this message translates to:
+  /// **'{min} min'**
+  String statMinutes(int min);
+
+  /// No description provided for @statIncidents.
+  ///
+  /// In fr, this message translates to:
+  /// **'Incidents'**
+  String get statIncidents;
+
+  /// No description provided for @statDisputes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges'**
+  String get statDisputes;
+
+  /// No description provided for @statVolumes.
+  ///
+  /// In fr, this message translates to:
+  /// **'Volumes'**
+  String get statVolumes;
+
+  /// No description provided for @statRates.
+  ///
+  /// In fr, this message translates to:
+  /// **'Taux & qualite'**
+  String get statRates;
+
+  /// No description provided for @statTopZones.
+  ///
+  /// In fr, this message translates to:
+  /// **'Zones les plus actives'**
+  String get statTopZones;
+
+  /// No description provided for @statPeakHours.
+  ///
+  /// In fr, this message translates to:
+  /// **'Heures de pointe'**
+  String get statPeakHours;
+
+  /// No description provided for @statDriverPerformance.
+  ///
+  /// In fr, this message translates to:
+  /// **'Performance des livreurs'**
+  String get statDriverPerformance;
+
+  /// No description provided for @statNoData.
+  ///
+  /// In fr, this message translates to:
+  /// **'Pas encore de donnees'**
+  String get statNoData;
+
+  /// No description provided for @statDeliveries.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count} courses'**
+  String statDeliveries(int count);
+
+  /// No description provided for @adminUsersTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Utilisateurs'**
+  String get adminUsersTitle;
+
+  /// No description provided for @adminUsersManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Gerer les utilisateurs'**
+  String get adminUsersManage;
+
+  /// No description provided for @adminUsersSearch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher un nom ou un numero'**
+  String get adminUsersSearch;
+
+  /// No description provided for @adminUsersEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun utilisateur'**
+  String get adminUsersEmpty;
+
+  /// No description provided for @adminUsersTabClients.
+  ///
+  /// In fr, this message translates to:
+  /// **'Clients'**
+  String get adminUsersTabClients;
+
+  /// No description provided for @adminUsersTabDrivers.
+  ///
+  /// In fr, this message translates to:
+  /// **'Livreurs'**
+  String get adminUsersTabDrivers;
+
+  /// No description provided for @adminUserSuspended.
+  ///
+  /// In fr, this message translates to:
+  /// **'Suspendu'**
+  String get adminUserSuspended;
+
+  /// No description provided for @adminUserActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'Actif'**
+  String get adminUserActive;
+
   /// No description provided for @adminOpenIncidents.
   ///
   /// In fr, this message translates to:

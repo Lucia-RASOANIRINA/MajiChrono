@@ -1657,6 +1657,94 @@ class AppLocalizationsFr extends AppLocalizations {
   String get adminOnlineDrivers => 'Livreurs en ligne';
 
   @override
+  String get adminTotalClients => 'Clients';
+
+  @override
+  String get adminTotalDrivers => 'Livreurs';
+
+  @override
+  String get adminStatsTitle => 'Statistiques & rapports';
+
+  @override
+  String get adminStatsManage => 'Statistiques & rapports';
+
+  @override
+  String get statTotalDeliveries => 'Livraisons';
+
+  @override
+  String get statSuccessRate => 'Taux de reussite';
+
+  @override
+  String get statCancellationRate => 'Taux d\'annulation';
+
+  @override
+  String get statRevenue => 'Chiffre d\'affaires';
+
+  @override
+  String get statDriverEarnings => 'Revenus livreurs';
+
+  @override
+  String get statAvgTime => 'Temps moyen';
+
+  @override
+  String statMinutes(int min) {
+    return '$min min';
+  }
+
+  @override
+  String get statIncidents => 'Incidents';
+
+  @override
+  String get statDisputes => 'Litiges';
+
+  @override
+  String get statVolumes => 'Volumes';
+
+  @override
+  String get statRates => 'Taux & qualite';
+
+  @override
+  String get statTopZones => 'Zones les plus actives';
+
+  @override
+  String get statPeakHours => 'Heures de pointe';
+
+  @override
+  String get statDriverPerformance => 'Performance des livreurs';
+
+  @override
+  String get statNoData => 'Pas encore de donnees';
+
+  @override
+  String statDeliveries(int count) {
+    return '$count courses';
+  }
+
+  @override
+  String get adminUsersTitle => 'Utilisateurs';
+
+  @override
+  String get adminUsersManage => 'Gerer les utilisateurs';
+
+  @override
+  String get adminUsersSearch => 'Rechercher un nom ou un numero';
+
+  @override
+  String get adminUsersEmpty => 'Aucun utilisateur';
+
+  @override
+  String get adminUsersTabClients => 'Clients';
+
+  @override
+  String get adminUsersTabDrivers => 'Livreurs';
+
+  @override
+  String get adminUserSuspended => 'Suspendu';
+
+  @override
+  String get adminUserActive => 'Actif';
+
+  @override
   String get adminOpenIncidents => 'Incidents ouverts';
 
   @override
