@@ -74,7 +74,7 @@ void main() {
     await upload('selfie');
     final s = await status();
     expect((s['uploaded'] as List).toSet(), {'cin_front', 'selfie'});
-    expect((s['missing'] as List), contains('licence'));
+    expect(s['missing'] as List, contains('licence'));
   });
 
   test('un dossier incomplet ne se soumet pas', () async {

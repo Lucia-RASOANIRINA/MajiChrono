@@ -19,6 +19,7 @@ import 'package:majichrono/core/sync/sync_scheduler.dart';
 import 'package:majichrono/features/admin/data/mock/admin_mock_module.dart';
 import 'package:majichrono/features/auth/data/mock/auth_mock_module.dart';
 import 'package:majichrono/features/custody/data/mock/custody_mock_module.dart';
+import 'package:majichrono/features/delivery/data/mock/addresses_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/delivery_mock_module.dart';
 import 'package:majichrono/features/chat/data/chat_mock_module.dart';
 import 'package:majichrono/features/delivery/data/mock/reviews_mock_module.dart';
@@ -72,6 +73,7 @@ final mockBackendProvider = Provider<MockBackend>((ref) {
     ..register(DriverMockModule(deliveries: () => deliveries.store))
     ..register(CustodyMockModule())
     ..register(PaymentMockModule())
+    ..register(AddressesMockModule())
     ..register(ReviewsMockModule())
     ..register(ChatMockModule())
     ..register(AdminMockModule(deliveries: () => deliveries.store))

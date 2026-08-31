@@ -39,6 +39,19 @@ class AppRoutes {
   /// Appareils connectes : liste et revocation des sessions actives.
   static const String sessions = '/profile/sessions';
 
+  /// Carnet d'adresses du compte (domicile, travail, favoris).
+  static const String addressBook = '/addresses';
+
+  /// Centre d'aide : FAQ et contact du support.
+  static const String helpCenter = '/help';
+
+  /// Portefeuille client : solde MajiPay et historique des paiements (§11).
+  static const String wallet = '/wallet';
+
+  /// Litiges de l'utilisateur : liste et detail (§13, assistance).
+  static const String disputes = '/support/disputes';
+  static String dispute(String id) => '/support/disputes/$id';
+
   /// Vrai pour toute route du parcours d'authentification.
   /// L'accueil compte comme une etape du parcours d'entree : un visiteur non
   /// identifie doit pouvoir y rester sans etre renvoye sur la saisie du numero.

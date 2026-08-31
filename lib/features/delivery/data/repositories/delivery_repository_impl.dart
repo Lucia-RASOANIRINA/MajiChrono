@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/logging/app_logger.dart';
 import 'package:majichrono/core/network/api_client.dart';
@@ -27,20 +29,103 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
   Stream<List<SavedAddress>> watchAddressBook() => _local.watchAddressBook();
 
   @override
+  Future<List<SavedAddress>> fetchAddresses() async {
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.addresses,
+    );
+    final entries = (json['items'] as List<dynamic>? ?? [])
+        .whereType<Map<String, dynamic>>()
+        .map(SavedAddress.fromJson)
+        .whereType<SavedAddress>()
+        .toList();
+    // Le serveur fait foi : on remplace le cache local par sa version.
+    await _local.replaceAddressBook(entries);
+    return entries;
+  }
+
+  /// Enregistrement **local d'abord** (EXI-C05) : le carnet doit rester
+  /// utilisable hors reseau. On ecrit en cache tout de suite, puis on pousse au
+  /// serveur ; si le reseau manque, l'entree reste locale et part en file de
+  /// synchronisation.
+  @override
   Future<SavedAddress> saveAddress({
+    String? id,
     required String label,
+    required AddressKind kind,
     required Address address,
   }) async {
-    final entry = SavedAddress(id: _uuid.v4(), label: label, address: address);
+    final localId = id ?? 'local_${_uuid.v4()}';
+    var entry = SavedAddress(
+      id: localId,
+      label: label,
+      kind: kind,
+      address: address,
+    );
     await _local.upsertAddress(entry);
+
+    final body = {
+      'label': label,
+      'kind': kind.wireName,
+      'address': address.toJson(),
+    };
+    final path = id == null
+        ? ApiEndpoints.addresses
+        : ApiEndpoints.address(id);
+    try {
+      final json = id == null
+          ? await _client.post<Map<String, dynamic>>(path, body: body)
+          : await _client.patch<Map<String, dynamic>>(path, body: body);
+      final server = SavedAddress.fromJson(json);
+      if (server != null) {
+        // Le serveur a pose l'identifiant definitif : on remplace l'entree
+        // locale provisoire par la sienne.
+        if (server.id != localId) await _local.deleteAddress(localId);
+        await _local.upsertAddress(server);
+        entry = server;
+      }
+    } on Failure {
+      await _queue.enqueue(
+        method: id == null ? 'POST' : 'PATCH',
+        path: path,
+        idempotencyKey: 'addr_$localId',
+        body: body,
+        priority: SyncPriority.rating,
+      );
+    }
     return entry;
   }
 
   @override
-  Future<void> deleteAddress(String id) => _local.deleteAddress(id);
+  Future<void> deleteAddress(String id) async {
+    await _local.deleteAddress(id);
+    // Une entree jamais montee au serveur (id local) n'a rien a y supprimer.
+    if (id.startsWith('local_')) return;
+    try {
+      await _client.delete<void>(ApiEndpoints.address(id));
+    } on Failure {
+      await _queue.enqueue(
+        method: 'DELETE',
+        path: ApiEndpoints.address(id),
+        idempotencyKey: 'addr_del_$id',
+        priority: SyncPriority.rating,
+      );
+    }
+  }
 
   @override
   Future<void> touchAddress(String id) => _local.touchAddress(id);
+
+  @override
+  Future<String> uploadPackagePhoto({
+    required List<int> bytes,
+    required String contentType,
+  }) async {
+    final json = await _client.post<Map<String, dynamic>>(
+      ApiEndpoints.media,
+      body: {'imageBase64': base64Encode(bytes), 'contentType': contentType},
+    );
+    return json['id'] as String;
+  }
 
   @override
   Stream<List<Delivery>> watchDeliveries() => _local.watchDeliveries();
@@ -128,13 +213,15 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
   }
 
   @override
-  Future<void> cancelDelivery(String id) async {
+  Future<int> cancelDelivery(String id, {String? reason}) async {
     final json = await _client.post<Map<String, dynamic>>(
       ApiEndpoints.deliveryCancel(id),
+      body: {'reason': ?reason},
     );
     final updated = Delivery.fromJson(json);
     if (updated != null) {
       await _local.upsertDelivery(updated, pendingSync: false);
     }
+    return (json['cancelFee'] as num?)?.toInt() ?? 0;
   }
 }

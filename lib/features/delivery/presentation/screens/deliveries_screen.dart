@@ -14,15 +14,73 @@ import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_skeleton.dart';
 import 'package:majichrono/shared/widgets/mc_status_badge.dart';
 
+/// Regroupement de statuts pour les onglets de l'historique (EXI-C33).
+enum _HistoryTab { all, active, done, cancelled }
+
+/// Fenetre temporelle du filtre historique.
+enum _HistoryPeriod { all, days7, days30 }
+
 /// Historique des courses (EXI-C33).
 ///
 /// Alimente par la base locale, donc consultable hors ligne. Le rafraichissement
-/// serveur est un complement, jamais une condition d'affichage.
-class DeliveriesScreen extends ConsumerWidget {
+/// serveur est un complement, jamais une condition d'affichage. La recherche et
+/// les filtres travaillent sur cette meme liste locale : ils restent donc
+/// disponibles hors ligne, sans aller-retour serveur.
+class DeliveriesScreen extends ConsumerStatefulWidget {
   const DeliveriesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DeliveriesScreen> createState() => _DeliveriesScreenState();
+}
+
+class _DeliveriesScreenState extends ConsumerState<DeliveriesScreen> {
+  final _searchController = TextEditingController();
+  String _query = '';
+  _HistoryTab _tab = _HistoryTab.all;
+  _HistoryPeriod _period = _HistoryPeriod.all;
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  bool _matchesTab(Delivery d) => switch (_tab) {
+    _HistoryTab.all => true,
+    _HistoryTab.active => d.status.isActive,
+    _HistoryTab.done =>
+      d.status == DeliveryStatus.delivered ||
+          d.status == DeliveryStatus.deliveredWithReserves ||
+          d.status == DeliveryStatus.paid ||
+          d.status == DeliveryStatus.closed,
+    _HistoryTab.cancelled =>
+      d.status == DeliveryStatus.cancelled ||
+          d.status == DeliveryStatus.refused,
+  };
+
+  bool _matchesPeriod(Delivery d) {
+    final days = switch (_period) {
+      _HistoryPeriod.all => null,
+      _HistoryPeriod.days7 => 7,
+      _HistoryPeriod.days30 => 30,
+    };
+    if (days == null) return true;
+    return d.createdAt.isAfter(
+      DateTime.now().subtract(Duration(days: days)),
+    );
+  }
+
+  bool _matchesQuery(Delivery d) {
+    if (_query.isEmpty) return true;
+    final q = _query.toLowerCase();
+    return d.id.toLowerCase().contains(q) ||
+        d.pickup.summary.toLowerCase().contains(q) ||
+        d.dropoff.summary.toLowerCase().contains(q) ||
+        (d.driverName?.toLowerCase().contains(q) ?? false);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final deliveries = ref.watch(deliveriesProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
@@ -59,18 +117,181 @@ class DeliveriesScreen extends ConsumerWidget {
                 actionLabel: l10n.emptyDeliveriesAction,
                 onAction: () => context.push(AppRoutes.clientNewDelivery),
               )
-            : RefreshIndicator(
-                onRefresh: () =>
-                    ref.read(deliveryRepositoryProvider).refreshDeliveries(),
-                child: ListView.separated(
-                  padding: const EdgeInsets.all(AppSpacing.lg),
-                  itemCount: items.length,
-                  separatorBuilder: (_, _) =>
-                      const SizedBox(height: AppSpacing.md),
-                  itemBuilder: (context, index) =>
-                      DeliveryCard(delivery: items[index]),
-                ),
+            : _buildList(context, l10n, items),
+      ),
+    );
+  }
+
+  Widget _buildList(
+    BuildContext context,
+    AppLocalizations l10n,
+    List<Delivery> items,
+  ) {
+    // Le tri par date descendante est deja garanti en amont ; on ne fait
+    // qu'appliquer les criteres successifs sur la meme liste.
+    final filtered = items
+        .where(_matchesTab)
+        .where(_matchesPeriod)
+        .where(_matchesQuery)
+        .toList();
+
+    return RefreshIndicator(
+      onRefresh: () =>
+          ref.read(deliveryRepositoryProvider).refreshDeliveries(),
+      child: ListView(
+        padding: const EdgeInsets.all(AppSpacing.lg),
+        children: [
+          _SearchField(
+            controller: _searchController,
+            hint: l10n.histSearchHint,
+            onChanged: (value) => setState(() => _query = value.trim()),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          _TabRow(
+            current: _tab,
+            onChanged: (tab) => setState(() => _tab = tab),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          _PeriodRow(
+            current: _period,
+            onChanged: (period) => setState(() => _period = period),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
+            child: Text(
+              l10n.histResultCount(filtered.length),
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.neutral,
               ),
+            ),
+          ),
+          const SizedBox(height: AppSpacing.md),
+          if (filtered.isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.xl),
+              child: McEmptyState(
+                icon: Icons.search_off,
+                title: l10n.histNoMatch,
+                message: l10n.histNoMatchHelp,
+              ),
+            )
+          else
+            for (final delivery in filtered) ...[
+              DeliveryCard(delivery: delivery),
+              const SizedBox(height: AppSpacing.md),
+            ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Champ de recherche de l'historique. Bouton d'effacement des qu'un texte est
+/// saisi, pour ne pas laisser l'utilisateur effacer caractere par caractere.
+class _SearchField extends StatelessWidget {
+  const _SearchField({
+    required this.controller,
+    required this.hint,
+    required this.onChanged,
+  });
+
+  final TextEditingController controller;
+  final String hint;
+  final ValueChanged<String> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: hint,
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: controller.text.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: MaterialLocalizations.of(context).cancelButtonLabel,
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              ),
+        isDense: true,
+        border: const OutlineInputBorder(
+          borderRadius: AppRadii.componentAll,
+        ),
+      ),
+    );
+  }
+}
+
+/// Rangee d'onglets de statut (EXI-C33) : toutes / en cours / terminees /
+/// annulees. Des `ChoiceChip` plutot qu'un `TabBar` pour rester sur la meme
+/// grammaire de filtres que la supervision.
+class _TabRow extends StatelessWidget {
+  const _TabRow({required this.current, required this.onChanged});
+
+  final _HistoryTab current;
+  final ValueChanged<_HistoryTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final labels = {
+      _HistoryTab.all: l10n.histFilterAll,
+      _HistoryTab.active: l10n.histFilterActive,
+      _HistoryTab.done: l10n.histFilterDone,
+      _HistoryTab.cancelled: l10n.histFilterCancelled,
+    };
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final tab in _HistoryTab.values) ...[
+            ChoiceChip(
+              label: Text(labels[tab]!),
+              selected: current == tab,
+              onSelected: (_) => onChanged(tab),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// Rangee de fenetres temporelles (EXI-C33 : filtre par date).
+class _PeriodRow extends StatelessWidget {
+  const _PeriodRow({required this.current, required this.onChanged});
+
+  final _HistoryPeriod current;
+  final ValueChanged<_HistoryPeriod> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final labels = {
+      _HistoryPeriod.all: l10n.histPeriodAll,
+      _HistoryPeriod.days7: l10n.histPeriod7,
+      _HistoryPeriod.days30: l10n.histPeriod30,
+    };
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        children: [
+          for (final period in _HistoryPeriod.values) ...[
+            FilterChip(
+              label: Text(labels[period]!),
+              selected: current == period,
+              onSelected: (_) => onChanged(period),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+          ],
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:majichrono/core/network/mock/mock_backend.dart';
+import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
 
 /// Routes simulees des differenciants (§5).
 ///
@@ -74,6 +75,8 @@ class DifferentiatorsMockModule extends MockModule {
     Map<String, String> _,
   ) async {
     final district = req.query['district'];
+    final lat = double.tryParse('${req.query['lat']}');
+    final lng = double.tryParse('${req.query['lng']}');
 
     const points = [
       {
@@ -117,10 +120,33 @@ class DifferentiatorsMockModule extends MockModule {
       },
     ];
 
-    return MockResponse.ok({
-      'items': district == null
-          ? points
-          : points.where((p) => p['district'] == district).toList(),
-    });
+    List<Map<String, dynamic>> items = district == null
+        ? points.map((p) => {...p}).toList()
+        : points
+              .where((p) => p['district'] == district)
+              .map((p) => {...p})
+              .toList();
+
+    // Position fournie : on enrichit chaque relais de sa distance et on remonte
+    // les plus proches, comme le fait le serveur reel (§7).
+    if (lat != null && lng != null) {
+      final origin = GeoPoint(lat, lng);
+      items = items.map((p) {
+        final point = GeoPoint.fromJson(p['point'] as Map<String, dynamic>?);
+        final distance = point == null ? null : origin.distanceKmTo(point);
+        return {
+          ...p,
+          if (distance != null)
+            'distanceKm': double.parse(distance.toStringAsFixed(2)),
+        };
+      }).toList()
+        ..sort((a, b) {
+          final da = (a['distanceKm'] as num?)?.toDouble() ?? double.infinity;
+          final db = (b['distanceKm'] as num?)?.toDouble() ?? double.infinity;
+          return da.compareTo(db);
+        });
+    }
+
+    return MockResponse.ok({'items': items});
   }
 }

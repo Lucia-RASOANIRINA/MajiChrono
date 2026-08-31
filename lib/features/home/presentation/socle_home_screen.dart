@@ -11,9 +11,12 @@ import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
+import 'package:majichrono/features/delivery/domain/entities/address.dart';
+import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/notifications/presentation/providers/notification_center_provider.dart';
+import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_section_header.dart';
@@ -93,6 +96,14 @@ class SocleHomeScreen extends ConsumerWidget {
                     deliveriesCount: deliveries.length,
                   ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
+                  if (role == UserRole.client) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    const _WalletBalanceCard()
+                        .animate()
+                        .fade(delay: 80.ms)
+                        .slideY(begin: 0.1, end: 0),
+                  ],
+
                   const SizedBox(height: AppSpacing.lg),
 
                   // Actions Rapides
@@ -114,6 +125,11 @@ class SocleHomeScreen extends ConsumerWidget {
                     onDataUsage: () => context.push(AppRoutes.dataUsage),
                     onSync: () => context.push(AppRoutes.pendingSync),
                   ).animate().fade(delay: 150.ms).slideY(begin: 0.1, end: 0),
+
+                  if (role == UserRole.client)
+                    const _FavoritesStrip()
+                        .animate()
+                        .fade(delay: 180.ms),
 
                   const SizedBox(height: AppSpacing.xl),
 
@@ -702,6 +718,185 @@ class _ModernActionCardState extends State<_ModernActionCard> {
       ),
     );
   }
+}
+
+// ============================================================
+// SOLDE MAJIPAY (§1, EXI-C39)
+// ============================================================
+
+/// Carte de solde MajiPay sur l'accueil client, raccourci vers le portefeuille.
+///
+/// Le solde est lu a l'ouverture, jamais mis en cache : un montant perime
+/// afficherait une somme fausse au moment ou l'utilisateur compte dessus. Un
+/// solde indisponible (reseau coupe) se dit sobrement, il ne bloque rien.
+class _WalletBalanceCard extends ConsumerWidget {
+  const _WalletBalanceCard();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final balance = ref.watch(majiPayBalanceProvider(UserRole.client));
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        context.push(AppRoutes.wallet);
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet_outlined,
+                color: AppColors.primary,
+                size: 22,
+              ),
+            ),
+            const SizedBox(width: AppSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    l10n.walletBalanceLabel,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark
+                          ? const Color(0xFF94A3B8)
+                          : const Color(0xFF64748B),
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  balance.when(
+                    // Placeholder statique, jamais un indicateur qui tourne : sur
+                    // l'accueil, un solde qui charge (voire ne repond pas, hors
+                    // ligne) ne doit pas animer en boucle — ce serait du bruit, et
+                    // cela empecherait tout `pumpAndSettle` de se stabiliser.
+                    loading: () => Text(
+                      '—',
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        color: isDark
+                            ? const Color(0xFF94A3B8)
+                            : const Color(0xFF64748B),
+                      ),
+                    ),
+                    error: (_, _) => Text(
+                      l10n.payBalanceUnavailable,
+                      style: const TextStyle(fontWeight: FontWeight.w600),
+                    ),
+                    data: (value) => Text(
+                      value == null
+                          ? l10n.payBalanceUnavailable
+                          : formatAriary(value.availableAriary),
+                      style: TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -0.3,
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// ============================================================
+// ADRESSES FAVORITES (§1, EXI-C05)
+// ============================================================
+
+/// Bandeau d'acces rapide aux adresses enregistrees (§1).
+///
+/// Absent quand le carnet est vide : un bandeau vide n'apprend rien. Chaque
+/// puce ouvre le carnet, d'ou le tunnel de creation sait deja piocher une
+/// adresse. On priorise domicile et travail, puis les plus utilisees.
+class _FavoritesStrip extends ConsumerWidget {
+  const _FavoritesStrip();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final addresses = ref.watch(addressBookProvider).valueOrNull ?? const [];
+    if (addresses.isEmpty) return const SizedBox.shrink();
+
+    final sorted = [...addresses]..sort((a, b) {
+      int rank(AddressKind k) => switch (k) {
+        AddressKind.home => 0,
+        AddressKind.work => 1,
+        AddressKind.favorite => 2,
+        AddressKind.other => 3,
+      };
+      final byKind = rank(a.kind).compareTo(rank(b.kind));
+      if (byKind != 0) return byKind;
+      return b.useCount.compareTo(a.useCount);
+    });
+    final visible = sorted.take(6).toList();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: AppSpacing.lg),
+        McSectionHeader(
+          title: l10n.addrBookTitle,
+          actionLabel: l10n.commonSeeAll,
+          onAction: () => context.push(AppRoutes.addressBook),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        SizedBox(
+          height: 40,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: visible.length,
+            separatorBuilder: (_, _) => const SizedBox(width: AppSpacing.sm),
+            itemBuilder: (context, index) {
+              final saved = visible[index];
+              return ActionChip(
+                avatar: Icon(_kindIcon(saved.kind), size: 18),
+                label: Text(saved.label),
+                onPressed: () {
+                  HapticFeedback.selectionClick();
+                  context.push(AppRoutes.addressBook);
+                },
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  IconData _kindIcon(AddressKind kind) => switch (kind) {
+    AddressKind.home => Icons.home_outlined,
+    AddressKind.work => Icons.work_outline,
+    AddressKind.favorite => Icons.star_outline,
+    AddressKind.other => Icons.place_outlined,
+  };
 }
 
 // ============================================================

@@ -51,6 +51,7 @@ class RelayPoint {
     this.acceptsPickup = true,
     this.maxWeightKg = 15,
     this.storageDays = 3,
+    this.distanceKm,
   });
 
   final String id;
@@ -82,6 +83,11 @@ class RelayPoint {
   /// Duree de garde. Au-dela, le colis repart chez l'expediteur.
   final int storageDays;
 
+  /// Distance depuis la position fournie a la requete, quand elle l'etait. Sert
+  /// a trier et a afficher « le plus proche » ; absente si aucune position n'a
+  /// ete donnee.
+  final double? distanceKm;
+
   bool canAccept(double weightKg) => acceptsDropoff && weightKg <= maxWeightKg;
 
   static RelayPoint? fromJson(Map<String, dynamic>? json) {
@@ -102,6 +108,7 @@ class RelayPoint {
       acceptsPickup: json['acceptsPickup'] != false,
       maxWeightKg: (json['maxWeightKg'] as num?)?.toDouble() ?? 15,
       storageDays: (json['storageDays'] as num?)?.toInt() ?? 3,
+      distanceKm: (json['distanceKm'] as num?)?.toDouble(),
     );
   }
 

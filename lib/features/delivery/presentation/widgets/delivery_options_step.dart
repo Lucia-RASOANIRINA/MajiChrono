@@ -8,6 +8,7 @@ import 'package:majichrono/features/delivery/domain/entities/delivery.dart';
 import 'package:majichrono/features/delivery/domain/entities/delivery_options.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/delivery/domain/entities/shopping_order.dart';
+import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
 import 'package:majichrono/features/delivery/presentation/providers/relay_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -22,6 +23,7 @@ class DeliveryOptionsStep extends ConsumerWidget {
     required this.kind,
     required this.weight,
     required this.dropoffDistrict,
+    required this.dropoffPoint,
     required this.payer,
     required this.items,
     required this.cap,
@@ -36,6 +38,10 @@ class DeliveryOptionsStep extends ConsumerWidget {
   final DeliveryKind kind;
   final WeightCategory weight;
   final String dropoffDistrict;
+
+  /// Position du point de remise, quand elle est connue : sert a trier les
+  /// relais du plus proche au plus loin et a afficher leur distance (§7).
+  final GeoPoint? dropoffPoint;
   final Payer payer;
   final List<ShoppingItem> items;
   final TextEditingController cap;
@@ -131,6 +137,7 @@ class DeliveryOptionsStep extends ConsumerWidget {
         const SizedBox(height: AppSpacing.sm),
         _RelaySection(
           district: dropoffDistrict,
+          dropoffPoint: dropoffPoint,
           weightKg: weight.maxKg,
           selectedId: relayPointId,
           onSelect: onRelay,
@@ -368,12 +375,14 @@ class _ShoppingSectionState extends State<_ShoppingSection> {
 class _RelaySection extends ConsumerWidget {
   const _RelaySection({
     required this.district,
+    required this.dropoffPoint,
     required this.weightKg,
     required this.selectedId,
     required this.onSelect,
   });
 
   final String district;
+  final GeoPoint? dropoffPoint;
   final double weightKg;
   final String? selectedId;
   final ValueChanged<String?> onSelect;
@@ -382,7 +391,15 @@ class _RelaySection extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final relays = ref.watch(relayPointsProvider(null));
+    // On ne filtre pas sur le quartier ici (un relais du quartier voisin peut
+    // arranger) : on laisse le serveur trier par proximite quand il le peut.
+    final relays = ref.watch(
+      relayPointsProvider((
+        district: null,
+        lat: dropoffPoint?.latitude,
+        lng: dropoffPoint?.longitude,
+      )),
+    );
 
     return relays.when(
       loading: () => const Center(child: McLoader()),
@@ -413,7 +430,8 @@ class _RelaySection extends ConsumerWidget {
                     title: Text(relay.name),
                     subtitle: Text(
                       relay.canAccept(weightKg)
-                          ? '${relay.landmark} · ${relay.district}\n'
+                          ? '${relay.landmark} · ${relay.district}'
+                                '${relay.distanceKm != null ? ' · ${l10n.relayDistance(relay.distanceKm!.toStringAsFixed(1))}' : ''}\n'
                                 '${relay.openingHours} · '
                                 '${l10n.relayStorage(relay.storageDays)}'
                           : l10n.relayTooHeavy,

@@ -152,6 +152,450 @@ abstract class AppLocalizations {
   /// **'Nom'**
   String get profileLastName;
 
+  /// No description provided for @addressBookTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes adresses'**
+  String get addressBookTitle;
+
+  /// No description provided for @addressBookManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes adresses'**
+  String get addressBookManage;
+
+  /// No description provided for @addressAdd.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une adresse'**
+  String get addressAdd;
+
+  /// No description provided for @addressEditTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifier l\'adresse'**
+  String get addressEditTitle;
+
+  /// No description provided for @addressLabelField.
+  ///
+  /// In fr, this message translates to:
+  /// **'Nom (ex. Maison, Boutique)'**
+  String get addressLabelField;
+
+  /// No description provided for @addressKindLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Type'**
+  String get addressKindLabel;
+
+  /// No description provided for @addressKindHome.
+  ///
+  /// In fr, this message translates to:
+  /// **'Domicile'**
+  String get addressKindHome;
+
+  /// No description provided for @addressKindWork.
+  ///
+  /// In fr, this message translates to:
+  /// **'Travail'**
+  String get addressKindWork;
+
+  /// No description provided for @addressKindFavorite.
+  ///
+  /// In fr, this message translates to:
+  /// **'Favori'**
+  String get addressKindFavorite;
+
+  /// No description provided for @addressKindOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre'**
+  String get addressKindOther;
+
+  /// No description provided for @addressEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune adresse enregistree'**
+  String get addressEmpty;
+
+  /// No description provided for @addressEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajoutez vos adresses habituelles pour aller plus vite.'**
+  String get addressEmptyHelp;
+
+  /// No description provided for @addressSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse enregistree'**
+  String get addressSaved;
+
+  /// No description provided for @addressDeleted.
+  ///
+  /// In fr, this message translates to:
+  /// **'Adresse supprimee'**
+  String get addressDeleted;
+
+  /// No description provided for @addressNeedPoint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Placez d\'abord l\'adresse sur la carte'**
+  String get addressNeedPoint;
+
+  /// No description provided for @addressPickSaved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisir dans mes adresses'**
+  String get addressPickSaved;
+
+  /// No description provided for @helpCenterTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aide et support'**
+  String get helpCenterTitle;
+
+  /// No description provided for @helpCenterManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aide et support'**
+  String get helpCenterManage;
+
+  /// No description provided for @helpContactTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Contacter le support'**
+  String get helpContactTitle;
+
+  /// No description provided for @helpContactHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Notre equipe repond aux heures ouvrees.'**
+  String get helpContactHelp;
+
+  /// No description provided for @helpCall.
+  ///
+  /// In fr, this message translates to:
+  /// **'Appeler'**
+  String get helpCall;
+
+  /// No description provided for @helpEmail.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ecrire'**
+  String get helpEmail;
+
+  /// No description provided for @helpReportProblem.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler un probleme'**
+  String get helpReportProblem;
+
+  /// No description provided for @helpReportProblemHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un souci avec une course ? Ecrivez-nous en indiquant son numero.'**
+  String get helpReportProblemHelp;
+
+  /// No description provided for @helpReportSubject.
+  ///
+  /// In fr, this message translates to:
+  /// **'MajiChrono — signalement'**
+  String get helpReportSubject;
+
+  /// No description provided for @helpFaqTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Questions frequentes'**
+  String get helpFaqTitle;
+
+  /// No description provided for @helpFaqQ1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment creer une livraison ?'**
+  String get helpFaqQ1;
+
+  /// No description provided for @helpFaqA1.
+  ///
+  /// In fr, this message translates to:
+  /// **'Depuis l\'accueil, touchez « Nouvelle livraison » : choisissez le depart et la destination, decrivez le colis, puis confirmez.'**
+  String get helpFaqA1;
+
+  /// No description provided for @helpFaqQ2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment suivre ma livraison ?'**
+  String get helpFaqQ2;
+
+  /// No description provided for @helpFaqA2.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrez la course dans « Mes courses » : vous y voyez le statut en temps reel, la position du livreur et l\'heure d\'arrivee estimee.'**
+  String get helpFaqA2;
+
+  /// No description provided for @helpFaqQ3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment payer ?'**
+  String get helpFaqQ3;
+
+  /// No description provided for @helpFaqA3.
+  ///
+  /// In fr, this message translates to:
+  /// **'Par MajiPay (code QR) ou en especes a la remise. Le detail du tarif s\'affiche avant de confirmer.'**
+  String get helpFaqA3;
+
+  /// No description provided for @helpFaqQ4.
+  ///
+  /// In fr, this message translates to:
+  /// **'Puis-je annuler une course ?'**
+  String get helpFaqQ4;
+
+  /// No description provided for @helpFaqA4.
+  ///
+  /// In fr, this message translates to:
+  /// **'Oui, tant que le livreur n\'a pas encore pris le colis en charge.'**
+  String get helpFaqA4;
+
+  /// No description provided for @helpFaqQ5.
+  ///
+  /// In fr, this message translates to:
+  /// **'Comment enregistrer mes adresses ?'**
+  String get helpFaqQ5;
+
+  /// No description provided for @helpFaqA5.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dans Reglages, Mes adresses : ajoutez votre domicile, votre travail et vos favoris pour aller plus vite.'**
+  String get helpFaqA5;
+
+  /// No description provided for @helpFaqQ6.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un livreur est-il fiable ?'**
+  String get helpFaqQ6;
+
+  /// No description provided for @helpFaqA6.
+  ///
+  /// In fr, this message translates to:
+  /// **'Chaque livreur passe une verification d\'identite (KYC) avant de pouvoir accepter des courses, et vous pouvez le noter apres la livraison.'**
+  String get helpFaqA6;
+
+  /// No description provided for @disputesTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mes litiges'**
+  String get disputesTitle;
+
+  /// No description provided for @disputesManage.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litiges et reclamations'**
+  String get disputesManage;
+
+  /// No description provided for @disputesEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun litige'**
+  String get disputesEmpty;
+
+  /// No description provided for @disputesEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Un probleme avec une course ? Ouvrez un litige depuis son suivi.'**
+  String get disputesEmptyHelp;
+
+  /// No description provided for @disputeOpenTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir un litige'**
+  String get disputeOpenTitle;
+
+  /// No description provided for @disputeOpenHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decrivez le probleme rencontre. Notre equipe instruit le dossier avec le livreur.'**
+  String get disputeOpenHelp;
+
+  /// No description provided for @disputeReasonLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif du litige'**
+  String get disputeReasonLabel;
+
+  /// No description provided for @disputeReasonHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ex : colis abime a la reception'**
+  String get disputeReasonHint;
+
+  /// No description provided for @disputeOpenAction.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvrir le litige'**
+  String get disputeOpenAction;
+
+  /// No description provided for @disputeOpened.
+  ///
+  /// In fr, this message translates to:
+  /// **'Litige ouvert'**
+  String get disputeOpened;
+
+  /// No description provided for @disputeReportButton.
+  ///
+  /// In fr, this message translates to:
+  /// **'Signaler un litige'**
+  String get disputeReportButton;
+
+  /// No description provided for @disputeStatusOpen.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert'**
+  String get disputeStatusOpen;
+
+  /// No description provided for @disputeStatusInvestigating.
+  ///
+  /// In fr, this message translates to:
+  /// **'En instruction'**
+  String get disputeStatusInvestigating;
+
+  /// No description provided for @disputeStatusResolved.
+  ///
+  /// In fr, this message translates to:
+  /// **'Resolu'**
+  String get disputeStatusResolved;
+
+  /// No description provided for @disputeStatusRejected.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rejete'**
+  String get disputeStatusRejected;
+
+  /// No description provided for @disputeReason.
+  ///
+  /// In fr, this message translates to:
+  /// **'Motif'**
+  String get disputeReason;
+
+  /// No description provided for @disputeThread.
+  ///
+  /// In fr, this message translates to:
+  /// **'Echanges'**
+  String get disputeThread;
+
+  /// No description provided for @disputeNoMessages.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun echange pour l\'instant.'**
+  String get disputeNoMessages;
+
+  /// No description provided for @disputeReplyHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ecrire un message'**
+  String get disputeReplyHint;
+
+  /// No description provided for @disputeSend.
+  ///
+  /// In fr, this message translates to:
+  /// **'Envoyer'**
+  String get disputeSend;
+
+  /// No description provided for @disputeClosed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ce litige est clos.'**
+  String get disputeClosed;
+
+  /// No description provided for @disputeDecision.
+  ///
+  /// In fr, this message translates to:
+  /// **'Decision'**
+  String get disputeDecision;
+
+  /// No description provided for @disputeAuthorYou.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vous'**
+  String get disputeAuthorYou;
+
+  /// No description provided for @disputeOpenedOn.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ouvert le {date}'**
+  String disputeOpenedOn(String date);
+
+  /// No description provided for @disputeReasonTooShort.
+  ///
+  /// In fr, this message translates to:
+  /// **'Detaillez un peu plus (10 caracteres minimum).'**
+  String get disputeReasonTooShort;
+
+  /// No description provided for @cancelDelivery.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la course'**
+  String get cancelDelivery;
+
+  /// No description provided for @cancelSheetTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annuler la course ?'**
+  String get cancelSheetTitle;
+
+  /// No description provided for @cancelSheetHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Choisissez un motif. Des frais peuvent s\'appliquer si un livreur est deja en route.'**
+  String get cancelSheetHelp;
+
+  /// No description provided for @cancelReasonMind.
+  ///
+  /// In fr, this message translates to:
+  /// **'J\'ai change d\'avis'**
+  String get cancelReasonMind;
+
+  /// No description provided for @cancelReasonWrongAddress.
+  ///
+  /// In fr, this message translates to:
+  /// **'Erreur d\'adresse'**
+  String get cancelReasonWrongAddress;
+
+  /// No description provided for @cancelReasonTooLong.
+  ///
+  /// In fr, this message translates to:
+  /// **'Attente trop longue'**
+  String get cancelReasonTooLong;
+
+  /// No description provided for @cancelReasonOther.
+  ///
+  /// In fr, this message translates to:
+  /// **'Autre raison'**
+  String get cancelReasonOther;
+
+  /// No description provided for @cancelConfirm.
+  ///
+  /// In fr, this message translates to:
+  /// **'Confirmer l\'annulation'**
+  String get cancelConfirm;
+
+  /// No description provided for @cancelKeep.
+  ///
+  /// In fr, this message translates to:
+  /// **'Garder la course'**
+  String get cancelKeep;
+
+  /// No description provided for @cancelDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course annulee'**
+  String get cancelDone;
+
+  /// No description provided for @cancelDoneWithFee.
+  ///
+  /// In fr, this message translates to:
+  /// **'Course annulee — frais retenus : {fee} Ar'**
+  String cancelDoneWithFee(int fee);
+
   /// No description provided for @profileNameEmpty.
   ///
   /// In fr, this message translates to:
@@ -1538,6 +1982,36 @@ abstract class AppLocalizations {
   /// **'Description'**
   String get pkgDescription;
 
+  /// No description provided for @pkgDimensions.
+  ///
+  /// In fr, this message translates to:
+  /// **'Dimensions (cm)'**
+  String get pkgDimensions;
+
+  /// No description provided for @pkgLength.
+  ///
+  /// In fr, this message translates to:
+  /// **'Long.'**
+  String get pkgLength;
+
+  /// No description provided for @pkgWidth.
+  ///
+  /// In fr, this message translates to:
+  /// **'Larg.'**
+  String get pkgWidth;
+
+  /// No description provided for @pkgHeight.
+  ///
+  /// In fr, this message translates to:
+  /// **'Haut.'**
+  String get pkgHeight;
+
+  /// No description provided for @pkgAddPhoto.
+  ///
+  /// In fr, this message translates to:
+  /// **'Ajouter une photo du colis'**
+  String get pkgAddPhoto;
+
   /// No description provided for @pkgPhotoLater.
   ///
   /// In fr, this message translates to:
@@ -1741,6 +2215,72 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'{km} km'**
   String deliveryDistance(String km);
+
+  /// No description provided for @histSearchHint.
+  ///
+  /// In fr, this message translates to:
+  /// **'Rechercher une course'**
+  String get histSearchHint;
+
+  /// No description provided for @histFilterAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toutes'**
+  String get histFilterAll;
+
+  /// No description provided for @histFilterActive.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get histFilterActive;
+
+  /// No description provided for @histFilterDone.
+  ///
+  /// In fr, this message translates to:
+  /// **'Terminees'**
+  String get histFilterDone;
+
+  /// No description provided for @histFilterCancelled.
+  ///
+  /// In fr, this message translates to:
+  /// **'Annulees'**
+  String get histFilterCancelled;
+
+  /// No description provided for @histPeriodAll.
+  ///
+  /// In fr, this message translates to:
+  /// **'Toute periode'**
+  String get histPeriodAll;
+
+  /// No description provided for @histPeriod7.
+  ///
+  /// In fr, this message translates to:
+  /// **'7 jours'**
+  String get histPeriod7;
+
+  /// No description provided for @histPeriod30.
+  ///
+  /// In fr, this message translates to:
+  /// **'30 jours'**
+  String get histPeriod30;
+
+  /// No description provided for @histNoMatch.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucune course ne correspond'**
+  String get histNoMatch;
+
+  /// No description provided for @histNoMatchHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Modifiez la recherche ou les filtres.'**
+  String get histNoMatchHelp;
+
+  /// No description provided for @histResultCount.
+  ///
+  /// In fr, this message translates to:
+  /// **'{count, plural, =0{Aucune course} =1{1 course} other{{count} courses}}'**
+  String histResultCount(int count);
 
   /// No description provided for @custodyPickupTitle.
   ///
@@ -2522,6 +3062,30 @@ abstract class AppLocalizations {
   /// **'Colis trop lourd pour ce relais'**
   String get relayTooHeavy;
 
+  /// No description provided for @relayDistance.
+  ///
+  /// In fr, this message translates to:
+  /// **'a {km} km'**
+  String relayDistance(String km);
+
+  /// No description provided for @relayPickupCodeTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Code de retrait'**
+  String get relayPickupCodeTitle;
+
+  /// No description provided for @relayPickupCodeHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Le destinataire presente ce code au relais pour recuperer le colis.'**
+  String get relayPickupCodeHelp;
+
+  /// No description provided for @commonCopy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Copier'**
+  String get commonCopy;
+
   /// No description provided for @groupTitle.
   ///
   /// In fr, this message translates to:
@@ -3163,6 +3727,90 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'Especes'**
   String get payMethodCash;
+
+  /// No description provided for @walletTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Mon portefeuille'**
+  String get walletTitle;
+
+  /// No description provided for @walletBalanceLabel.
+  ///
+  /// In fr, this message translates to:
+  /// **'Solde disponible'**
+  String get walletBalanceLabel;
+
+  /// No description provided for @walletHistoryTitle.
+  ///
+  /// In fr, this message translates to:
+  /// **'Historique des paiements'**
+  String get walletHistoryTitle;
+
+  /// No description provided for @walletHistoryEmpty.
+  ///
+  /// In fr, this message translates to:
+  /// **'Aucun paiement pour le moment'**
+  String get walletHistoryEmpty;
+
+  /// No description provided for @walletHistoryEmptyHelp.
+  ///
+  /// In fr, this message translates to:
+  /// **'Vos reglages MajiPay apparaitront ici.'**
+  String get walletHistoryEmptyHelp;
+
+  /// No description provided for @walletOutgoing.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement envoye'**
+  String get walletOutgoing;
+
+  /// No description provided for @walletIncoming.
+  ///
+  /// In fr, this message translates to:
+  /// **'Paiement recu'**
+  String get walletIncoming;
+
+  /// No description provided for @walletStatusPending.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cours'**
+  String get walletStatusPending;
+
+  /// No description provided for @walletStatusCaptured.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regle'**
+  String get walletStatusCaptured;
+
+  /// No description provided for @walletStatusFailed.
+  ///
+  /// In fr, this message translates to:
+  /// **'Echoue'**
+  String get walletStatusFailed;
+
+  /// No description provided for @walletStatusCash.
+  ///
+  /// In fr, this message translates to:
+  /// **'Regle en especes'**
+  String get walletStatusCash;
+
+  /// No description provided for @walletRefund.
+  ///
+  /// In fr, this message translates to:
+  /// **'Remboursement'**
+  String get walletRefund;
+
+  /// No description provided for @walletRefundNote.
+  ///
+  /// In fr, this message translates to:
+  /// **'En cas de course annulee apres paiement, le remboursement est traite par MajiPay sous 72 h. Contactez l\'assistance si besoin.'**
+  String get walletRefundNote;
+
+  /// No description provided for @walletViewReceipt.
+  ///
+  /// In fr, this message translates to:
+  /// **'Voir le recu'**
+  String get walletViewReceipt;
 
   /// No description provided for @syncPendingTitle.
   ///

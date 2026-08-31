@@ -53,6 +53,24 @@ class TestCreation:
 
         assert len(client.get("/deliveries", headers=client_headers).json()["items"]) == 2
 
+    def test_le_payeur_et_l_achat_pour_compte_sont_conserves(self, client: TestClient):
+        # Ces champs etaient auparavant perdus au premier rafraichissement : le
+        # mobile les envoyait, le serveur les ignorait (EXI-C07, EXI-C42).
+        client_headers = sign_in(client, "+261340000001", role="client")
+        shopping = {"cap": 20000, "items": [{"label": "Riz", "quantity": 2}]}
+        created = client.post(
+            "/deliveries",
+            json={**COURSE, "payer": "recipient", "shopping": shopping},
+            headers={**client_headers, "Idempotency-Key": "achat"},
+        ).json()
+        assert created["payer"] == "recipient"
+        assert created["shopping"]["cap"] == 20000
+
+        # Et ils survivent a une relecture.
+        reread = client.get(f"/deliveries/{created['id']}", headers=client_headers).json()
+        assert reread["payer"] == "recipient"
+        assert reread["shopping"]["items"][0]["label"] == "Riz"
+
 
 class TestTransitions:
     def test_un_livreur_accepte_puis_enleve_puis_remet(self, client: TestClient):
@@ -213,3 +231,56 @@ class TestSuiviPublic:
 
     def test_un_jeton_devine_n_ouvre_rien(self, client: TestClient):
         assert client.get("/track/nimportequoi").status_code == 404
+
+
+class TestAnnulation:
+    """Annulation par l'expediteur (EXI-C26) : possible avant la prise en
+    charge, motivee, et facturee seulement si un livreur etait deja engage."""
+
+    def test_avant_tout_livreur_est_gratuite(self, client: TestClient):
+        expediteur = sign_in(client, "+261340000001", role="client")
+        course = creer(client, expediteur)
+        r = client.post(
+            f"/deliveries/{course['id']}/cancel",
+            json={"reason": "Changement d avis"},
+            headers=expediteur,
+        )
+        assert r.status_code == 200
+        body = r.json()
+        assert body["status"] == "annulee"
+        assert body["cancelFee"] == 0
+        assert body["cancelReason"] == "Changement d avis"
+
+    def test_apres_acceptation_retient_des_frais(self, client: TestClient):
+        expediteur = sign_in(client, "+261340000001", role="client")
+        livreur = sign_in(client, "+261330000002", role="driver")
+        course = creer(client, expediteur)
+        client.post(
+            f"/deliveries/{course['id']}/transition",
+            json={"status": "acceptee"},
+            headers=livreur,
+        )
+        r = client.post(
+            f"/deliveries/{course['id']}/cancel",
+            json={"reason": "Trop long"},
+            headers=expediteur,
+        )
+        assert r.status_code == 200
+        assert r.json()["status"] == "annulee"
+        # 20 % de 6000 = 1200, au-dessus du plancher de 1000.
+        assert r.json()["cancelFee"] == 1200
+
+    def test_apres_prise_en_charge_est_refusee(self, client: TestClient):
+        expediteur = sign_in(client, "+261340000001", role="client")
+        livreur = sign_in(client, "+261330000002", role="driver")
+        course = creer(client, expediteur)
+        for etape in ("acceptee", "prise_en_charge"):
+            client.post(
+                f"/deliveries/{course['id']}/transition",
+                json={"status": etape},
+                headers=livreur,
+            )
+        r = client.post(
+            f"/deliveries/{course['id']}/cancel", json={}, headers=expediteur
+        )
+        assert r.status_code == 409

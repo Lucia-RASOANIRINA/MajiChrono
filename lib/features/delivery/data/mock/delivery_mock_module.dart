@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:math';
 
 import 'package:majichrono/core/network/api_endpoints.dart';
@@ -36,6 +37,8 @@ class DeliveryMockModule extends MockModule {
     backend.get('/deliveries/{id}', _detail);
     backend.post('/deliveries/{id}/cancel', _cancel);
     backend.post('/deliveries/estimate', _estimate);
+    backend.post(ApiEndpoints.media, _mediaUpload);
+    backend.get('/media/{id}', _mediaGet);
   }
 
   @override
@@ -64,6 +67,10 @@ class DeliveryMockModule extends MockModule {
       'createdAt': now.toUtc().toIso8601String(),
       'price': body['price'] ?? _price(body),
       'trackingToken': 'trk_${_random.nextInt(1 << 32)}',
+      // Code de retrait au relais (§7) : genere seulement si un relais est
+      // choisi, comme le fait le serveur reel.
+      if (body['relayPointId'] != null)
+        'relayPickupCode': _random.nextInt(1000000).toString().padLeft(6, '0'),
     };
 
     _deliveries[id] = delivery;
@@ -110,7 +117,16 @@ class DeliveryMockModule extends MockModule {
       );
     }
 
+    // Frais retenus seulement si un livreur etait deja engage (course acceptee).
+    final fee = status == DeliveryStatus.accepted
+        ? (((delivery['price'] as num?)?.toInt() ?? 5000) * 0.20)
+              .round()
+              .clamp(1000, 1 << 30)
+        : 0;
+
     delivery['status'] = DeliveryStatus.cancelled.wireName;
+    delivery['cancelReason'] = req.json['reason'];
+    delivery['cancelFee'] = fee;
     return MockResponse.ok(delivery);
   }
 
@@ -118,6 +134,30 @@ class DeliveryMockModule extends MockModule {
     final body = req.json;
     return MockResponse.ok({'price': _price(body), 'provisional': true});
   }
+
+  int _mediaSeq = 0;
+
+  // PNG 1x1 : le simulateur ne conserve pas l'image, il en rend une valide.
+  static const String _placeholderPng =
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk'
+      'YPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==';
+
+  Future<MockResponse> _mediaUpload(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final id = 'med_${_mediaSeq++}';
+    return MockResponse.created({'id': id, 'url': '/media/$id'});
+  }
+
+  Future<MockResponse> _mediaGet(MockRequest req, Map<String, String> _) async =>
+      MockResponse(
+        200,
+        base64Decode(_placeholderPng),
+        headers: const {
+          'content-type': ['image/png'],
+        },
+      );
 
   /// Reproduit la grille provisoire pour que le prix serveur et le prix local
   /// coincident tant que DO-3 n'est pas arbitre.

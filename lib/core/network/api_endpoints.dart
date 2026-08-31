@@ -110,6 +110,7 @@ class ApiEndpoints {
 
   // --- Paiement (§11.2) ------------------------------------------------
   static const String paymentBalance = '/payments/balance';
+  static const String paymentHistory = '/payments/history';
   static const String paymentIntent = '/payments/intent';
   static String payment(String id) => '/payments/$id';
 
@@ -125,6 +126,14 @@ class ApiEndpoints {
 
   // --- Urgence livreur (EXI-L13, D10) ----------------------------------
   static const String emergency = '/drivers/emergency';
+
+  // --- Carnet d'adresses (EXI-C05) -------------------------------------
+  static const String addresses = '/addresses';
+  static String address(String id) => '/addresses/$id';
+
+  // --- Media (photo du colis, EXI-C09) ---------------------------------
+  static const String media = '/media';
+  static String mediaItem(String id) => '/media/$id';
 
   // --- Points relais (differenciant D6) ---------------------------------
   static const String relayPoints = '/relay-points';

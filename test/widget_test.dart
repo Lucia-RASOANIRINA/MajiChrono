@@ -18,6 +18,7 @@ import 'package:majichrono/features/auth/presentation/controllers/auth_controlle
 import 'package:majichrono/features/auth/presentation/controllers/auth_state.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/payment/presentation/providers/payment_providers.dart';
 import 'package:majichrono/shared/widgets/mc_network_banner.dart';
 
 import 'helpers/in_memory_database.dart';
@@ -79,6 +80,15 @@ void main() {
         // affiche un squelette qui s'anime en boucle, et `pumpAndSettle`
         // n'atteint jamais l'etat stable qu'il attend.
         deliveriesProvider.overrideWith((ref) => Stream.value(const [])),
+        // Meme raison pour le solde MajiPay affiche sur l'accueil client : sans
+        // valeur immediate, la carte de solde interrogerait un dos sans reponse
+        // et l'accueil ne se stabiliserait jamais.
+        majiPayBalanceProvider(
+          UserRole.client,
+        ).overrideWith((ref) async => null),
+        // Le bandeau d'adresses favorites de l'accueil lit le carnet local, que
+        // ces tests n'alimentent pas : on le fige a vide.
+        addressBookProvider.overrideWith((ref) => Stream.value(const [])),
         // Le plancher d'affichage de la marque animee est leve : ces tests
         // portent sur les redirections, pas sur la duree du logo, et l'attendre
         // ajouterait neuf cents millisecondes a chacun d'eux.

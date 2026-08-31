@@ -217,6 +217,13 @@ class SettingsScreen extends ConsumerWidget {
                 ),
                 const Divider(height: 1),
                 ListTile(
+                  leading: const Icon(Icons.bookmark_outline),
+                  title: Text(l10n.addressBookManage),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.addressBook),
+                ),
+                const Divider(height: 1),
+                ListTile(
                   leading: const Icon(Icons.password_outlined),
                   title: Text(l10n.passwordManage),
                   trailing: const Icon(Icons.chevron_right),
@@ -235,6 +242,13 @@ class SettingsScreen extends ConsumerWidget {
                   title: Text(l10n.sessionsManage),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () => context.push(AppRoutes.sessions),
+                ),
+                const Divider(height: 1),
+                ListTile(
+                  leading: const Icon(Icons.help_outline),
+                  title: Text(l10n.helpCenterManage),
+                  trailing: const Icon(Icons.chevron_right),
+                  onTap: () => context.push(AppRoutes.helpCenter),
                 ),
                 const Divider(height: 1),
                 ListTile(

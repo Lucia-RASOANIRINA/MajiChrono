@@ -1,6 +1,9 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
@@ -13,6 +16,8 @@ import 'package:majichrono/features/delivery/domain/entities/shopping_order.dart
 import 'package:majichrono/features/delivery/presentation/widgets/delivery_options_step.dart';
 import 'package:majichrono/features/delivery/domain/repositories/delivery_repository.dart';
 import 'package:majichrono/features/delivery/presentation/providers/delivery_providers.dart';
+import 'package:majichrono/features/delivery/presentation/screens/address_book_screen.dart'
+    show kindIcon, kindLabel;
 import 'package:majichrono/features/delivery/presentation/widgets/address_form.dart';
 import 'package:majichrono/features/delivery/presentation/widgets/price_breakdown.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -37,6 +42,14 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   PaymentMethod _payment = PaymentMethod.cash;
   final TextEditingController _value = TextEditingController();
   final TextEditingController _description = TextEditingController();
+  final TextEditingController _length = TextEditingController();
+  final TextEditingController _width = TextEditingController();
+  final TextEditingController _height = TextEditingController();
+
+  final ImagePicker _picker = ImagePicker();
+  Uint8List? _photoBytes;
+  String? _photoId;
+  bool _uploadingPhoto = false;
 
   Payer _payer = Payer.sender;
   List<ShoppingItem> _items = const [];
@@ -50,9 +63,47 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   void dispose() {
     _value.dispose();
     _description.dispose();
+    _length.dispose();
+    _width.dispose();
+    _height.dispose();
     _cap.dispose();
     _storeHint.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickPackagePhoto(ImageSource source) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final file = await _picker.pickImage(
+      source: source,
+      maxWidth: 1280,
+      maxHeight: 1280,
+      imageQuality: 70,
+    );
+    if (file == null) return;
+    final bytes = await file.readAsBytes();
+    setState(() {
+      _photoBytes = bytes;
+      _uploadingPhoto = true;
+    });
+    try {
+      final id = await ref
+          .read(deliveryRepositoryProvider)
+          .uploadPackagePhoto(bytes: bytes, contentType: 'image/jpeg');
+      setState(() => _photoId = id);
+    } on Failure catch (failure) {
+      // L'envoi a echoue : on retire l'apercu pour ne pas laisser croire que la
+      // photo est jointe.
+      setState(() {
+        _photoBytes = null;
+        _photoId = null;
+      });
+      messenger.showSnackBar(
+        SnackBar(content: Text(failure.localizedMessage(l10n))),
+      );
+    } finally {
+      if (mounted) setState(() => _uploadingPhoto = false);
+    }
   }
 
   ShoppingOrder? get _shopping {
@@ -97,12 +148,16 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
               kind: _kind,
               package: PackageDeclaration(
                 weight: _weight,
+                lengthCm: int.tryParse(_length.text.trim()),
+                widthCm: int.tryParse(_width.text.trim()),
+                heightCm: int.tryParse(_height.text.trim()),
                 declaredValueAriary: int.tryParse(
                   _value.text.replaceAll(' ', ''),
                 ),
                 description: _description.text.trim().isEmpty
                     ? null
                     : _description.text.trim(),
+                photoId: _photoId,
               ),
               slot: _slot,
               paymentMethod: _payment,
@@ -228,6 +283,16 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       payment: _payment,
       value: _value,
       description: _description,
+      length: _length,
+      width: _width,
+      height: _height,
+      photoBytes: _photoBytes,
+      uploadingPhoto: _uploadingPhoto,
+      onPickPhoto: _pickPackagePhoto,
+      onRemovePhoto: () => setState(() {
+        _photoBytes = null;
+        _photoId = null;
+      }),
       onKind: (k) => setState(() => _kind = k),
       onWeight: (w) => setState(() => _weight = w),
       onSlot: (s) => setState(() => _slot = s),
@@ -237,6 +302,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       kind: _kind,
       weight: _weight,
       dropoffDistrict: _dropoff?.district ?? '',
+      dropoffPoint: _dropoff?.point,
       payer: _payer,
       items: _items,
       cap: _cap,
@@ -402,7 +468,7 @@ class _ModernStepChip extends StatelessWidget {
 // ÉTAPE 1 : ADRESSES
 // ============================================================
 
-class _AddressStep extends ConsumerWidget {
+class _AddressStep extends ConsumerStatefulWidget {
   const _AddressStep({
     required this.pickup,
     required this.dropoff,
@@ -416,8 +482,49 @@ class _AddressStep extends ConsumerWidget {
   final ValueChanged<Address?> onDropoff;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<_AddressStep> createState() => _AddressStepState();
+}
+
+class _AddressStepState extends ConsumerState<_AddressStep> {
+  late Address? _pickupSeed = widget.pickup;
+  late Address? _dropoffSeed = widget.dropoff;
+  // La cle ne change qu'au **choix d'une adresse enregistree** : c'est le seul
+  // cas ou le formulaire doit se re-remplir. La saisie manuelle ne la touche
+  // pas, sinon chaque frappe recreerait le formulaire et perdrait le focus.
+  int _pickupKey = 0;
+  int _dropoffKey = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(deliveryRepositoryProvider).fetchAddresses().ignore();
+  }
+
+  Future<void> _pickSaved({required bool isPickup}) async {
+    final selected = await showModalBottomSheet<SavedAddress>(
+      context: context,
+      builder: (_) => const _SavedAddressPicker(),
+    );
+    if (selected == null) return;
+    ref.read(deliveryRepositoryProvider).touchAddress(selected.id).ignore();
+    setState(() {
+      if (isPickup) {
+        _pickupSeed = selected.address;
+        _pickupKey++;
+      } else {
+        _dropoffSeed = selected.address;
+        _dropoffKey++;
+      }
+    });
+    (isPickup ? widget.onPickup : widget.onDropoff)(selected.address);
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final hasSaved =
+        (ref.watch(addressBookProvider).valueOrNull ?? const []).isNotEmpty;
+
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -425,17 +532,84 @@ class _AddressStep extends ConsumerWidget {
           title: l10n.addrPickupTitle,
           icon: Icons.trip_origin,
         ),
+        if (hasSaved)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _pickSaved(isPickup: true),
+              icon: const Icon(Icons.bookmark_outline, size: 18),
+              label: Text(l10n.addressPickSaved),
+            ),
+          ),
         const SizedBox(height: AppSpacing.sm),
-        AddressForm(initial: pickup, onChanged: onPickup),
+        AddressForm(
+          key: ValueKey('pickup_$_pickupKey'),
+          initial: _pickupSeed,
+          onChanged: widget.onPickup,
+        ),
         const SizedBox(height: AppSpacing.xl),
         _ModernSectionHeader(
           title: l10n.addrDropoffTitle,
           icon: Icons.place_outlined,
         ),
+        if (hasSaved)
+          Align(
+            alignment: Alignment.centerLeft,
+            child: TextButton.icon(
+              onPressed: () => _pickSaved(isPickup: false),
+              icon: const Icon(Icons.bookmark_outline, size: 18),
+              label: Text(l10n.addressPickSaved),
+            ),
+          ),
         const SizedBox(height: AppSpacing.sm),
-        AddressForm(initial: dropoff, onChanged: onDropoff),
+        AddressForm(
+          key: ValueKey('dropoff_$_dropoffKey'),
+          initial: _dropoffSeed,
+          onChanged: widget.onDropoff,
+        ),
         const SizedBox(height: AppSpacing.xl),
       ],
+    );
+  }
+}
+
+/// Feuille de choix d'une adresse enregistree, alimentee par le carnet.
+class _SavedAddressPicker extends ConsumerWidget {
+  const _SavedAddressPicker();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final book = ref.watch(addressBookProvider).valueOrNull ?? const [];
+    return SafeArea(
+      child: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Text(
+              l10n.addressPickSaved,
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+          ),
+          for (final entry in book)
+            ListTile(
+              leading: Icon(kindIcon(entry.kind)),
+              title: Text(
+                entry.label.isEmpty
+                    ? kindLabel(l10n, entry.kind)
+                    : entry.label,
+              ),
+              subtitle: Text(
+                entry.address.summary,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => Navigator.of(context).pop(entry),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -484,6 +658,39 @@ class _ModernSectionHeader extends StatelessWidget {
 // ÉTAPE 2 : COLIS, CRÉNEAU, PAIEMENT
 // ============================================================
 
+/// Champ compact pour une dimension (cm), centre, clavier numerique.
+class _DimField extends StatelessWidget {
+  const _DimField({required this.controller, required this.label});
+
+  final TextEditingController controller;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) => TextField(
+    controller: controller,
+    keyboardType: TextInputType.number,
+    textAlign: TextAlign.center,
+    decoration: InputDecoration(
+      labelText: label,
+      isDense: true,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide.none,
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: BorderSide(color: Colors.grey.shade200),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(14),
+        borderSide: const BorderSide(color: AppColors.primary, width: 2),
+      ),
+    ),
+  );
+}
+
 class _PackageStep extends StatelessWidget {
   const _PackageStep({
     required this.kind,
@@ -492,6 +699,13 @@ class _PackageStep extends StatelessWidget {
     required this.payment,
     required this.value,
     required this.description,
+    required this.length,
+    required this.width,
+    required this.height,
+    required this.photoBytes,
+    required this.uploadingPhoto,
+    required this.onPickPhoto,
+    required this.onRemovePhoto,
     required this.onKind,
     required this.onWeight,
     required this.onSlot,
@@ -504,10 +718,47 @@ class _PackageStep extends StatelessWidget {
   final PaymentMethod payment;
   final TextEditingController value;
   final TextEditingController description;
+  final TextEditingController length;
+  final TextEditingController width;
+  final TextEditingController height;
+  final Uint8List? photoBytes;
+  final bool uploadingPhoto;
+  final ValueChanged<ImageSource> onPickPhoto;
+  final VoidCallback onRemovePhoto;
   final ValueChanged<DeliveryKind> onKind;
   final ValueChanged<WeightCategory> onWeight;
   final ValueChanged<PickupSlot> onSlot;
   final ValueChanged<PaymentMethod> onPayment;
+
+  void _choosePhotoSource(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_camera_outlined),
+              title: Text(l10n.profilePhotoFromCamera),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onPickPhoto(ImageSource.camera);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.photo_library_outlined),
+              title: Text(l10n.profilePhotoFromGallery),
+              onTap: () {
+                Navigator.of(sheetContext).pop();
+                onPickPhoto(ImageSource.gallery);
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -633,14 +884,63 @@ class _PackageStep extends StatelessWidget {
               ),
             ),
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
+          // Dimensions (optionnelles), en centimetres.
           Text(
-            l10n.pkgPhotoLater,
-            style: theme.textTheme.bodySmall?.copyWith(
-              color: Colors.grey.shade500,
-              fontSize: 12,
+            '${l10n.pkgDimensions} (${l10n.addrOptional})',
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
             ),
           ),
+          const SizedBox(height: AppSpacing.sm),
+          Row(
+            children: [
+              Expanded(child: _DimField(controller: length, label: l10n.pkgLength)),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _DimField(controller: width, label: l10n.pkgWidth)),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(child: _DimField(controller: height, label: l10n.pkgHeight)),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.md),
+          // Photo du colis (EXI-C09), optionnelle : elle aide le livreur a
+          // reconnaitre l'envoi et sert de preuve en cas de litige.
+          if (photoBytes == null)
+            OutlinedButton.icon(
+              onPressed: () => _choosePhotoSource(context),
+              icon: const Icon(Icons.add_a_photo_outlined),
+              label: Text(l10n.pkgAddPhoto),
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
+              ),
+            )
+          else
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: Image.memory(
+                    photoBytes!,
+                    width: 56,
+                    height: 56,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                if (uploadingPhoto)
+                  const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                else
+                  const Icon(Icons.check_circle, color: AppColors.success),
+                const Spacer(),
+                IconButton(
+                  onPressed: onRemovePhoto,
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
           const SizedBox(height: AppSpacing.xl),
 
           _ModernSectionHeader(

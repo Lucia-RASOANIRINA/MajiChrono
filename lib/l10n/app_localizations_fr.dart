@@ -36,6 +36,244 @@ class AppLocalizationsFr extends AppLocalizations {
   String get profileLastName => 'Nom';
 
   @override
+  String get addressBookTitle => 'Mes adresses';
+
+  @override
+  String get addressBookManage => 'Mes adresses';
+
+  @override
+  String get addressAdd => 'Ajouter une adresse';
+
+  @override
+  String get addressEditTitle => 'Modifier l\'adresse';
+
+  @override
+  String get addressLabelField => 'Nom (ex. Maison, Boutique)';
+
+  @override
+  String get addressKindLabel => 'Type';
+
+  @override
+  String get addressKindHome => 'Domicile';
+
+  @override
+  String get addressKindWork => 'Travail';
+
+  @override
+  String get addressKindFavorite => 'Favori';
+
+  @override
+  String get addressKindOther => 'Autre';
+
+  @override
+  String get addressEmpty => 'Aucune adresse enregistree';
+
+  @override
+  String get addressEmptyHelp =>
+      'Ajoutez vos adresses habituelles pour aller plus vite.';
+
+  @override
+  String get addressSaved => 'Adresse enregistree';
+
+  @override
+  String get addressDeleted => 'Adresse supprimee';
+
+  @override
+  String get addressNeedPoint => 'Placez d\'abord l\'adresse sur la carte';
+
+  @override
+  String get addressPickSaved => 'Choisir dans mes adresses';
+
+  @override
+  String get helpCenterTitle => 'Aide et support';
+
+  @override
+  String get helpCenterManage => 'Aide et support';
+
+  @override
+  String get helpContactTitle => 'Contacter le support';
+
+  @override
+  String get helpContactHelp => 'Notre equipe repond aux heures ouvrees.';
+
+  @override
+  String get helpCall => 'Appeler';
+
+  @override
+  String get helpEmail => 'Ecrire';
+
+  @override
+  String get helpReportProblem => 'Signaler un probleme';
+
+  @override
+  String get helpReportProblemHelp =>
+      'Un souci avec une course ? Ecrivez-nous en indiquant son numero.';
+
+  @override
+  String get helpReportSubject => 'MajiChrono — signalement';
+
+  @override
+  String get helpFaqTitle => 'Questions frequentes';
+
+  @override
+  String get helpFaqQ1 => 'Comment creer une livraison ?';
+
+  @override
+  String get helpFaqA1 =>
+      'Depuis l\'accueil, touchez « Nouvelle livraison » : choisissez le depart et la destination, decrivez le colis, puis confirmez.';
+
+  @override
+  String get helpFaqQ2 => 'Comment suivre ma livraison ?';
+
+  @override
+  String get helpFaqA2 =>
+      'Ouvrez la course dans « Mes courses » : vous y voyez le statut en temps reel, la position du livreur et l\'heure d\'arrivee estimee.';
+
+  @override
+  String get helpFaqQ3 => 'Comment payer ?';
+
+  @override
+  String get helpFaqA3 =>
+      'Par MajiPay (code QR) ou en especes a la remise. Le detail du tarif s\'affiche avant de confirmer.';
+
+  @override
+  String get helpFaqQ4 => 'Puis-je annuler une course ?';
+
+  @override
+  String get helpFaqA4 =>
+      'Oui, tant que le livreur n\'a pas encore pris le colis en charge.';
+
+  @override
+  String get helpFaqQ5 => 'Comment enregistrer mes adresses ?';
+
+  @override
+  String get helpFaqA5 =>
+      'Dans Reglages, Mes adresses : ajoutez votre domicile, votre travail et vos favoris pour aller plus vite.';
+
+  @override
+  String get helpFaqQ6 => 'Un livreur est-il fiable ?';
+
+  @override
+  String get helpFaqA6 =>
+      'Chaque livreur passe une verification d\'identite (KYC) avant de pouvoir accepter des courses, et vous pouvez le noter apres la livraison.';
+
+  @override
+  String get disputesTitle => 'Mes litiges';
+
+  @override
+  String get disputesManage => 'Litiges et reclamations';
+
+  @override
+  String get disputesEmpty => 'Aucun litige';
+
+  @override
+  String get disputesEmptyHelp =>
+      'Un probleme avec une course ? Ouvrez un litige depuis son suivi.';
+
+  @override
+  String get disputeOpenTitle => 'Ouvrir un litige';
+
+  @override
+  String get disputeOpenHelp =>
+      'Decrivez le probleme rencontre. Notre equipe instruit le dossier avec le livreur.';
+
+  @override
+  String get disputeReasonLabel => 'Motif du litige';
+
+  @override
+  String get disputeReasonHint => 'Ex : colis abime a la reception';
+
+  @override
+  String get disputeOpenAction => 'Ouvrir le litige';
+
+  @override
+  String get disputeOpened => 'Litige ouvert';
+
+  @override
+  String get disputeReportButton => 'Signaler un litige';
+
+  @override
+  String get disputeStatusOpen => 'Ouvert';
+
+  @override
+  String get disputeStatusInvestigating => 'En instruction';
+
+  @override
+  String get disputeStatusResolved => 'Resolu';
+
+  @override
+  String get disputeStatusRejected => 'Rejete';
+
+  @override
+  String get disputeReason => 'Motif';
+
+  @override
+  String get disputeThread => 'Echanges';
+
+  @override
+  String get disputeNoMessages => 'Aucun echange pour l\'instant.';
+
+  @override
+  String get disputeReplyHint => 'Ecrire un message';
+
+  @override
+  String get disputeSend => 'Envoyer';
+
+  @override
+  String get disputeClosed => 'Ce litige est clos.';
+
+  @override
+  String get disputeDecision => 'Decision';
+
+  @override
+  String get disputeAuthorYou => 'Vous';
+
+  @override
+  String disputeOpenedOn(String date) {
+    return 'Ouvert le $date';
+  }
+
+  @override
+  String get disputeReasonTooShort =>
+      'Detaillez un peu plus (10 caracteres minimum).';
+
+  @override
+  String get cancelDelivery => 'Annuler la course';
+
+  @override
+  String get cancelSheetTitle => 'Annuler la course ?';
+
+  @override
+  String get cancelSheetHelp =>
+      'Choisissez un motif. Des frais peuvent s\'appliquer si un livreur est deja en route.';
+
+  @override
+  String get cancelReasonMind => 'J\'ai change d\'avis';
+
+  @override
+  String get cancelReasonWrongAddress => 'Erreur d\'adresse';
+
+  @override
+  String get cancelReasonTooLong => 'Attente trop longue';
+
+  @override
+  String get cancelReasonOther => 'Autre raison';
+
+  @override
+  String get cancelConfirm => 'Confirmer l\'annulation';
+
+  @override
+  String get cancelKeep => 'Garder la course';
+
+  @override
+  String get cancelDone => 'Course annulee';
+
+  @override
+  String cancelDoneWithFee(int fee) {
+    return 'Course annulee — frais retenus : $fee Ar';
+  }
+
+  @override
   String get profileNameEmpty => 'Le nom ne peut pas etre vide';
 
   @override
@@ -771,6 +1009,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get pkgDescription => 'Description';
 
   @override
+  String get pkgDimensions => 'Dimensions (cm)';
+
+  @override
+  String get pkgLength => 'Long.';
+
+  @override
+  String get pkgWidth => 'Larg.';
+
+  @override
+  String get pkgHeight => 'Haut.';
+
+  @override
+  String get pkgAddPhoto => 'Ajouter une photo du colis';
+
+  @override
   String get pkgPhotoLater =>
       'La photo du colis sera demandee au module 5, avec la chaine photo.';
 
@@ -878,6 +1131,48 @@ class AppLocalizationsFr extends AppLocalizations {
   @override
   String deliveryDistance(String km) {
     return '$km km';
+  }
+
+  @override
+  String get histSearchHint => 'Rechercher une course';
+
+  @override
+  String get histFilterAll => 'Toutes';
+
+  @override
+  String get histFilterActive => 'En cours';
+
+  @override
+  String get histFilterDone => 'Terminees';
+
+  @override
+  String get histFilterCancelled => 'Annulees';
+
+  @override
+  String get histPeriodAll => 'Toute periode';
+
+  @override
+  String get histPeriod7 => '7 jours';
+
+  @override
+  String get histPeriod30 => '30 jours';
+
+  @override
+  String get histNoMatch => 'Aucune course ne correspond';
+
+  @override
+  String get histNoMatchHelp => 'Modifiez la recherche ou les filtres.';
+
+  @override
+  String histResultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count courses',
+      one: '1 course',
+      zero: 'Aucune course',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1298,6 +1593,21 @@ class AppLocalizationsFr extends AppLocalizations {
   String get relayTooHeavy => 'Colis trop lourd pour ce relais';
 
   @override
+  String relayDistance(String km) {
+    return 'a $km km';
+  }
+
+  @override
+  String get relayPickupCodeTitle => 'Code de retrait';
+
+  @override
+  String get relayPickupCodeHelp =>
+      'Le destinataire presente ce code au relais pour recuperer le colis.';
+
+  @override
+  String get commonCopy => 'Copier';
+
+  @override
   String get groupTitle => 'Courses groupees';
 
   @override
@@ -1648,6 +1958,49 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get payMethodCash => 'Especes';
+
+  @override
+  String get walletTitle => 'Mon portefeuille';
+
+  @override
+  String get walletBalanceLabel => 'Solde disponible';
+
+  @override
+  String get walletHistoryTitle => 'Historique des paiements';
+
+  @override
+  String get walletHistoryEmpty => 'Aucun paiement pour le moment';
+
+  @override
+  String get walletHistoryEmptyHelp => 'Vos reglages MajiPay apparaitront ici.';
+
+  @override
+  String get walletOutgoing => 'Paiement envoye';
+
+  @override
+  String get walletIncoming => 'Paiement recu';
+
+  @override
+  String get walletStatusPending => 'En cours';
+
+  @override
+  String get walletStatusCaptured => 'Regle';
+
+  @override
+  String get walletStatusFailed => 'Echoue';
+
+  @override
+  String get walletStatusCash => 'Regle en especes';
+
+  @override
+  String get walletRefund => 'Remboursement';
+
+  @override
+  String get walletRefundNote =>
+      'En cas de course annulee apres paiement, le remboursement est traite par MajiPay sous 72 h. Contactez l\'assistance si besoin.';
+
+  @override
+  String get walletViewReceipt => 'Voir le recu';
 
   @override
   String get syncPendingTitle => 'Elements en attente';

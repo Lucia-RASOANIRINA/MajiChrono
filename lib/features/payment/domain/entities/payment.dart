@@ -296,3 +296,27 @@ class WithdrawReceipt {
     );
   }
 }
+
+/// Entree du journal de paiements (§11, EXI-C39).
+///
+/// Un [PaymentIntent] enrichi de la position du compte courant dans la
+/// transaction. La distinction porte l'affichage : un paiement **sortant**
+/// (le compte est payeur) se lit en debit, un paiement **entrant** en credit.
+/// Le serveur la calcule — le mobile n'a pas a comparer des identifiants.
+class PaymentHistoryEntry {
+  const PaymentHistoryEntry({required this.intent, required this.isOutgoing});
+
+  final PaymentIntent intent;
+
+  /// Vrai quand le compte courant est le payeur de la transaction.
+  final bool isOutgoing;
+
+  static PaymentHistoryEntry? fromJson(Map<String, dynamic>? json) {
+    final intent = PaymentIntent.fromJson(json);
+    if (intent == null) return null;
+    return PaymentHistoryEntry(
+      intent: intent,
+      isOutgoing: json!['role'] != 'payee',
+    );
+  }
+}

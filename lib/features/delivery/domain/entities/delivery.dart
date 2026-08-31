@@ -226,6 +226,7 @@ class Delivery {
     this.payer = Payer.sender,
     this.shopping,
     this.relayPointId,
+    this.relayPickupCode,
   });
 
   final String id;
@@ -259,6 +260,10 @@ class Delivery {
   /// Point relais de remise, lorsqu'il en est designe un (differenciant D6).
   final String? relayPointId;
 
+  /// Code de retrait a presenter au relais (§7). Genere par le serveur quand un
+  /// relais est choisi ; le destinataire s'en sert pour recuperer le colis.
+  final String? relayPickupCode;
+
   double get distanceKm => pickup.point.distanceKmTo(dropoff.point);
 
   Delivery copyWith({
@@ -287,6 +292,7 @@ class Delivery {
     payer: payer,
     shopping: shopping ?? this.shopping,
     relayPointId: relayPointId,
+    relayPickupCode: relayPickupCode,
   );
 
   Map<String, dynamic> toJson() => {
@@ -306,6 +312,7 @@ class Delivery {
     'payer': payer.wireName,
     if (shopping != null) 'shopping': shopping!.toJson(),
     if (relayPointId != null) 'relayPointId': relayPointId,
+    if (relayPickupCode != null) 'relayPickupCode': relayPickupCode,
   };
 
   static Delivery? fromJson(Map<String, dynamic> json) {
@@ -336,6 +343,7 @@ class Delivery {
         json['shopping'] as Map<String, dynamic>?,
       ),
       relayPointId: json['relayPointId'] as String?,
+      relayPickupCode: json['relayPickupCode'] as String?,
     );
   }
 }

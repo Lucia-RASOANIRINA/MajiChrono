@@ -110,11 +110,32 @@ class Address {
 }
 
 /// Entree du carnet d'adresses (EXI-C05).
+/// Nature d'une adresse enregistree : un domicile et un lieu de travail uniques,
+/// des favoris et des adresses libres.
+enum AddressKind {
+  home('home'),
+  work('work'),
+  favorite('favorite'),
+  other('other');
+
+  const AddressKind(this.wireName);
+
+  final String wireName;
+
+  static AddressKind fromWire(String? value) {
+    for (final kind in AddressKind.values) {
+      if (kind.wireName == value) return kind;
+    }
+    return AddressKind.other;
+  }
+}
+
 class SavedAddress {
   const SavedAddress({
     required this.id,
     required this.label,
     required this.address,
+    this.kind = AddressKind.other,
     this.useCount = 0,
     this.lastUsedAt,
   });
@@ -123,6 +144,8 @@ class SavedAddress {
 
   /// Nom donne par l'utilisateur : « Maison », « Boutique ».
   final String label;
+
+  final AddressKind kind;
 
   final Address address;
 
@@ -133,14 +156,29 @@ class SavedAddress {
 
   SavedAddress copyWith({
     String? label,
+    AddressKind? kind,
     Address? address,
     int? useCount,
     DateTime? lastUsedAt,
   }) => SavedAddress(
     id: id,
     label: label ?? this.label,
+    kind: kind ?? this.kind,
     address: address ?? this.address,
     useCount: useCount ?? this.useCount,
     lastUsedAt: lastUsedAt ?? this.lastUsedAt,
   );
+
+  /// Depuis la reponse serveur `{id, kind, label, address, useCount}`.
+  static SavedAddress? fromJson(Map<String, dynamic> json) {
+    final address = Address.fromJson(json['address'] as Map<String, dynamic>?);
+    if (address == null) return null;
+    return SavedAddress(
+      id: json['id'] as String,
+      label: json['label'] as String? ?? '',
+      kind: AddressKind.fromWire(json['kind'] as String?),
+      address: address,
+      useCount: (json['useCount'] as num?)?.toInt() ?? 0,
+    );
+  }
 }

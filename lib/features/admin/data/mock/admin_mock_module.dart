@@ -48,6 +48,7 @@ class AdminMockModule extends MockModule {
     backend.get('/accounts/{id}/kyc/{kind}', _kycDocumentImage);
     backend.post('/admin/drivers/{id}/suspension', _suspension);
     backend.post('/admin/deliveries/{id}/reassign', _reassign);
+    backend.post('/disputes', _disputeOpen);
     backend.get('/disputes', _disputeList);
     backend.get('/disputes/{id}', _disputeRead);
     backend.post('/disputes/{id}/messages', _disputeMessage);
@@ -311,6 +312,38 @@ class AdminMockModule extends MockModule {
 
   // --- Litiges (EXI-A05) ------------------------------------------------
 
+  /// Ouverture d'un litige par une partie (client ou livreur), cote §13.
+  ///
+  /// Le simulateur ne verifie pas l'appartenance a la course — il n'a pas de
+  /// notion de session — mais reproduit la forme et l'etat initial du serveur.
+  Future<MockResponse> _disputeOpen(
+    MockRequest req,
+    Map<String, String> _,
+  ) async {
+    final deliveryId = '${req.json['deliveryId'] ?? ''}'.trim();
+    final reason = '${req.json['reason'] ?? ''}'.trim();
+    if (deliveryId.isEmpty) {
+      return MockResponse.error(404, 'not_found', 'Course inconnue');
+    }
+    if (reason.isEmpty) {
+      return MockResponse.error(422, 'reason_required', 'Motif obligatoire');
+    }
+
+    final id = 'dsp_${++_sequence}_${DateTime.now().millisecondsSinceEpoch}';
+    final dispute = <String, dynamic>{
+      'id': id,
+      'deliveryId': deliveryId,
+      'status': DisputeStatus.open.wireName,
+      'openedAt': DateTime.now().toUtc().toIso8601String(),
+      'reason': reason,
+      'openedBy': 'client',
+      'messages': <Map<String, dynamic>>[],
+      'decision': null,
+    };
+    _disputes[id] = dispute;
+    return MockResponse.created(dispute);
+  }
+
   Future<MockResponse> _disputeList(
     MockRequest req,
     Map<String, String> _,
@@ -358,12 +391,16 @@ class AdminMockModule extends MockModule {
       return MockResponse.error(422, 'empty_message', 'Message vide');
     }
 
+    // Le serveur reel derive l'auteur du role authentifie ; le simulateur, qui
+    // n'a pas de session, se fie a un indice du corps (`author`), sans quoi tout
+    // message paraitrait venir de l'exploitation.
+    final fromOps = '${req.json['author'] ?? 'ops'}' == 'ops';
     (dispute['messages'] as List<dynamic>).add({
       'id': 'msg_${++_sequence}',
-      'authorLabel': 'Exploitation',
+      'authorLabel': fromOps ? 'Exploitation' : 'Client',
       'body': body,
       'sentAt': DateTime.now().toUtc().toIso8601String(),
-      'fromOperations': true,
+      'fromOperations': fromOps,
     });
 
     // Le premier echange fait passer le litige en instruction : l'etat suit ce

@@ -58,7 +58,11 @@ void main() {
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
-          relayPointsProvider(null).overrideWith((ref) async => relays),
+          relayPointsProvider((
+            district: null,
+            lat: null,
+            lng: null,
+          )).overrideWith((ref) async => relays),
         ],
         child: MaterialApp(
           locale: const Locale('fr'),
@@ -80,6 +84,7 @@ void main() {
                   kind: kind,
                   weight: weight,
                   dropoffDistrict: 'Ambohipo',
+                  dropoffPoint: null,
                   payer: payer,
                   items: items,
                   cap: TextEditingController(text: cap),

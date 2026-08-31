@@ -332,6 +332,49 @@ class TestGardeFous:
         assert len(_all_intents()) == 1
 
 
+class TestHistorique:
+    """Journal des paiements (§11, EXI-C39)."""
+
+    def _regle_une_course(self, client: TestClient) -> tuple[dict, dict, str]:
+        expediteur, livreur, course_id = _course_assignee(client)
+        intent = client.post(
+            "/payments/intent",
+            json={"deliveryId": course_id, "amount": 6000, "direction": "collect"},
+            headers={**livreur, "Idempotency-Key": "i-1"},
+        ).json()
+        client.post(
+            f"/payments/{intent['id']}/claim",
+            json={"token": intent["token"]},
+            headers={**expediteur, "Idempotency-Key": "cl-1"},
+        )
+        client.post(
+            f"/payments/{intent['id']}/confirm",
+            json={},
+            headers={**expediteur, "Idempotency-Key": "co-1"},
+        )
+        return expediteur, livreur, course_id
+
+    def test_le_journal_rend_les_paiements_du_compte(self, client: TestClient):
+        expediteur, livreur, _ = self._regle_une_course(client)
+
+        cote_client = client.get("/payments/history", headers=expediteur)
+        assert cote_client.status_code == 200
+        items = cote_client.json()["items"]
+        assert len(items) == 1
+        assert items[0]["status"] == "captured"
+        # Le client est le payeur : le journal le lui dit sans qu'il compare des ids.
+        assert items[0]["role"] == "payer"
+
+        cote_livreur = client.get("/payments/history", headers=livreur).json()["items"]
+        assert cote_livreur[0]["role"] == "payee"
+
+    def test_un_tiers_ne_voit_pas_le_paiement(self, client: TestClient):
+        self._regle_une_course(client)
+        tiers = sign_in(client, "+261340000123", role="client")
+        items = client.get("/payments/history", headers=tiers).json()["items"]
+        assert items == []
+
+
 def _all_intents() -> list[PaymentIntent]:
     from app.db import get_db
     from app.main import app

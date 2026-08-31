@@ -134,6 +134,67 @@ class Avatar(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
 
+class Media(Base):
+    """Un fichier image range en base, adresse par un identifiant opaque.
+
+    Sert la photo du colis posee a la declaration (EXI-C09) : elle est televersee
+    avant meme que la course existe, puis referencee par son `photoId`. En base
+    comme l'avatar — le disque d'un plan gratuit est ephemere.
+    """
+
+    __tablename__ = "media"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("med"))
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), index=True
+    )
+    data: Mapped[bytes] = mapped_column(LargeBinary)
+    content_type: Mapped[str] = mapped_column(String(80))
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+
+class SavedAddress(Base):
+    """Une entree du carnet d'adresses d'un compte (EXI-C05).
+
+    Le carnet suit le compte : rangee sur le serveur, elle se retrouve d'un
+    appareil a l'autre et survit a une reinstallation. L'application en garde une
+    copie locale pour rester utilisable hors reseau.
+
+    L'adresse composite (point, quartier, repere, contact...) est serialisee en
+    JSON dans `payload` plutot qu'eclatee en colonnes : sa forme evolue (photo de
+    facade, note vocale, point relais) et chaque ajout imposerait sinon une
+    migration.
+    """
+
+    __tablename__ = "saved_addresses"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("adr"))
+    account_id: Mapped[str] = mapped_column(
+        String(40), ForeignKey("accounts.id", ondelete="CASCADE"), index=True
+    )
+
+    # « home », « work », « favorite » ou « other ». Un compte n'a qu'un domicile
+    # et qu'un lieu de travail ; les favoris et les autres sont libres.
+    kind: Mapped[str] = mapped_column(String(20), default="other")
+    label: Mapped[str] = mapped_column(String(120), default="")
+    payload: Mapped[str] = mapped_column(Text)
+
+    use_count: Mapped[int | None] = mapped_column(Integer)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def to_json(self) -> dict:
+        import json as _json
+
+        return {
+            "id": self.id,
+            "kind": self.kind,
+            "label": self.label,
+            "address": _json.loads(self.payload),
+            "useCount": self.use_count or 0,
+            "createdAt": self.created_at.isoformat(),
+        }
+
+
 # Pieces attendues au dossier KYC d'un livreur, dans l'ordre de l'ecran. Defini
 # ici pour etre partage sans dependance croisee entre routeurs.
 KYC_KINDS: tuple[str, ...] = (
@@ -363,6 +424,28 @@ class Delivery(Base):
     price_ariary: Mapped[int | None] = mapped_column(Integer)
     distance_km: Mapped[float | None] = mapped_column()
 
+    # Annulation par l'expediteur (EXI-C26) : le motif, et les frais eventuels
+    # retenus quand un livreur etait deja engage. Nuls tant que la course n'est
+    # pas annulee.
+    cancel_reason: Mapped[str | None] = mapped_column(Text)
+    cancel_fee_ariary: Mapped[int | None] = mapped_column(Integer)
+
+    # Point relais de remise, quand l'expediteur en choisit un (differenciant D6,
+    # §7). Le code de retrait est genere a la creation et remis au destinataire :
+    # il le presente au relais pour recuperer son colis. Nuls pour une livraison
+    # a domicile classique.
+    relay_point_id: Mapped[str | None] = mapped_column(String(40))
+    relay_pickup_code: Mapped[str | None] = mapped_column(String(12))
+
+    # Qui paie la course (EXI-C42) : expediteur (port paye) par defaut, ou
+    # destinataire (port du). Le mobile l'envoie ; sans persistance il serait
+    # perdu au premier rafraichissement.
+    payer: Mapped[str | None] = mapped_column(String(20))
+
+    # Liste d'achats pour compte (EXI-C07, D5), payload JSON opaque quand le type
+    # de course est « achat pour compte ». Nul autrement.
+    shopping_json: Mapped[str | None] = mapped_column(Text)
+
     # Jeton du lien de suivi public, partage par SMS (EXI-C24). Il est distinct
     # de l'identifiant : un lien devine ne doit pas ouvrir une autre course.
     tracking_token: Mapped[str] = mapped_column(String(64), unique=True, index=True)
@@ -384,6 +467,12 @@ class Delivery(Base):
             "package": _json.loads(self.package_json),
             "price": self.price_ariary,
             "distanceKm": self.distance_km,
+            "cancelReason": self.cancel_reason,
+            "cancelFee": self.cancel_fee_ariary,
+            "relayPointId": self.relay_point_id,
+            "relayPickupCode": self.relay_pickup_code,
+            "payer": self.payer,
+            "shopping": _json.loads(self.shopping_json) if self.shopping_json else None,
             "trackingToken": self.tracking_token,
             "createdAt": as_utc(self.created_at).isoformat(),
             "updatedAt": as_utc(self.updated_at).isoformat(),
@@ -720,4 +809,96 @@ class ModerationLog(Base):
             "action": self.action,
             "reason": self.reason,
             "decidedAt": as_utc(self.decided_at).isoformat(),
+        }
+
+
+class Dispute(Base):
+    """Litige ouvert sur une course (EXI-A05, §13 client).
+
+    Il nait le plus souvent d'une remise sous reserves, ou d'une contestation
+    du client. Les deux parties et l'exploitation voient **le meme dossier** :
+    une vue reservee a l'exploitation ne serait plus une preuve contradictoire,
+    ce serait un dossier a charge (EXI-CC31). Le fil de messages est ce qui
+    permet a chacun d'exposer sa version avant que l'exploitation ne tranche.
+    """
+
+    __tablename__ = "disputes"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("dsp"))
+    delivery_id: Mapped[str] = mapped_column(ForeignKey("deliveries.id", ondelete="CASCADE"), index=True)
+
+    # open / investigating / resolved / rejected. Une chaine plutot qu'un enum
+    # SQL : les valeurs suivent le contrat front sans table de traduction.
+    status: Mapped[str] = mapped_column(String(20), default="open", index=True)
+    reason: Mapped[str] = mapped_column(Text)
+
+    # Qui a ouvert : client, driver ou ops. Sert a l'affichage, jamais a filtrer
+    # ce que l'autre partie voit — les deux voient le meme dossier.
+    opened_by: Mapped[str | None] = mapped_column(String(20))
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    # Decision finale, nulle tant que le litige est ouvert. Le motif est
+    # obligatoire a la cloture : une decision qui tranche entre deux versions se
+    # justifie.
+    decision_action: Mapped[str | None] = mapped_column(String(30))
+    decision_reason: Mapped[str | None] = mapped_column(Text)
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decided_by: Mapped[str | None] = mapped_column(String(40))
+
+    messages: Mapped[list[DisputeMessage]] = relationship(
+        "DisputeMessage",
+        cascade="all, delete-orphan",
+        order_by="DisputeMessage.sent_at",
+    )
+
+    @property
+    def is_closed(self) -> bool:
+        return self.status in ("resolved", "rejected")
+
+    def to_json(self) -> dict:
+        decision = None
+        if self.decision_action is not None:
+            decision = {
+                "action": self.decision_action,
+                "reason": self.decision_reason or "",
+                "decidedAt": as_utc(self.decided_at).isoformat() if self.decided_at else None,
+                "decidedBy": self.decided_by,
+            }
+        return {
+            "id": self.id,
+            "deliveryId": self.delivery_id,
+            "status": self.status,
+            "reason": self.reason,
+            "openedBy": self.opened_by,
+            "openedAt": as_utc(self.opened_at).isoformat(),
+            "messages": [m.to_json() for m in self.messages],
+            "decision": decision,
+        }
+
+
+class DisputeMessage(Base):
+    """Un echange dans le fil d'un litige.
+
+    En ajout seul : un message ne se modifie ni ne s'efface, sans quoi le fil ne
+    serait plus une preuve de ce que chacun a dit et quand.
+    """
+
+    __tablename__ = "dispute_messages"
+
+    id: Mapped[str] = mapped_column(String(40), primary_key=True, default=lambda: _uid("msg"))
+    dispute_id: Mapped[str] = mapped_column(ForeignKey("disputes.id", ondelete="CASCADE"), index=True)
+    author_label: Mapped[str] = mapped_column(String(60))
+    body: Mapped[str] = mapped_column(Text)
+    # Vrai quand le message vient de l'exploitation : l'affichage le distingue des
+    # messages des parties, sans revelation d'identite au-dela du role.
+    from_operations: Mapped[bool] = mapped_column(Boolean, default=False)
+    sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    def to_json(self) -> dict:
+        return {
+            "id": self.id,
+            "authorLabel": self.author_label,
+            "body": self.body,
+            "sentAt": as_utc(self.sent_at).isoformat(),
+            "fromOperations": self.from_operations,
         }

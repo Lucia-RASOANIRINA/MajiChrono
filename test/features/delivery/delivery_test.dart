@@ -273,7 +273,12 @@ void main() {
       await build();
       final delivery = await repository.createDelivery(draft());
 
-      await repository.cancelDelivery(delivery.id);
+      // Aucun livreur engage : l'annulation ne retient aucun frais.
+      final fee = await repository.cancelDelivery(
+        delivery.id,
+        reason: 'Changement d avis',
+      );
+      expect(fee, 0);
 
       final updated = await repository.deliveryById(delivery.id);
       expect(updated!.status, DeliveryStatus.cancelled);
@@ -282,8 +287,8 @@ void main() {
     test('le carnet d adresses persiste et se relit hors ligne (EXI-C05)', () async {
       await build(profile: NetworkProfile.offline);
 
-      await repository.saveAddress(label: 'Maison', address: pickup);
-      await repository.saveAddress(label: 'Boutique', address: dropoff);
+      await repository.saveAddress(label: 'Maison', kind: AddressKind.other, address: pickup);
+      await repository.saveAddress(label: 'Boutique', kind: AddressKind.other, address: dropoff);
 
       final book = await repository.watchAddressBook().first;
       expect(book, hasLength(2));
@@ -292,8 +297,8 @@ void main() {
 
     test('les adresses les plus utilisees remontent en tete', () async {
       await build();
-      final maison = await repository.saveAddress(label: 'Maison', address: pickup);
-      await repository.saveAddress(label: 'Boutique', address: dropoff);
+      final maison = await repository.saveAddress(label: 'Maison', kind: AddressKind.other, address: pickup);
+      await repository.saveAddress(label: 'Boutique', kind: AddressKind.other, address: dropoff);
 
       await repository.touchAddress(maison.id);
       await repository.touchAddress(maison.id);

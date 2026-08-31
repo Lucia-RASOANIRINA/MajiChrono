@@ -41,6 +41,8 @@ class PaymentMockModule extends MockModule {
   @override
   void register(MockBackend backend) {
     backend.get('/payments/balance', _balance);
+    // Avant `/payments/{id}` : sinon « history » serait pris pour un id.
+    backend.get('/payments/history', _history);
     backend.post('/payments/intent', _createIntent);
     backend.get('/payments/{id}', _read);
     backend.post('/payments/{id}/claim', _claim);
@@ -71,6 +73,21 @@ class PaymentMockModule extends MockModule {
       'accountRef': 'MP ** ** ${role == 'driver' ? '7734' : '4821'}',
       'fetchedAt': DateTime.now().toUtc().toIso8601String(),
     });
+  }
+
+  /// Journal des paiements (§11, EXI-C39).
+  ///
+  /// Le simulateur ne distingue qu'un client et un livreur : le client est
+  /// toujours payeur, le livreur toujours beneficiaire. On rend donc toutes les
+  /// intentions connues, les plus recentes d'abord, avec le `role` attendu.
+  Future<MockResponse> _history(MockRequest req, Map<String, String> _) async {
+    final role = _role(req);
+    final items = _intents.values.map(_public).toList()
+      ..sort((a, b) => '${b['createdAt']}'.compareTo('${a['createdAt']}'));
+    final withRole = items
+        .map((it) => {...it, 'role': role == 'driver' ? 'payee' : 'payer'})
+        .toList();
+    return MockResponse.ok({'items': withRole});
   }
 
   Future<MockResponse> _createIntent(

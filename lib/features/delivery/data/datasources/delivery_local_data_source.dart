@@ -37,12 +37,31 @@ class DeliveryLocalDataSource {
         SavedAddressesCompanion.insert(
           id: entry.id,
           label: entry.label,
-          payload: jsonEncode(entry.address.toJson()),
+          // Le `payload` porte aussi la nature (domicile/travail/favori) : c'est
+          // un blob volontairement souple (§4.3), on n'ajoute pas une colonne
+          // ni une migration Drift pour ce seul champ.
+          payload: jsonEncode({
+            'kind': entry.kind.wireName,
+            'address': entry.address.toJson(),
+          }),
           useCount: Value(entry.useCount),
           lastUsedAt: Value(entry.lastUsedAt),
           createdAt: DateTime.now(),
         ),
       );
+
+  /// Aligne le cache local sur le carnet du serveur (source de verite), **sans
+  /// perdre** les entrees creees hors ligne pas encore synchronisees (id
+  /// prefixe `local_`) : on ne remplace que la portion deja connue du serveur.
+  Future<void> replaceAddressBook(List<SavedAddress> entries) =>
+      _db.transaction(() async {
+        await (_db.delete(
+          _db.savedAddresses,
+        )..where((t) => t.id.like('local%').not())).go();
+        for (final entry in entries) {
+          await upsertAddress(entry);
+        }
+      });
 
   Future<void> deleteAddress(String id) =>
       (_db.delete(_db.savedAddresses)..where((t) => t.id.equals(id))).go();
@@ -62,13 +81,19 @@ class DeliveryLocalDataSource {
   }
 
   SavedAddress? _toSavedAddress(SavedAddressesData row) {
-    final address = Address.fromJson(
-      jsonDecode(row.payload) as Map<String, dynamic>,
-    );
+    final decoded = jsonDecode(row.payload) as Map<String, dynamic>;
+    // Forme actuelle : `{kind, address}`. Ancienne forme (avant la nature) : le
+    // payload etait l'adresse elle-meme — on la lit encore, pour ne pas perdre
+    // un carnet ecrit par une version anterieure.
+    final rawAddress = decoded['address'] is Map<String, dynamic>
+        ? decoded['address'] as Map<String, dynamic>
+        : decoded;
+    final address = Address.fromJson(rawAddress);
     if (address == null) return null;
     return SavedAddress(
       id: row.id,
       label: row.label,
+      kind: AddressKind.fromWire(decoded['kind'] as String?),
       address: address,
       useCount: row.useCount,
       lastUsedAt: row.lastUsedAt,

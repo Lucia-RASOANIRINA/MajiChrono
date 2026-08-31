@@ -32,6 +32,25 @@ class PaymentRepository {
     return MajiPayBalance.fromJson(json);
   }
 
+  /// Journal des paiements du compte courant (§11, EXI-C39).
+  ///
+  /// Lecture seule : on liste les intentions ou le compte est partie prenante,
+  /// les plus recentes d'abord. Une entree illisible est ecartee plutot que de
+  /// faire tomber tout le journal.
+  Future<List<PaymentHistoryEntry>> history({int limit = 50}) async {
+    final json = await _client.get<Map<String, dynamic>>(
+      ApiEndpoints.paymentHistory,
+      query: {'limit': '$limit'},
+      category: DataCategory.payment,
+    );
+    final items = (json['items'] as List<dynamic>? ?? const [])
+        .whereType<Map<String, dynamic>>()
+        .map(PaymentHistoryEntry.fromJson)
+        .whereType<PaymentHistoryEntry>()
+        .toList();
+    return items;
+  }
+
   /// Cree l'intention et retourne le jeton a afficher (EXI-MP02).
   ///
   /// La cle d'idempotence est derivee de la course et du sens : reappuyer sur

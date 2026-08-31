@@ -15,6 +15,7 @@ cas de litige, on peut dire qui a fait passer la course dans quel etat et quand
 from __future__ import annotations
 
 import json
+import secrets
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends
@@ -57,6 +58,12 @@ class CreateDelivery(BaseModel):
     kind: str = "standard"
     package: dict = {}
     price: int | None = None
+    # Point relais de remise, optionnel (differenciant D6, §7). Quand il est
+    # fourni, un code de retrait est genere pour le destinataire.
+    relayPointId: str | None = None
+    # Qui paie (EXI-C42) et liste d'achats pour compte (EXI-C07), optionnels.
+    payer: str | None = None
+    shopping: dict | None = None
 
 
 class Transition(BaseModel):
@@ -105,6 +112,13 @@ async def create_delivery(
     if account.role is not UserRole.client:
         raise forbidden("role_forbidden", "Seul un expediteur cree une course")
 
+    # Code de retrait au relais : six chiffres, assez pour identifier un colis
+    # au comptoir sans etre un secret durable. Genere seulement si un relais est
+    # choisi (§7 : selection, code de retrait).
+    relay_code = None
+    if body.relayPointId:
+        relay_code = f"{secrets.randbelow(1000000):06d}"
+
     delivery = Delivery(
         client_id=account.id,
         kind=body.kind,
@@ -112,6 +126,10 @@ async def create_delivery(
         dropoff_json=body.dropoff.model_dump_json(),
         package_json=json.dumps(body.package),
         price_ariary=body.price,
+        relay_point_id=body.relayPointId,
+        relay_pickup_code=relay_code,
+        payer=body.payer,
+        shopping_json=json.dumps(body.shopping) if body.shopping else None,
         tracking_token=new_opaque_token()[:40],
     )
     db.add(delivery)
@@ -299,9 +317,14 @@ async def accept_delivery(
     return delivery.to_json()
 
 
+class CancelBody(BaseModel):
+    reason: str | None = None
+
+
 @router.post("/deliveries/{delivery_id}/cancel")
 async def cancel_delivery(
     delivery_id: str,
+    body: CancelBody = CancelBody(),
     db: Session = Depends(get_db),
     account: Account = Depends(current_account),
 ) -> dict:
@@ -316,7 +339,18 @@ async def cancel_delivery(
             {"currentState": delivery.status.value},
         )
 
+    # Frais d'annulation : rien tant qu'aucun livreur n'est engage (course encore
+    # en recherche) ; sinon on retient une part, car un livreur a deja avance
+    # vers l'expediteur pour rien (EXI-C26). La part reste modeste et plafonnee
+    # par un plancher lisible.
+    fee = 0
+    if delivery.status is DeliveryStatus.assigned:
+        base = delivery.price_ariary or 5000
+        fee = max(1000, round(base * 0.20))
+
     delivery.status = DeliveryStatus.cancelled
+    delivery.cancel_reason = (body.reason or "").strip() or None
+    delivery.cancel_fee_ariary = fee
     _record(db, delivery, account.id, "annulation")
     db.commit()
     return delivery.to_json()

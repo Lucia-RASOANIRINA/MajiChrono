@@ -36,6 +36,245 @@ class AppLocalizationsMg extends AppLocalizations {
   String get profileLastName => 'Anaram-pianakaviana';
 
   @override
+  String get addressBookTitle => 'Ny adiresiko';
+
+  @override
+  String get addressBookManage => 'Ny adiresiko';
+
+  @override
+  String get addressAdd => 'Hanampy adiresy';
+
+  @override
+  String get addressEditTitle => 'Hanova ny adiresy';
+
+  @override
+  String get addressLabelField => 'Anarana (oh. Trano, Fivarotana)';
+
+  @override
+  String get addressKindLabel => 'Karazana';
+
+  @override
+  String get addressKindHome => 'Trano';
+
+  @override
+  String get addressKindWork => 'Toeram-piasana';
+
+  @override
+  String get addressKindFavorite => 'Ankafiziko';
+
+  @override
+  String get addressKindOther => 'Hafa';
+
+  @override
+  String get addressEmpty => 'Tsy misy adiresy voatahiry';
+
+  @override
+  String get addressEmptyHelp =>
+      'Ampio ny adiresy fampiasanao mba ho haingana kokoa.';
+
+  @override
+  String get addressSaved => 'Voatahiry ny adiresy';
+
+  @override
+  String get addressDeleted => 'Voafafa ny adiresy';
+
+  @override
+  String get addressNeedPoint =>
+      'Apetraho aloha eo amin\'ny sarintany ny adiresy';
+
+  @override
+  String get addressPickSaved => 'Misafidiana avy amin\'ny adiresiko';
+
+  @override
+  String get helpCenterTitle => 'Fanampiana sy fanohanana';
+
+  @override
+  String get helpCenterManage => 'Fanampiana sy fanohanana';
+
+  @override
+  String get helpContactTitle => 'Mifandraisa amin\'ny fanohanana';
+
+  @override
+  String get helpContactHelp => 'Mamaly mandritra ny ora fiasana ny ekipanay.';
+
+  @override
+  String get helpCall => 'Miantso';
+
+  @override
+  String get helpEmail => 'Manoratra';
+
+  @override
+  String get helpReportProblem => 'Mitatitra olana';
+
+  @override
+  String get helpReportProblemHelp =>
+      'Misy olana amin\'ny dia? Soraty aminay ny laharan\'ny dia.';
+
+  @override
+  String get helpReportSubject => 'MajiChrono — fitaterana olana';
+
+  @override
+  String get helpFaqTitle => 'Fanontaniana matetika';
+
+  @override
+  String get helpFaqQ1 => 'Ahoana no famoronana dia?';
+
+  @override
+  String get helpFaqA1 =>
+      'Ao amin\'ny fandraisana, tsindrio « Dia vaovao »: safidio ny fiaingana sy ny halehany, lazao ny entana, avy eo hamafiso.';
+
+  @override
+  String get helpFaqQ2 => 'Ahoana no fanarahana ny diako?';
+
+  @override
+  String get helpFaqA2 =>
+      'Sokafy ny dia ao amin\'ny « Ny diako »: hitanao eo ny toetoetra amin\'ny fotoana marina, ny toerana misy ny mpitatitra ary ny ora fahatongavana.';
+
+  @override
+  String get helpFaqQ3 => 'Ahoana no fandoavam-bola?';
+
+  @override
+  String get helpFaqA3 =>
+      'Amin\'ny MajiPay (kaody QR) na vola mivantana amin\'ny fanolorana. Miseho alohan\'ny fanamafisana ny antsipirian\'ny vidiny.';
+
+  @override
+  String get helpFaqQ4 => 'Azoko foanana ve ny dia?';
+
+  @override
+  String get helpFaqA4 =>
+      'Eny, raha mbola tsy noraisin\'ny mpitatitra ny entana.';
+
+  @override
+  String get helpFaqQ5 => 'Ahoana no fitahirizana ny adiresiko?';
+
+  @override
+  String get helpFaqA5 =>
+      'Ao amin\'ny Fandrindrana, Ny adiresiko: ampio ny tranonao, ny toeram-piasanao ary ny ankafizinao.';
+
+  @override
+  String get helpFaqQ6 => 'Azo itokisana ve ny mpitatitra?';
+
+  @override
+  String get helpFaqA6 =>
+      'Ny mpitatitra tsirairay dia mandalo fanamarinana (KYC) alohan\'ny handraisany dia, ary azonao omena naoty izy aorian\'ny fandefasana.';
+
+  @override
+  String get disputesTitle => 'Ny fitarainako';
+
+  @override
+  String get disputesManage => 'Fitarainana';
+
+  @override
+  String get disputesEmpty => 'Tsy misy fitarainana';
+
+  @override
+  String get disputesEmptyHelp =>
+      'Misy olana amin\'ny dia? Sokafy fitarainana avy amin\'ny fanaraha-maso azy.';
+
+  @override
+  String get disputeOpenTitle => 'Hanokatra fitarainana';
+
+  @override
+  String get disputeOpenHelp =>
+      'Lazao ny olana. Handinika ny raharaha miaraka amin\'ny mpitatitra ny ekipanay.';
+
+  @override
+  String get disputeReasonLabel => 'Antony';
+
+  @override
+  String get disputeReasonHint => 'Oh : simba ny entana tamin\'ny fandraisana';
+
+  @override
+  String get disputeOpenAction => 'Sokafy ny fitarainana';
+
+  @override
+  String get disputeOpened => 'Nisokatra ny fitarainana';
+
+  @override
+  String get disputeReportButton => 'Mitaraina';
+
+  @override
+  String get disputeStatusOpen => 'Misokatra';
+
+  @override
+  String get disputeStatusInvestigating => 'Dinihina';
+
+  @override
+  String get disputeStatusResolved => 'Voavaha';
+
+  @override
+  String get disputeStatusRejected => 'Nolavina';
+
+  @override
+  String get disputeReason => 'Antony';
+
+  @override
+  String get disputeThread => 'Ifandraisana';
+
+  @override
+  String get disputeNoMessages => 'Mbola tsy misy ifandraisana.';
+
+  @override
+  String get disputeReplyHint => 'Manorata hafatra';
+
+  @override
+  String get disputeSend => 'Alefa';
+
+  @override
+  String get disputeClosed => 'Efa mikatona ity fitarainana ity.';
+
+  @override
+  String get disputeDecision => 'Fanapahan-kevitra';
+
+  @override
+  String get disputeAuthorYou => 'Ianao';
+
+  @override
+  String disputeOpenedOn(String date) {
+    return 'Nosokafana ny $date';
+  }
+
+  @override
+  String get disputeReasonTooShort =>
+      'Fakafakao bebe kokoa (10 litera farafahakeliny).';
+
+  @override
+  String get cancelDelivery => 'Foanana ny dia';
+
+  @override
+  String get cancelSheetTitle => 'Foanana ny dia?';
+
+  @override
+  String get cancelSheetHelp =>
+      'Misafidiana antony. Mety hisy sara raha efa an-dalana ny mpitatitra.';
+
+  @override
+  String get cancelReasonMind => 'Niova hevitra aho';
+
+  @override
+  String get cancelReasonWrongAddress => 'Diso adiresy';
+
+  @override
+  String get cancelReasonTooLong => 'Ela loatra ny fiandrasana';
+
+  @override
+  String get cancelReasonOther => 'Antony hafa';
+
+  @override
+  String get cancelConfirm => 'Hamafiso ny fanafoanana';
+
+  @override
+  String get cancelKeep => 'Tazomy ny dia';
+
+  @override
+  String get cancelDone => 'Nofoanana ny dia';
+
+  @override
+  String cancelDoneWithFee(int fee) {
+    return 'Nofoanana ny dia — sara notazonina : $fee Ar';
+  }
+
+  @override
   String get profileNameEmpty => 'Tsy azo avela foana ny anarana';
 
   @override
@@ -772,6 +1011,21 @@ class AppLocalizationsMg extends AppLocalizations {
   String get pkgDescription => 'Famaritana';
 
   @override
+  String get pkgDimensions => 'Refy (cm)';
+
+  @override
+  String get pkgLength => 'Lava';
+
+  @override
+  String get pkgWidth => 'Sakana';
+
+  @override
+  String get pkgHeight => 'Haavo';
+
+  @override
+  String get pkgAddPhoto => 'Hanampy sarin\'ny entana';
+
+  @override
   String get pkgPhotoLater =>
       'Hangatahina amin\'ny modely 5 ny sarin\'ny entana.';
 
@@ -878,6 +1132,48 @@ class AppLocalizationsMg extends AppLocalizations {
   @override
   String deliveryDistance(String km) {
     return '$km km';
+  }
+
+  @override
+  String get histSearchHint => 'Hitady dia';
+
+  @override
+  String get histFilterAll => 'Rehetra';
+
+  @override
+  String get histFilterActive => 'Andalana';
+
+  @override
+  String get histFilterDone => 'Vita';
+
+  @override
+  String get histFilterCancelled => 'Nofoanana';
+
+  @override
+  String get histPeriodAll => 'Fotoana rehetra';
+
+  @override
+  String get histPeriod7 => '7 andro';
+
+  @override
+  String get histPeriod30 => '30 andro';
+
+  @override
+  String get histNoMatch => 'Tsy misy dia mifanaraka';
+
+  @override
+  String get histNoMatchHelp => 'Ovay ny fikarohana na ny sivana.';
+
+  @override
+  String histResultCount(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: 'dia $count',
+      one: 'dia 1',
+      zero: 'Tsy misy dia',
+    );
+    return '$_temp0';
   }
 
   @override
@@ -1301,6 +1597,21 @@ class AppLocalizationsMg extends AppLocalizations {
       'Mavesatra loatra ho an\'ity toerana ity ny entana';
 
   @override
+  String relayDistance(String km) {
+    return '$km km';
+  }
+
+  @override
+  String get relayPickupCodeTitle => 'Kaody fakana';
+
+  @override
+  String get relayPickupCodeHelp =>
+      'Asehon\'ny mpandray amin\'ny toerana ity kaody ity hakana ny entana.';
+
+  @override
+  String get commonCopy => 'Adika';
+
+  @override
   String get groupTitle => 'Dia mitambatra';
 
   @override
@@ -1652,6 +1963,50 @@ class AppLocalizationsMg extends AppLocalizations {
 
   @override
   String get payMethodCash => 'Vola madinika';
+
+  @override
+  String get walletTitle => 'Ny kitapombolako';
+
+  @override
+  String get walletBalanceLabel => 'Vola azo ampiasaina';
+
+  @override
+  String get walletHistoryTitle => 'Tantaran\'ny fandoavam-bola';
+
+  @override
+  String get walletHistoryEmpty => 'Mbola tsy misy fandoavam-bola';
+
+  @override
+  String get walletHistoryEmptyHelp =>
+      'Hiseho eto ny fandoavam-bola MajiPay-nao.';
+
+  @override
+  String get walletOutgoing => 'Vola nalefa';
+
+  @override
+  String get walletIncoming => 'Vola voaray';
+
+  @override
+  String get walletStatusPending => 'Andalana';
+
+  @override
+  String get walletStatusCaptured => 'Voaloa';
+
+  @override
+  String get walletStatusFailed => 'Tsy nahomby';
+
+  @override
+  String get walletStatusCash => 'Voaloa vola madinika';
+
+  @override
+  String get walletRefund => 'Famerenam-bola';
+
+  @override
+  String get walletRefundNote =>
+      'Raha nofoanana ny dia taorian\'ny fandoavana, ny MajiPay no mandefa ny famerenam-bola anatin\'ny 72 ora. Antsoy ny fanampiana raha ilaina.';
+
+  @override
+  String get walletViewReceipt => 'Hijery ny rosia';
 
   @override
   String get syncPendingTitle => 'Zavatra miandry';

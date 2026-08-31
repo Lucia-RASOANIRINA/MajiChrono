@@ -22,6 +22,15 @@ final majiPayBalanceProvider = FutureProvider.autoDispose
       (ref, role) => ref.watch(paymentRepositoryProvider).balance(role),
     );
 
+/// Journal des paiements du compte courant (§11, EXI-C39).
+///
+/// `autoDispose` : le journal se relit a chaque ouverture de l'ecran, on ne
+/// garde pas en memoire une liste qui aura vieilli d'ici la prochaine visite.
+final paymentHistoryProvider = FutureProvider.autoDispose
+    .family<List<PaymentHistoryEntry>, int>(
+      (ref, limit) => ref.watch(paymentRepositoryProvider).history(limit: limit),
+    );
+
 /// Suivi d'une intention jusqu'a son etat final (EXI-MP05).
 ///
 /// Le sondage est **plafonne a 120 secondes** et sa cadence suit le profil

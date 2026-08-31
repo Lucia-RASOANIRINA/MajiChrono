@@ -7,7 +7,8 @@ import 'package:majichrono/shared/widgets/mc_moto_loader.dart';
 import 'package:majichrono/features/onboarding/presentation/welcome_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_dashboard_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/admin_deliveries_screen.dart';
-import 'package:majichrono/features/admin/presentation/screens/disputes_screen.dart';
+import 'package:majichrono/features/admin/presentation/screens/disputes_screen.dart'
+    hide DisputeDetailScreen;
 import 'package:majichrono/features/admin/presentation/screens/fleet_screen.dart';
 import 'package:majichrono/features/admin/presentation/screens/kyc_queue_screen.dart';
 import 'package:majichrono/app/shell/role_shell.dart';
@@ -24,6 +25,7 @@ import 'package:majichrono/features/auth/presentation/screens/otp_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/phone_input_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/pin_setup_screen.dart';
 import 'package:majichrono/features/auth/presentation/screens/profile_choice_screen.dart';
+import 'package:majichrono/features/delivery/presentation/screens/address_book_screen.dart';
 import 'package:majichrono/features/delivery/presentation/screens/create_delivery_screen.dart';
 import 'package:majichrono/features/delivery/presentation/screens/deliveries_screen.dart';
 import 'package:majichrono/features/driver/presentation/screens/active_delivery_screen.dart';
@@ -45,6 +47,10 @@ import 'package:majichrono/features/profile/presentation/edit_profile_screen.dar
 import 'package:majichrono/features/profile/presentation/forgot_password_screen.dart';
 import 'package:majichrono/features/profile/presentation/sessions_screen.dart';
 import 'package:majichrono/features/settings/presentation/settings_screen.dart';
+import 'package:majichrono/features/support/presentation/help_center_screen.dart';
+import 'package:majichrono/features/payment/presentation/screens/wallet_screen.dart';
+import 'package:majichrono/features/support/presentation/screens/disputes_list_screen.dart';
+import 'package:majichrono/features/support/presentation/screens/dispute_detail_screen.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
 final _rootKey = GlobalKey<NavigatorState>(debugLabel: 'root');
@@ -201,6 +207,29 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: AppRoutes.sessions,
         builder: (_, _) => const SessionsScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.addressBook,
+        builder: (_, _) => const AddressBookScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.helpCenter,
+        builder: (_, _) => const HelpCenterScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.wallet,
+        builder: (_, _) => const WalletScreen(),
+      ),
+      GoRoute(
+        path: AppRoutes.disputes,
+        builder: (_, _) => const DisputesListScreen(),
+        routes: [
+          GoRoute(
+            path: ':id',
+            builder: (context, state) =>
+                DisputeDetailScreen(disputeId: state.pathParameters['id']!),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.notifications,

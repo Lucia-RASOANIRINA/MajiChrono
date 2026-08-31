@@ -14,14 +14,18 @@ from app.config import get_settings
 from app.core.errors import ApiError, api_error_handler, error_body
 from app.db import ensure_schema, get_db
 from app.routers import (
+    addresses,
     admin,
     auth,
     chat,
     compat,
     deliveries,
+    disputes,
     driver,
     me,
+    media,
     payment,
+    relay,
     reviews,
 )
 
@@ -100,6 +104,8 @@ async def health() -> dict:
 
 app.include_router(auth.router)
 app.include_router(me.router)
+app.include_router(addresses.router)
+app.include_router(media.router)
 # La couche de compatibilite est montee **avant** les courses : sa route
 # `GET /deliveries/available` doit l'emporter sur `GET /deliveries/{id}`, qui
 # prendrait sinon « available » pour un identifiant.
@@ -108,5 +114,7 @@ app.include_router(deliveries.router)
 app.include_router(driver.router)
 app.include_router(admin.router)
 app.include_router(chat.router)
+app.include_router(disputes.router)
 app.include_router(payment.router)
+app.include_router(relay.router)
 app.include_router(reviews.router)

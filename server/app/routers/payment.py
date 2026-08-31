@@ -139,6 +139,41 @@ async def balance(
     }
 
 
+@router.get("/history")
+async def history(
+    limit: int = 50,
+    db: Session = Depends(get_db),
+    account: Account = Depends(current_account),
+) -> dict:
+    """Historique des paiements du compte courant (§11, EXI-C39).
+
+    On rend les intentions ou le compte est **payeur ou beneficiaire**, les plus
+    recentes d'abord. C'est le journal que le client consulte pour retrouver un
+    paiement, et le livreur pour rapprocher ses encaissements. Les intentions
+    encore en vol (`pending`) en font partie : un paiement en cours a autant sa
+    place dans le journal qu'un paiement solde.
+    """
+    capped = max(1, min(limit, 100))
+    rows = (
+        db.query(PaymentIntent)
+        .filter(
+            (PaymentIntent.payer_id == account.id)
+            | (PaymentIntent.payee_id == account.id)
+        )
+        .order_by(PaymentIntent.created_at.desc())
+        .limit(capped)
+        .all()
+    )
+    # `role` dit au mobile de quel cote de la transaction il se trouve, sans lui
+    # faire deviner en comparant des identifiants.
+    items = []
+    for intent in rows:
+        data = intent.to_json()
+        data["role"] = "payer" if intent.payer_id == account.id else "payee"
+        items.append(data)
+    return {"items": items}
+
+
 @router.post("/intent", status_code=201)
 async def create_intent(
     body: CreateIntent,

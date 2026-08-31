@@ -6,6 +6,8 @@ import 'package:go_router/go_router.dart';
 import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/core/session/user_role.dart';
 import 'package:majichrono/features/custody/presentation/widgets/custody_proof_action.dart';
 import 'package:majichrono/features/payment/presentation/screens/payment_screen.dart';
@@ -19,6 +21,7 @@ import 'package:majichrono/features/tracking/presentation/providers/tracking_pro
 import 'package:majichrono/features/tracking/presentation/widgets/delivery_map.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_card.dart';
+import 'package:majichrono/features/support/presentation/screens/open_dispute_sheet.dart';
 import 'package:majichrono/shared/widgets/mc_driver_card.dart';
 import 'package:majichrono/shared/widgets/mc_empty_state.dart';
 import 'package:majichrono/shared/widgets/mc_section_header.dart';
@@ -160,6 +163,19 @@ class TrackingScreen extends ConsumerWidget {
               );
             },
           ),
+          if ((snapshot?.status ?? delivery.status).isCancellableByClient) ...[
+            const SizedBox(height: AppSpacing.md),
+            OutlinedButton.icon(
+              onPressed: () => _confirmCancel(context, delivery.id),
+              icon: const Icon(Icons.cancel_outlined),
+              label: Text(l10n.cancelDelivery),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.danger,
+                side: const BorderSide(color: AppColors.danger),
+                minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
+              ),
+            ),
+          ],
           const SizedBox(height: AppSpacing.lg),
           DeliveryMap(
             pickup: delivery.pickup.point,
@@ -170,6 +186,11 @@ class TrackingScreen extends ConsumerWidget {
           const SizedBox(height: AppSpacing.lg),
           if (snapshot?.driver != null) ...[
             _DriverCard(driver: snapshot!.driver!),
+            const SizedBox(height: AppSpacing.lg),
+          ],
+          if (delivery.relayPickupCode != null &&
+              delivery.relayPickupCode!.isNotEmpty) ...[
+            _RelayPickupCard(code: delivery.relayPickupCode!),
             const SizedBox(height: AppSpacing.lg),
           ],
           if (delivery.trackingToken != null) ...[
@@ -193,6 +214,137 @@ class TrackingScreen extends ConsumerWidget {
             const McSkeletonList(itemCount: 2, nested: true)
           else
             _Timeline(entries: snapshot.timeline),
+          // Ouvrir un litige n'a de sens qu'une fois un livreur engage : avant,
+          // il n'y a pas d'autre partie a instruire (§13).
+          if (delivery.driverId != null && !delivery.pendingSync) ...[
+            const SizedBox(height: AppSpacing.lg),
+            TextButton.icon(
+              onPressed: () => showOpenDisputeSheet(
+                context,
+                ref,
+                deliveryId: delivery.id,
+              ),
+              icon: const Icon(Icons.gavel_outlined, size: 18),
+              label: Text(l10n.disputeReportButton),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _confirmCancel(BuildContext context, String id) async {
+    final l10n = AppLocalizations.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    final fee = await showModalBottomSheet<int>(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => _CancelSheet(deliveryId: id),
+    );
+    if (fee == null) return; // l'utilisateur a garde sa course
+    messenger.showSnackBar(
+      SnackBar(
+        content: Text(fee > 0 ? l10n.cancelDoneWithFee(fee) : l10n.cancelDone),
+      ),
+    );
+  }
+}
+
+/// Feuille d'annulation : un motif, l'avertissement de frais, puis confirmation.
+/// Rend les frais retenus au `Navigator.pop`, ou rien si l'utilisateur renonce.
+class _CancelSheet extends ConsumerStatefulWidget {
+  const _CancelSheet({required this.deliveryId});
+
+  final String deliveryId;
+
+  @override
+  ConsumerState<_CancelSheet> createState() => _CancelSheetState();
+}
+
+class _CancelSheetState extends ConsumerState<_CancelSheet> {
+  String? _reason;
+  bool _busy = false;
+
+  List<String> _reasons(AppLocalizations l10n) => [
+    l10n.cancelReasonMind,
+    l10n.cancelReasonWrongAddress,
+    l10n.cancelReasonTooLong,
+    l10n.cancelReasonOther,
+  ];
+
+  Future<void> _confirm() async {
+    final l10n = AppLocalizations.of(context);
+    final navigator = Navigator.of(context);
+    final messenger = ScaffoldMessenger.of(context);
+    setState(() => _busy = true);
+    try {
+      final fee = await ref
+          .read(deliveryRepositoryProvider)
+          .cancelDelivery(widget.deliveryId, reason: _reason);
+      ref.invalidate(deliveriesProvider);
+      navigator.pop(fee);
+    } on Failure catch (failure) {
+      messenger.showSnackBar(
+        SnackBar(content: Text(failure.localizedMessage(l10n))),
+      );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: EdgeInsets.only(
+        left: AppSpacing.lg,
+        right: AppSpacing.lg,
+        top: AppSpacing.lg,
+        bottom: MediaQuery.of(context).viewInsets.bottom + AppSpacing.lg,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text(l10n.cancelSheetTitle, style: theme.textTheme.titleLarge),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.cancelSheetHelp,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              color: theme.colorScheme.onSurfaceVariant,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Wrap(
+            spacing: AppSpacing.sm,
+            children: [
+              for (final reason in _reasons(l10n))
+                ChoiceChip(
+                  label: Text(reason),
+                  selected: _reason == reason,
+                  onSelected: (_) => setState(() => _reason = reason),
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          FilledButton(
+            onPressed: _busy || _reason == null ? null : _confirm,
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.danger,
+              minimumSize: const Size.fromHeight(AppSizes.minTouchTarget),
+            ),
+            child: _busy
+                ? const SizedBox.square(
+                    dimension: 20,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : Text(l10n.cancelConfirm),
+          ),
+          TextButton(
+            onPressed: _busy ? null : () => Navigator.of(context).pop(),
+            child: Text(l10n.cancelKeep),
+          ),
         ],
       ),
     );
@@ -377,6 +529,72 @@ class _ShareTrackingCard extends StatelessWidget {
             context,
           ).showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
         },
+      ),
+    );
+  }
+}
+
+/// Code de retrait au point relais (§7).
+///
+/// Le destinataire le presente au comptoir pour recuperer le colis. On le rend
+/// copiable pour un partage par SMS, comme le lien de suivi : le relais n'a pas
+/// a connaitre l'expediteur, seulement ce code.
+class _RelayPickupCard extends StatelessWidget {
+  const _RelayPickupCard({required this.code});
+
+  final String code;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+
+    return McCard(
+      accent: AppColors.primary,
+      child: Row(
+        children: [
+          const Icon(Icons.storefront_outlined, color: AppColors.primary),
+          const SizedBox(width: AppSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.relayPickupCodeTitle,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  code,
+                  style: theme.textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 4,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  l10n.relayPickupCodeHelp,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.copy_outlined),
+            tooltip: l10n.commonCopy,
+            onPressed: () async {
+              await Clipboard.setData(ClipboardData(text: code));
+              if (!context.mounted) return;
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(SnackBar(content: Text(l10n.linkCopied)));
+            },
+          ),
+        ],
       ),
     );
   }
