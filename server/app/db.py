@@ -16,6 +16,15 @@ logger = logging.getLogger("majichrono.db")
 
 _settings = get_settings()
 
+# SQLAlchemy maps a plain `postgresql://` URL to the psycopg2 driver. Render
+# installs psycopg v3, so select that driver explicitly while preserving the
+# DATABASE_URL format supplied by Neon.
+_database_url = _settings.database_url
+if _database_url.startswith("postgresql://"):
+    _database_url = _database_url.replace(
+        "postgresql://", "postgresql+psycopg://", 1
+    )
+
 # `pool_pre_ping` : la connexion est testee avant usage. Sans lui, un serveur
 # reveille apres une nuit d'inactivite sert une premiere requete en erreur,
 # parce que PostgreSQL a ferme la connexion de son cote entre-temps.
@@ -25,7 +34,7 @@ _is_sqlite = _settings.database_url.startswith("sqlite")
 # or FastAPI en utilise plusieurs. La contrainte n'a pas lieu d'etre ici, chaque
 # requete ouvrant sa propre session.
 engine = create_engine(
-    _settings.database_url,
+    _database_url,
     pool_pre_ping=True,
     future=True,
     connect_args={"check_same_thread": False} if _is_sqlite else {},
