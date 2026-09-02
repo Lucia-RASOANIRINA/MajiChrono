@@ -55,20 +55,16 @@ enum NetworkTransport { none, mobile, wifi, ethernet, other }
 /// le temps d'aller-retour mesure qui qualifie le profil (§9.2).
 class NetworkStatusService {
   NetworkStatusService({
-    required this._apiClient,
+    required ApiClient apiClient,
     Connectivity? connectivity,
-    this._probeInterval = const Duration(seconds: 30),
-  }) : _connectivity = connectivity ?? Connectivity();
+    Duration probeInterval = const Duration(seconds: 30),
+  }) : _apiClient = apiClient,
+       _connectivity = connectivity ?? Connectivity(),
+       _probeInterval = probeInterval;
 
   final ApiClient _apiClient;
   final Connectivity _connectivity;
   final Duration _probeInterval;
-
-  /// Cadence rapide quand l'appareil est connecte mais le serveur injoignable :
-  /// c'est le cas du reveil du serveur (plan gratuit, ~30 s). On sonde souvent
-  /// pour repasser « en ligne » des la premiere reponse, plutot que d'attendre
-  /// le prochain tour lent et de laisser l'utilisateur devant un ecran fige.
-  static const Duration _wakingInterval = Duration(seconds: 4);
 
   final StreamController<NetworkStatus> _controller =
       StreamController<NetworkStatus>.broadcast();
@@ -85,27 +81,11 @@ class NetworkStatusService {
     _connectivitySub = _connectivity.onConnectivityChanged.listen((results) {
       final transport = _mapTransport(results);
       _emit(_current.copyWith(transport: transport));
-      // Un changement d'interface justifie une sonde immediate, puis on recale
-      // la cadence sur le nouvel etat (reveil rapide, sinon lent).
-      unawaited(refresh().then((_) => _scheduleNext()));
+      // Un changement d'interface justifie une sonde immediate.
+      unawaited(refresh());
     });
+    _timer = Timer.periodic(_probeInterval, (_) => unawaited(refresh()));
     await refresh();
-    _scheduleNext();
-  }
-
-  /// Reprogramme la prochaine sonde, cadence choisie selon l'etat courant :
-  /// rapide tant que le serveur ne repond pas alors que l'appareil est connecte
-  /// (reveil), lente une fois en ligne.
-  void _scheduleNext() {
-    _timer?.cancel();
-    // Tant que le serveur ne repond pas, on resonde vite (reveil du plan gratuit,
-    // coupure passagere) pour repasser « en ligne » des que possible ; une fois
-    // joignable, on espace. On ne se fie plus au transport, juge peu fiable.
-    final interval = _current.reachable ? _probeInterval : _wakingInterval;
-    _timer = Timer(interval, () async {
-      await refresh();
-      _scheduleNext();
-    });
   }
 
   /// Force une mesure. Sans effet si une mesure est deja en vol.
@@ -113,30 +93,16 @@ class NetworkStatusService {
     if (_probing) return _current;
     _probing = true;
     try {
-      // La lecture du transport ne doit jamais empecher la sonde : si le plugin
-      // systeme echoue, on continue quand meme a tester le serveur.
-      NetworkTransport transport;
-      try {
-        transport = _mapTransport(await _connectivity.checkConnectivity());
-      } on Object {
-        transport = NetworkTransport.other;
-      }
-      // On sonde **toujours** le serveur, quoi que dise `connectivity_plus`.
-      // Sur certains telephones il rapporte « aucune connexion » a tort (Android
-      // recent, VPN, double SIM...) ; gater la sonde sur son verdict laissait
-      // l'application « hors ligne » en permanence alors que le serveur repond
-      // parfaitement. La seule verite qui compte ici, c'est : est-ce que le
-      // serveur repond ? Le transport ne sert plus qu'a l'affichage.
+      final transport = _mapTransport(await _connectivity.checkConnectivity());
+      // `connectivity_plus` est indicatif et peut signaler `none` sur le Web
+      // alors que le navigateur a bien acces au serveur. La sonde applicative
+      // reste donc la source de verite de la joignabilite.
       final rtt = await _apiClient.probe();
       _emit(
         NetworkStatus(
           reachable: rtt != null,
           profile: NetworkProfile.fromRttMs(rtt),
-          transport: rtt != null && transport == NetworkTransport.none
-              // Le serveur repond mais l'OS dit « aucune interface » : on ne le
-              // croit pas, on marque « autre » plutot que de garder « none ».
-              ? NetworkTransport.other
-              : transport,
+          transport: transport,
           rttMs: rtt,
           lastProbeAt: DateTime.now(),
         ),
@@ -157,9 +123,7 @@ class NetworkStatusService {
       return NetworkTransport.none;
     }
     if (results.contains(ConnectivityResult.wifi)) return NetworkTransport.wifi;
-    if (results.contains(ConnectivityResult.mobile)) {
-      return NetworkTransport.mobile;
-    }
+    if (results.contains(ConnectivityResult.mobile)) return NetworkTransport.mobile;
     if (results.contains(ConnectivityResult.ethernet)) {
       return NetworkTransport.ethernet;
     }

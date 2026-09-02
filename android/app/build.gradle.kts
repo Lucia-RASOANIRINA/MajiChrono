@@ -24,27 +24,11 @@ android {
         targetSdk = 35
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+        // Un seul APK par ABI en production pour tenir le budget EXI-P03 (< 25 Mo).
+        ndk {
+            abiFilters += listOf("armeabi-v7a", "arm64-v8a", "x86_64")
+        }
     }
-
-    // Un APK **par** architecture (EXI-P03 : moins de 25 Mo).
-    //
-    // `ndk.abiFilters` faisait exactement l'inverse de ce que son commentaire
-    // annoncait : il empilait les trois architectures dans un seul APK. Les
-    // bibliotheques natives des plugins — surtout le lecteur de code-barres ML
-    // Kit, pres de 5 Mo par ABI — etaient donc livrees trois fois a chaque
-    // utilisateur, dont deux qu'il n'executera jamais.
-    //
-    // Le decoupage par architecture est confie a Flutter, pas a Gradle.
-    //
-    // Un bloc `splits { abi { ... } }` a longtemps figure ici, desactive des que
-    // `target-platform` etait pose. Il ne s'est jamais applique : `flutter build
-    // apk` pose **toujours** cette propriete, avec la liste par defaut des trois
-    // architectures. Le garde-fou desactivait donc le decoupage a chaque
-    // compilation, et l'APK embarquait les trois jeux de bibliotheques natives —
-    // 87 Mo la ou le budget est de 25.
-    //
-    // La bonne commande est `flutter build apk --split-per-abi`, qui produit un
-    // fichier par architecture sans que Gradle ait a s'en meler.
 
     buildTypes {
         debug {
@@ -79,6 +63,8 @@ kotlin {
 
 dependencies {
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.4")
+    // Flutter's deferred-component embedding references the Play Core API.
+    implementation("com.google.android.play:core:1.10.3")
 }
 
 flutter {

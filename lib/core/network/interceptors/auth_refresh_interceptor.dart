@@ -5,8 +5,8 @@ import 'package:majichrono/core/network/api_endpoints.dart';
 ///
 /// Le jeton d'acces ne vit que quinze minutes. Sans ce rattrapage, un livreur
 /// qui laisse son telephone en poche entre deux courses verrait sa premiere
-/// action echouer au retour, et devrait se reconnecter — inacceptable au milieu
-/// d'un parcours ou chaque etape se valide en trois gestes (§15.2.2).
+/// action echouer au retour, et devrait se reconnecter â€” inacceptable au milieu
+/// d'un parcours ou chaque etape se valide en trois gestes (Â§15.2.2).
 ///
 /// Trois garde-fous :
 ///  - une seule reprise par requete, marquee dans `extra`, pour ne jamais
@@ -14,7 +14,7 @@ import 'package:majichrono/core/network/api_endpoints.dart';
 ///  - la route de rafraichissement elle-meme est exclue, sous peine de recursion ;
 ///  - la reprise conserve la **cle d'idempotence d'origine** (posee par
 ///    `IdempotencyInterceptor` avant cet intercepteur), sans quoi rejouer une
-///    ecriture apres expiration produirait un second traitement — exactement le
+///    ecriture apres expiration produirait un second traitement â€” exactement le
 ///    double debit qu'interdit EXI-MP06.
 class AuthRefreshInterceptor extends QueuedInterceptor {
   AuthRefreshInterceptor({required this._onRefresh, required this._dio});
@@ -52,7 +52,7 @@ class AuthRefreshInterceptor extends QueuedInterceptor {
     if (token == null) return handler.next(err);
 
     options.extra[_retriedFlag] = true;
-    options.headers['Authorization'] = 'Bearer $token';
+    options.headers['Authorization'] = 'Bearer ' + token;
 
     try {
       final response = await _dio.fetch<dynamic>(options);

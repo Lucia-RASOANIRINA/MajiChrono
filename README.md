@@ -1,949 +1,474 @@
-# MajiChrono
+# MajiChrono — application mobile Flutter
 
-Application mobile Flutter de livraison à la demande à Madagascar.
+Refonte Flutter de l'application mobile MajiChrono, plateforme de livraison à la
+demande pour Madagascar.
 
-MajiChrono permet aux clients de créer et suivre leurs livraisons, aux livreurs de gérer leurs courses et aux équipes d'exploitation de superviser l'activité depuis une seule application.
-
-L'application est conçue pour fonctionner dans des conditions réseau difficiles, notamment en 2G, 3G et 4G, ainsi qu'en mode hors connexion.
-
-> Projet mobile Flutter — Backend actuellement simulé
+Ce dépôt met en oeuvre le cahier des charges
+`MajiChrono_Cahier_des_Charges_Mobile_Flutter.md` version 1.0. Les références
+`§x.y` et `EXI-xx##` qui apparaissent dans ce document et dans les commentaires
+du code renvoient à ce cahier des charges.
 
 ---
 
 ## Sommaire
 
-- Présentation
-- Fonctionnalités
-- Profils utilisateurs
-- Technologies
-- Architecture
-- Structure du projet
-- Installation
-- Lancement
-- Comptes de démonstration
-- Mode hors ligne
-- Backend simulé
-- Sécurité
-- État du projet
-- Tests
-- Environnement de développement
-- Points restant à finaliser
-- Décisions produit
-- Roadmap
-- Documentation
-- Développement
+1. [Démarrer](#1-démarrer)
+2. [Les trois profils](#2-les-trois-profils)
+3. [Architecture](#3-architecture)
+4. [Le backend simulé](#4-le-backend-simulé)
+5. [Règles de conception](#5-règles-de-conception)
+6. [Avancement par module](#6-avancement-par-module)
+7. [Détail des tâches par module](#7-détail-des-tâches-par-module)
+8. [Tests](#8-tests)
+9. [Environnement de développement](#9-environnement-de-développement)
+10. [Décisions à arbitrer](#10-décisions-à-arbitrer)
 
 ---
 
-## Présentation
-
-MajiChrono est une application mobile destinée à gérer une plateforme de livraison à Madagascar.
-
-L'application regroupe trois profils principaux :
-
-- **Client** : Créer une course, suivre un colis, payer et noter le livreur
-- **Livreur** : Accepter des courses, effectuer les livraisons et gérer les preuves
-- **Administrateur** : Superviser les courses, les livreurs, les KYC et les litiges
-
-Le destinataire n'a pas besoin d'installer l'application. Il peut recevoir un lien de suivi et participer à la confirmation de livraison depuis le téléphone du livreur.
-
-Le profil administrateur est attribué côté serveur et ne peut pas être sélectionné librement depuis l'application.
-
----
-
-## Fonctionnalités
-
-### Client
-
-- Création d'une course
-- Gestion des adresses
-- Carnet d'adresses et favoris
-- Choix du type de livraison
-- Déclaration du colis
-- Estimation du prix
-- Livraison immédiate ou programmée
-- Création de course hors ligne
-- Historique des courses
-- Annulation avant prise en charge
-- Suivi du livreur
-- Carte et position GPS
-- Paiement MajiPay
-- Paiement en espèces
-- Assurance sur la valeur déclarée
-- Achat pour compte
-- Points relais
-- Notifications
-- Évaluation du livreur
-
----
-
-### Livreur
-
-- Activation et désactivation du statut en ligne
-- Liste des courses disponibles
-- Estimation des gains
-- Acceptation d'une course
-- Navigation vers le client
-- Progression de la livraison
-- Gestion des incidents
-- Gestion du dossier KYC
-- Tableau de bord des revenus
-- Preuves de livraison
-- Photos
-- Signatures
-- Code OTP
-- Gestion des réserves
-- Paiement MajiPay
-- Bouton d'urgence
-- Mode économie de données
-- Fonctionnement hors ligne
-
----
-
-### Administrateur
-
-- Tableau de bord
-- Supervision de la flotte
-- Carte des livreurs
-- Gestion des dossiers KYC
-- Gestion des courses
-- Gestion des litiges
-- Comparaison des preuves
-- Suspension et réintégration de comptes
-- Réaffectation des courses
-- Gestion des incidents
-- Suivi de l'activité
-
-Les actions d'administration importantes nécessitent un motif obligatoire, notamment pour les suspensions, les refus KYC et les décisions concernant les litiges.
-
----
-
-## Système de preuve
-
-La chaîne de responsabilité constitue l'un des éléments principaux de MajiChrono.
-
-Lors d'un transfert de responsabilité, l'application peut produire un constat comprenant notamment :
-
-- Photos
-- Position GPS
-- Horodatage
-- Grille d'état
-- Scellé
-- Signatures
-- Code OTP
-- Empreinte SHA-256
-
-Les constats sont scellés afin de détecter toute modification ultérieure.
-
-L'application prend également en charge plusieurs situations de remise :
-
-- **Remis au destinataire** : Livraison terminée
-- **Remis sous réserves** : Livraison et litige
-- **Refusé** : Retour vers l'expéditeur
-- **Remis à un tiers** : Livraison avec justificatif
-- **Remis sans signature** : Livraison et alerte exploitation
-
-Le module de preuve est actuellement livré et dispose de tests dédiés.
-
----
-
-## Technologies
-
-- **Flutter** : Application mobile
-- **Dart** : Langage
-- **Riverpod 2** : Gestion d'état et injection
-- **GoRouter** : Navigation
-- **Dio** : Communication HTTP
-- **Drift** : Base de données locale
-- **SQLite** : Stockage local
-- **flutter_secure_storage** : Stockage sécurisé
-- **ARB / Flutter l10n** : Internationalisation
-- **Android SDK** : Compilation Android
-
-### Versions principales
-
-- Flutter 3.44+
-- Dart 3.12
-- JDK 21
-- Android SDK API 35
-- Android minimum API 26
-
----
-
-## Architecture
-
-MajiChrono utilise une architecture en quatre couches :
-
-```text
-┌──────────────────────────────┐
-│        Présentation          │
-│    Écrans · Widgets · UI     │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│           Domaine            │
-│ Entités · Use Cases · API    │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│           Données            │
-│ DTO · Repositories · Sources │
-└──────────────┬───────────────┘
-               │
-               ▼
-┌──────────────────────────────┐
-│            Socle             │
-│ Réseau · Stockage · i18n     │
-└──────────────────────────────┘
-```
-
-### Règle principale
-
-Une couche ne doit dépendre que de la couche située en dessous.
-
-Le domaine reste indépendant des technologies externes.
-
----
-
-## Structure du projet
-
-```text
-lib/
-│
-├── main.dart
-├── bootstrap.dart
-│
-├── app/
-│   ├── router/
-│   ├── theme/
-│   └── shell/
-│
-├── core/
-│   ├── config/
-│   ├── error/
-│   ├── i18n/
-│   ├── logging/
-│   ├── network/
-│   ├── providers/
-│   ├── session/
-│   └── storage/
-│
-├── features/
-│   └── <fonctionnalité>/
-│       ├── data/
-│       ├── domain/
-│       └── presentation/
-│
-├── shared/
-│
-└── l10n/
-    └── arb/
-        ├── app_fr.arb
-        └── app_mg.arb
-```
-
-Chaque fonctionnalité est organisée autour de trois niveaux :
-
-- `data/`
-- `domain/`
-- `presentation/`
-
-Cette organisation permet de maintenir une séparation claire entre la logique métier, les données et l'interface.
-
----
-
-## Internationalisation
-
-L'application prend actuellement en charge :
-
-- Français
-- Malagasy
-
-Le changement de langue peut être effectué sans redémarrer l'application.
-
-Tous les textes visibles doivent provenir des fichiers de traduction ARB.
-
-Des tests vérifient notamment :
-
-- l'absence de traductions manquantes
-- l'absence de clés inutilisées
-- la cohérence des paramètres de traduction
-- l'absence de textes écrits directement dans les widgets
-
----
-
-## Installation
+## 1. Démarrer
 
 ### Prérequis
 
-Installer :
+| Élément | Version | Remarque |
+|---|---|---|
+| Flutter | 3.44 ou plus, canal stable | Dart 3.12 |
+| JDK | 21 | Celui d'Android Studio (`jbr`). Voir §9. |
+| Android SDK | API 35 pour compiler | Minimum d'exécution : API 26 |
 
-- Flutter 3.44+
-- Android Studio
-- JDK 21
-- Android SDK API 35
-
-Vérifier l'installation de Flutter :
-
-```bash
-flutter doctor
-```
-
-### Installer les dépendances
+### Installation
 
 ```bash
 flutter pub get
-```
-
-### Générer les traductions
-
-```bash
 flutter gen-l10n
-```
-
-### Générer les fichiers nécessaires
-
-```bash
 dart run build_runner build --delete-conflicting-outputs
 ```
 
----
-
-## Lancement
-
-Le projet a deux moitiés : le **serveur** (`server/`, FastAPI + PostgreSQL) et
-l'**application** (Flutter). On peut lancer l'application seule contre son
-backend simulé, ou lancer les deux ensemble.
-
-### Option A — Application seule (backend simulé)
-
-Aucun serveur, aucune base : le simulateur embarqué répond à la place du
-serveur. C'est le mode le plus rapide pour parcourir l'interface.
+### Lancer
 
 ```bash
+# Backend simulé — à demander explicitement pour le développement hors ligne
 flutter run --dart-define=API_MODE=mock
+
+# Backend réel Render (mode par défaut)
+flutter run --dart-define=API_MODE=live \
+            --dart-define=API_BASE_URL=https://majichrono.onrender.com
 ```
 
-En mode simulé, le code OTP est affiché dans l'application (`debugCode`) : le
-parcours de connexion se teste sans passerelle SMS ni e-mail.
-
-### Option B — Projet complet (serveur réel + application)
-
-#### 1. Démarrer le serveur
-
-Prérequis : **Python 3.12** (les dépendances sont épinglées à des versions qui
-ont des paquets précompilés pour 3.12 ; 3.13/3.14 obligeraient à compiler
-psycopg et pydantic-core à la main).
-
-```bash
-cd server
-
-# Environnement isolé
-py -3.12 -m venv .venv          # ou : python -m venv .venv
-.venv\Scripts\activate          # Windows
-pip install -r requirements.txt
-
-# Configuration : copier l'exemple, puis générer un secret
-copy .env.example .env
-python -c "import secrets;print(secrets.token_urlsafe(48))"   # -> coller dans JWT_SECRET
-
-# Créer le schéma (développement)
-python -c "from app.db import create_all; create_all()"
-
-# Lancer
-uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-Le serveur écoute alors sur `http://localhost:8000`. Vérifier :
-
-```bash
-curl http://localhost:8000/health
-```
-
-La documentation interactive de l'API est sur `http://localhost:8000/docs`.
-
-#### 2. Lancer l'application, connectée au serveur
-
-```bash
-# Émulateur Android : la machine hôte est vue comme 10.0.2.2
-flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=http://10.0.2.2:8000
-
-# Appareil physique sur le même Wi-Fi : mettre l'IP locale de la machine
-flutter run --dart-define=API_MODE=live --dart-define=API_BASE_URL=http://192.168.x.x:8000
-```
-
-Le passage de `mock` à `live` ne change que la configuration du transport, jamais
-la logique métier.
-
-> Si le port `8000` est déjà pris par un autre service (un serveur PHP local, par
-> exemple), lancez le serveur sur un autre port — `uvicorn app.main:app --port 8010`
-> — et pointez l'application vers `http://10.0.2.2:8010`.
-
-#### 3. Créer des données de test
-
-Deux scripts peuplent une base neuve sans passer par l'interface. Ils sont
-**idempotents** : les relancer ne crée pas de doublon.
-
-```bash
-cd server
-
-# Compte administrateur (connexion e-mail -> mot de passe)
-.venv\Scripts\python -m app.tools.seed_admin
-
-# Jeu de démonstration : 1 expéditeur, 1 livreur, 5 courses réparties sur
-# les états (en attente / assignée / en transit / livrée), avec leur journal
-.venv\Scripts\python -m app.tools.seed_test_data
-```
-
-Comptes créés :
-
-| Rôle | Identifiant | Détails |
-|---|---|---|
-| Administrateur | `majitech@gmail.com` / `majichrono` | connexion e-mail → mot de passe ; numéro réservé `+261340000000` |
-| Expéditeur | `+261340000001` | Rina Rakoto — 5 courses de démonstration |
-| Livreur | `+261330000002` | Tovo Livreur — en ligne, KYC validé, position à Ankorondrano |
-
-En développement, le code OTP est renvoyé dans la réponse (`debugCode`) et écrit
-dans le journal du serveur : la connexion par téléphone se teste sans passerelle
-SMS. Pour se connecter, saisir l'un des numéros ci-dessus sur l'écran téléphone,
-puis lire le code dans la réponse ou le journal.
-
-> Ces identifiants sont réservés au développement. Ne jamais les committer tels
-> quels pour un déploiement réel.
-
----
-
-## Base de données
-
-Le code des routes ne change pas d'une ligne entre les trois bases : SQLAlchemy
-les sert toutes. On choisit avec la variable `DATABASE_URL` de `server/.env`.
-
-### SQLite — par défaut, pour démarrer sans rien installer
-
-```env
-DATABASE_URL=sqlite:///./majichrono.db
-```
-
-Le fichier `server/majichrono.db` est créé automatiquement. C'est aussi la base
-**hors-ligne côté serveur** : elle fonctionne sans réseau ni installation.
-
-> À ne pas confondre avec le **hors-ligne de l'application** (voir la section
-> « Mode hors ligne ») : celui-ci est une base locale embarquée **dans le
-> téléphone**, qui garde les actions tant que le réseau manque puis les
-> synchronise avec le serveur.
-
-### PostgreSQL local — pour développer et tester au plus près de la production
-
-C'est la base qui tient la concurrence et les transactions longues. Créer la
-base et l'utilisateur une seule fois (adapter le port : une installation
-PostgreSQL 17 native écoute souvent sur **5433**, un conteneur sur 5432) :
-
-```sql
--- Connecté en superutilisateur (psql -U postgres -p 5433) :
-CREATE USER majichrono WITH PASSWORD 'majichrono';
-CREATE DATABASE majichrono OWNER majichrono;
-```
-
-Puis dans `server/.env` :
-
-```env
-DATABASE_URL=postgresql+psycopg://majichrono:majichrono@localhost:5433/majichrono
-```
-
-Recréer le schéma : `python -c "from app.db import create_all; create_all()"`.
-
-Variante par conteneur (si Docker est disponible) :
-
-```bash
-docker run -d --name majichrono-db -p 5432:5432 \
-  -e POSTGRES_USER=majichrono -e POSTGRES_PASSWORD=majichrono \
-  -e POSTGRES_DB=majichrono postgres:16
-```
-
-### Neon — PostgreSQL infogéré, pour le déploiement
-
-Neon héberge la base dans le cloud : plusieurs appareils voient les mêmes
-données, ce que le local ne permet pas. Offre gratuite, sans carte bancaire.
-
-1. Créer un projet sur [console.neon.tech](https://console.neon.tech). Choisir
-   la région la plus proche de Madagascar : **eu-central-1 (Francfort)** ajoute
-   deux à trois fois moins de latence qu'une région américaine.
-2. Dashboard → **Connection string** → onglet **Pooled connection**.
-3. Remplacer le préfixe `postgresql://` par `postgresql+psycopg://`.
-4. Garder `?sslmode=require` à la fin : Neon refuse les connexions en clair.
-
-```env
-DATABASE_URL=postgresql+psycopg://user:mdp@ep-xxx-pooler.eu-central-1.aws.neon.tech/majichrono?sslmode=require
-```
-
-> Neon met les bases inactives en veille ; le premier appel après une pause paie
-> le réveil (jusqu'à ~5 s). C'est normal.
-
-Le fichier `server/.env.neon.example` est prêt à copier.
-
----
-
-## Déploiement Render + APK de test — l'essentiel à savoir
-
-Le serveur est déployé sur **Render** (`https://majichrono.onrender.com`) avec une
-base **Neon**. Cette section réunit ce qu'il faut savoir pour une phase de test.
-
-### 1. Construire un APK « propre » (sans info de développement)
-
-Un APK release construit **sans** `FLAVOR=prod` reste en flavor `dev` : il
-afficherait alors le code de connexion à l'écran et le panneau développeur.
-Depuis peu, un build **release** masque de toute façon ces outils, mais la bonne
-commande reste :
-
-```bash
-flutter build apk --release \
-  --dart-define=API_MODE=live \
-  --dart-define=API_BASE_URL=https://majichrono.onrender.com \
-  --dart-define=FLAVOR=prod
-```
-
-Sortie : `build/app/outputs/flutter-apk/app-release.apk`. Aucun `debugCode`, aucun
-panneau dev.
-
-### 2. Variables à poser sur Render (Settings → Environment)
-
-| Variable | Rôle |
-|---|---|
-| `ENVIRONMENT=prod` | masque le `debugCode` de l'API → codes réellement envoyés |
-| `JWT_SECRET` | 48+ caractères aléatoires (`python -c "import secrets;print(secrets.token_urlsafe(48))"`) |
-| `DATABASE_URL` | **chaîne Neon** `postgresql+psycopg://…?sslmode=require` (voir ⚠️ ci-dessous) |
-| `SMS_API_KEY`, `SMS_SENDER` | passerelle mAPI (voir « SMS réel ») |
-| `SMTP_HOST/PORT/USER/PASSWORD`, `MAIL_FROM_ADDRESS`, `MAIL_FROM_NAME` | Resend (voir « E-mail réel ») |
-
-> **mAPI** s'authentifie par une **clé API** (`Authorization: Bearer …`), **pas**
-> par e-mail/mot de passe. L'e-mail/mot de passe servent à se connecter au
-> **dashboard mAPI**, d'où l'on copie la **clé API** à coller dans `SMS_API_KEY`.
-> Sans cette clé en `ENVIRONMENT=prod`, **aucun code SMS n'est délivré** et la
-> connexion par téléphone échoue.
-
-### 3. ⚠️ « Je ne vois pas mes données dans Neon »
-
-Cause la plus fréquente : **`DATABASE_URL` n'est pas réellement pointée sur Neon**
-sur Render. Sans elle, le serveur retombe sur son **SQLite par défaut**, stocké
-sur le disque **éphémère** de Render — les données existent le temps d'une
-session puis disparaissent à chaque redéploiement, et **n'arrivent jamais dans
-Neon**. À vérifier :
-
-1. Sur Render → *Environment* : `DATABASE_URL` est bien la chaîne **pooled** de
-   Neon, préfixe `postgresql+psycopg://`, suffixe `?sslmode=require`.
-2. Après l'avoir posée, Render redémarre : **créer le schéma** une fois si besoin
-   (`python -c "from app.db import create_all; create_all()"` via un shell Render,
-   ou au démarrage).
-3. Dans la console Neon, regarder la **bonne branche** (souvent `main`) et le bon
-   projet ; les tables sont `accounts`, `deliveries`, `payment_intents`,
-   `reviews`, etc.
-
----
-
-## E-mail réel (code de connexion par e-mail)
-
-Sans configuration SMTP, le serveur **écrit le code dans son journal** au lieu de
-l'envoyer (et le renvoie dans `debugCode` hors production). C'est voulu : le
-parcours complet se teste sans compte fournisseur. Pour envoyer de vrais
-e-mails, renseigner quatre variables dans `server/.env`.
-
-### Obtenir une clé Resend (recommandé pour la production)
-
-Resend offre 3 000 e-mails/mois sans carte bancaire.
-
-1. Créer un compte sur [resend.com](https://resend.com) (bouton **Sign up**).
-2. Menu **API Keys** → **Create API Key**. Donner un nom (`majichrono`),
-   permission **Sending access**. Copier la clé affichée — elle commence par
-   `re_` et **ne s'affiche qu'une fois**.
-3. Menu **Domains** → **Add Domain** : ajouter votre domaine, puis publier chez
-   votre registrar les enregistrements **SPF, DKIM et DMARC** que Resend
-   affiche. Cette étape n'est pas optionnelle : sans elle, les codes partent en
-   indésirables — pire qu'une absence d'e-mail, car l'utilisateur ne sait pas où
-   chercher.
-   - Pour un simple essai avant d'avoir un domaine, l'adresse
-     `onboarding@resend.dev` fournie par Resend permet d'envoyer vers votre
-     propre adresse.
-4. Renseigner `server/.env` :
-
-```env
-SMTP_HOST=smtp.resend.com
-SMTP_PORT=587
-SMTP_USER=resend
-SMTP_PASSWORD=re_votre_cle
-MAIL_FROM_ADDRESS=no-reply@votre-domaine.mg   # doit appartenir au domaine vérifié
-MAIL_FROM_NAME=MajiChrono
-```
-
-5. Redémarrer le serveur. Un test rapide : `python -m app.tools.check_mail`.
-
-### Variante Gmail (pour la recette, ~500 envois/jour)
-
-Le mot de passe du compte **ne marche pas** : Google exige un « mot de passe
-d'application », à créer sur
-[myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords)
-après avoir activé la validation en deux étapes.
-
-```env
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=votre.adresse@gmail.com
-SMTP_PASSWORD=xxxx xxxx xxxx xxxx
-```
-
----
-
-## SMS réel (code de connexion par téléphone)
-
-Même principe : tant que `SMS_API_KEY` est vide, le code part dans le journal du
-serveur, jamais sur le réseau — pour ne pas consommer le quota d'essai pendant
-le développement. Le premier envoi réel doit être un geste décidé.
-
-La passerelle utilisée est **mAPI** (Madagascar) : locale, les codes partent
-d'un numéro court malgache et arrivent sur Orange, Airtel et Telma sans passer
-par un agrégateur étranger.
-
-1. Ouvrir un compte sur [messaging.mapi.mg/subscriber](https://messaging.mapi.mg/subscriber).
-2. Récupérer la clé d'API.
-3. Faire déclarer `MajiChrono` comme nom d'expéditeur (11 caractères maximum).
-4. Renseigner `server/.env`, puis redémarrer :
-
-```env
-SMS_API_KEY=votre_cle_mapi
-SMS_SENDER=MajiChrono
-```
-
-Une fois la clé posée, l'écran de connexion par téléphone envoie un vrai SMS ;
-le code n'apparaît plus dans l'application.
-
----
-
-## Espace administrateur (accès unique)
-
-Le rôle **administrateur** est attribué **côté serveur** et ne se choisit jamais
-depuis l'application : l'écran de profil n'offre que « expéditeur » et
-« livreur ». Le seul point d'entrée du rôle admin est un script, ce qui garantit
-qu'il n'existe qu'**un seul** administrateur tant qu'on ne le lance qu'une fois.
-
-```bash
-cd server
-.venv\Scripts\python -m app.tools.seed_admin
-```
-
-Cela crée (ou met à jour, sans doublon) le compte :
-
-- **E-mail** : `majitech@gmail.com`
-- **Mot de passe** : `majichrono`
-- Connexion dans l'app : écran **« Avec une adresse e-mail » → mot de passe**.
-
-Le script signale tout autre compte admin déjà présent, pour que l'accès reste
-unique. Changez ces identifiants avant la production.
-
-## Numéros et opérateurs
-
-Seuls les préfixes réellement exploités à Madagascar sont acceptés à la saisie
-(côté application **et** côté serveur — la même règle aux deux bouts) :
-
-| Opérateur | Préfixes |
-|---|---|
-| Telma | 034, 038 |
-| Orange | 032, 037, 039 |
-| Airtel | 033 |
-| Telma fixe (e-mail uniquement, pas de SMS) | 020 |
-
-Un numéro en 030, 031, 035 ou 036 est refusé avec un message qui nomme les
-opérateurs attendus.
-
-## Pas de comptes en double
-
-Le **numéro de téléphone est la clé du compte** : la colonne `accounts.phone`
-est **unique** en base, tout comme `accounts.email`. Concrètement :
-
-- Se connecter avec un numéro déjà enregistré **rouvre le compte existant** — il
-  n'en crée jamais un second.
-- Une inscription par mot de passe sur une adresse déjà prise est refusée
-  (`email_taken`), et rattacher une adresse déjà liée à un autre compte aussi.
-
-La redondance est donc empêchée par le schéma lui-même, pas par une vérification
-qu'on pourrait oublier d'appeler.
-
-## Vérifier le serveur
-
-Depuis `server/`, la suite de tests tourne sur une base en mémoire, sans toucher
-à votre base :
-
-```bash
-.venv\Scripts\python -m pytest -q
-```
-
-### Vérification du projet
-
-Analyser le code :
+### Vérifier
 
 ```bash
 flutter analyze
-```
-
-Lancer les tests :
-
-```bash
 flutter test
 ```
 
 ---
 
-## Comptes de démonstration
+## 2. Les trois profils
 
-Le backend simulé fournit trois comptes permettant de tester les différents profils :
+Une application unique sert trois populations. Le profil détermine la coquille
+de navigation et les écrans accessibles.
 
-- **034 00 000 01** - Client - Hery Rakoto
-- **033 00 000 02** - Livreur - Naina Andria
-- **032 00 000 03** - Administrateur - Miora Rasoa
+| Profil | Nom dans l'interface | Ce qu'il fait |
+|---|---|---|
+| Expéditeur | Client | Crée une course, suit son colis, paie, note le livreur |
+| Livreur | Livreur | Accepte, exécute, produit les constats, encaisse |
+| Exploitation | Administrateur | Valide les KYC, supervise la flotte, arbitre les litiges |
 
-En mode simulé, le code OTP est affiché directement dans l'application afin de permettre de tester le parcours sans passerelle SMS.
+Un quatrième acteur n'installe rien : le **destinataire**. Il reçoit un lien de
+suivi par SMS et signe à la remise sur l'écran du livreur.
 
-Tout autre numéro valide peut créer un nouveau compte et passer par le choix du profil.
-
----
-
-## Mode hors ligne
-
-Le fonctionnement hors connexion est une caractéristique importante de MajiChrono.
-
-Le principe est le suivant :
-
-Une action est d'abord enregistrée localement avant toute tentative d'envoi réseau.
-
-La file de synchronisation permet notamment :
-
-- d'enregistrer les actions hors ligne
-- de conserver les données après fermeture de l'application
-- de reprendre automatiquement les transmissions
-- de gérer les conflits serveur
-- de conserver les preuves même après plusieurs échecs
-- de reprendre les positions par lots
-- de supprimer les photos uniquement après confirmation du serveur
-
-La file de synchronisation est persistante et stockée dans la base locale.
+Le profil administrateur n'est jamais choisi par l'utilisateur : il est attribué
+côté serveur (EXI-T02).
 
 ---
 
-## Backend simulé
+## 3. Architecture
 
-Le backend simulé permet de développer et tester l'application avant la disponibilité du serveur réel.
+Découpage en quatre couches, conforme au §8.1. La règle de dépendance est
+stricte : **une couche ne connaît que celle du dessous, et le domaine ne connaît
+personne**. Toute violation est bloquante en revue.
 
-Il reproduit notamment :
+```
+Présentation    écrans, widgets, contrôleurs
+      |
+Domaine         entités, cas d'usage, interfaces      (aucune dépendance externe)
+      |
+Données         implémentations, sources, DTO
+      |
+Socle           réseau, stockage, journaux, i18n
+```
 
-- réseau 4G
-- réseau 3G
-- réseau 2G
-- absence de réseau
-- latence
-- erreurs réseau
-- reprise des requêtes
-- validation des transitions
-- données de démonstration
+### Organisation des fichiers
 
-Un panneau développeur permet de modifier le profil réseau et le taux d'échec.
+```
+lib/
+  main.dart, bootstrap.dart     amorçage, injection des dépendances prêtes
+  app/
+    router/                     go_router, redirections par profil
+    theme/                      jetons, palette, thèmes clair et sombre
+    shell/                      coquille commune aux trois profils
+  core/
+    config/                     configuration injectée à la compilation
+    error/                      hiérarchie de Failure typées
+    i18n/                       bascule français / malgache à chaud
+    logging/                    journal circulaire, expurgation
+    network/                    client HTTP, intercepteurs, sonde, transport simulé
+    providers/                  injection Riverpod du socle
+    session/                    profil actif
+    storage/                    base drift, stockage sécurisé, préférences
+  features/
+    <fonctionnalité>/           chacune en data/ · domain/ · presentation/
+  shared/                       composants et utilitaires transverses
+  l10n/arb/                     traductions français et malgache
+```
 
-L'objectif est de tester les comportements de l'application dans des conditions réseau difficiles sans dépendre d'un backend distant.
+### Choix techniques
 
----
-
-## Sécurité
-
-Le projet intègre plusieurs mécanismes de sécurité :
-
-- Stockage sécurisé des secrets
-- Code PIN utilisateur
-- Authentification biométrique
-- Rotation des tokens
-- Suppression des données locales lors de la déconnexion
-- Chiffrement AES-256 des preuves locales
-- Certificate pinning
-- Protection contre les captures d'écran sur les écrans sensibles
-- Détection des appareils rootés
-- Journalisation sans données sensibles
-
-Ces mécanismes permettent de réduire les risques liés à l'accès aux données sensibles présentes sur l'appareil.
-
----
-
-## État du projet
-
-- **0** - Socle technique - Livré
-- **1** - Authentification - Livré
-- **2** - Création de course - Livré
-- **3** - Suivi et carte - Livré, notifications restantes
-- **4** - Livreur - Livré, captures/arrière-plan restants
-- **5** - Preuves et responsabilité - Livré
-- **6** - Mode hors ligne - Livré
-- **7** - Paiement MajiPay - Livré
-- **8** - Supervision - Livré
-- **9** - Différenciants - Livré
-- **10** - Durcissement et recette - Partiellement livré
-
-Le projet est à un stade avancé. Certaines fonctionnalités nécessitent encore une validation sur appareils réels et sur le terrain.
+| Domaine | Choix | Motif |
+|---|---|---|
+| État et injection | Riverpod 2 | Testable sans widget, un seul mécanisme |
+| Navigation | go_router | Liens profonds requis par EXI-N04 et EXI-C24 |
+| Réseau | dio | Intercepteurs, reprise, annulation |
+| Base locale | drift, SQLite en mode WAL | SQL réel, migrations versionnées, requêtes réactives |
+| Secrets | flutter_secure_storage | Keystore Android, Keychain iOS |
+| Traductions | ARB, deux langues | Français et malgache |
 
 ---
 
-## Points restant à finaliser
+## 4. Les backends
 
-Les principaux éléments encore ouverts sont :
+Le contrat d'interface est disponible sous `server/`. Ce serveur Node autonome
+implémente les routes d'authentification, livraisons, suivi, paiement, KYC,
+litiges et administration. En production, il utilise Neon PostgreSQL via
+`DATABASE_URL`; sans cette variable, il repasse volontairement en mémoire pour
+les démonstrations locales. Render peut le déployer avec `Root Directory=server`
+et `npm start`. Les migrations de `server/migrations/` sont appliquées
+automatiquement au démarrage.
 
-- Position en arrière-plan avec écran verrouillé
-- Visionneuse des pièces KYC
-- Acceptation groupée des courses
-- Recette sur appareils physiques
-- Tests terrain avec des livreurs
-- Publication iOS
-- Optimisation supplémentaire de la taille de l'APK
-- Finalisation des notifications distantes selon la configuration Firebase
+### Déploiement Render + Neon
 
-Le budget de taille APK de 25 Mo n'est actuellement pas respecté.
+Créez une base Neon puis ajoutez sa chaîne de connexion comme variable secrète
+`DATABASE_URL` dans le service Render. `render.yaml` déclare cette variable avec
+`sync: false` sans jamais inclure sa valeur. Pour un lancement local avec une
+base configurée, utilisez `DATABASE_URL=... npm start`; ne commitez jamais cette
+chaîne.
 
-La plus petite variante produite est d'environ 28,3 Mo.
+Le point important est l'endroit où la simulation se branche. `MockHttpAdapter`
+remplace le `HttpClientAdapter` de dio, c'est-à-dire l'octet qui part sur le
+réseau, et rien d'autre. Toute la pile réelle est traversée à l'identique :
+intercepteur d'idempotence, compteur de données, journalisation expurgée,
+traduction des erreurs.
+
+Trois conséquences :
+
+- passer de `mock` à `live` ne change aucune ligne hors du socle ;
+- les chemins consommés sont les constantes de `ApiEndpoints`, donc exactement
+  ceux du §12.2 ;
+- le simulateur reproduit le réseau malgache décrit au §4.1 : latence par profil
+  (4G, 3G, 2G), temps de transfert proportionnel au débit, coupures injectées.
+
+Ce dernier point rend jouables les scénarios de recette obligatoires du §16.2
+sans quitter le bureau. Le **panneau développeur**, accessible par l'icône en
+forme d'insecte ou par Réglages, pilote le profil réseau et le taux d'échec.
+
+Chaque module métier enregistre ses propres routes simulées au moyen d'un
+`MockModule`, sans toucher au socle.
 
 ---
 
-## Tests automatisés
+## 5. Règles de conception
 
-Le projet possède plusieurs suites de tests :
+Reprises du §9.3 du cahier des charges. Elles sont vérifiées en revue, et pour
+certaines par des tests automatiques.
 
-- **mock_transport_test.dart** : Tester le réseau simulé
-- **idempotency_test.dart** : Vérifier l'idempotence
-- **error_mapper_test.dart** : Tester la gestion des erreurs
-- **redaction_test.dart** : Vérifier l'absence de données sensibles dans les logs
-- **translation_completeness_test.dart** : Vérifier les traductions
-- **no_literal_strings_test.dart** : Détecter les textes écrits en dur
-- **auth_flow_test.dart** : Tester l'authentification
-- **delivery_test.dart** : Tester la création de courses
-- **widget_test.dart** : Tester la navigation et l'interface
-
-Les tests d'authentification utilisent la pile réelle du projet avec Dio, les intercepteurs et le transport simulé.
+| Règle | Vérification |
+|---|---|
+| Aucune logique métier dans un widget | Revue |
+| Aucun appel réseau depuis la présentation, toujours via un cas d'usage | Revue |
+| Toute écriture passe par la file de synchronisation, jamais par le réseau | Revue |
+| Toute erreur est typée, aucun message technique affiché | `error_mapper_test.dart` |
+| Tout texte affiché vient des fichiers ARB | `no_literal_strings_test.dart` |
+| Une dépendance de plus de 2 Mo doit être justifiée | Revue |
 
 ---
 
-## Environnement de développement
+## 6. Avancement par module
 
-Le projet recommande d'utiliser le JDK 21 fourni avec Android Studio.
+Chaque module est construit, testé sur émulateur, puis validé avant le suivant.
 
-Sous Windows :
+| Module | Objet | Lot du cahier des charges | État |
+|---|---|---|---|
+| 0 | Socle technique et coquille navigable | Lot 0 | Livré |
+| 1 | Authentification et session | Lot 1 | À faire |
+| 2 | Expéditeur : création de course | Lot 1 | À faire |
+| 3 | Suivi cartographique et notifications | Lot 1 | À faire |
+| 4 | Livreur : KYC, file, progression | Lot 2 | À faire |
+| 5 | Chaîne de responsabilité et preuve | Lot 2 | À faire |
+| 6 | Mode hors ligne intégral | Lot 2 | À faire |
+| 7 | Paiement délégué à MajiPay | Lot 3 | À faire |
+| 8 | Supervision depuis mobile | Lot 4 | À faire |
+| 9 | Différenciants concurrentiels | Lot 5 | À faire |
+| 10 | Durcissement et recette terrain | Lot 6 | À faire |
+
+Le module 5 est le coeur différenciant du produit. C'est lui qui produit la
+preuve opposable qu'aucun concurrent local ne fournit aujourd'hui (§3.3).
+
+---
+
+## 7. Détail des tâches par module
+
+La colonne **Profil** indique qui utilise la fonction : *Transverse* désigne ce
+qui sert les trois profils.
+
+### Module 0 — Socle technique (livré)
+
+| Tâche | Profil | Exigences | État |
+|---|---|---|---|
+| Projet Flutter, découpage en quatre couches, organisation par fonctionnalité | Transverse | §8.1, §8.2 | Fait |
+| Design system : jetons, palette, thèmes clair et sombre, composants partagés | Transverse | §15.1 | Fait |
+| Bascule français / malgache à chaud, sans redémarrage | Transverse | EXI-T05 | Fait |
+| Libellés intégrés de Flutter en malgache, repli français | Transverse | Critère 7 du §18 | Fait |
+| Bandeau permanent d'état réseau, au-dessus de tout écran empilé | Transverse | EXI-T06 | Fait |
+| Sonde applicative réelle, qualification du profil réseau par temps de réponse | Transverse | §9.2, EXI-C20 | Fait |
+| Compteur de données consommées, ventilé par usage | Transverse | EXI-T07, D8 | Fait |
+| Client HTTP, intercepteurs, clé d'idempotence stable entre reprises | Transverse | EXI-S01, EXI-B01 | Fait |
+| Transport simulé reproduisant 4G, 3G, 2G et coupure | Transverse | §4.1, §16.2 | Fait |
+| Hiérarchie d'erreurs typées et restitution en langage courant | Transverse | §9.3, §15.2 | Fait |
+| Journal local circulaire, expurgé des données personnelles | Transverse | EXI-T10, EXI-P10 | Fait |
+| Base locale drift en mode WAL, table de file de synchronisation | Transverse | EXI-P08, §10.2 | Fait |
+| Stockage sécurisé des secrets au Keystore | Transverse | EXI-SEC03 | Fait |
+| Routage, redirections par profil, cloisonnement des routes | Transverse | EXI-N04 | Fait |
+| Coquille navigable des trois profils | Transverse | §2.1 | Fait |
+| Panneau développeur pilotant le réseau simulé | Transverse | §16.2 | Fait |
+| Configuration Android : API 26 minimum, HTTPS exclusif, obfuscation | Transverse | EXI-P09, EXI-SEC01, EXI-SEC09 | Fait |
+
+Reste ouvert sur ce module : l'épinglage de certificat à double empreinte
+(EXI-SEC02), qui attend le certificat de production, et sera posé au module 10.
+
+### Module 1 — Authentification et session
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Inscription par numéro malgache `+261 3x xx xxx xx` | Transverse | EXI-T01 |
+| Vérification par code OTP à 6 chiffres, 5 minutes, 3 tentatives | Transverse | EXI-T01 |
+| Choix du profil à l'inscription, client ou livreur | Transverse | EXI-T02 |
+| Jeton d'accès de 15 minutes, jeton de rafraîchissement de 30 jours, rotation | Transverse | EXI-T03 |
+| Reconnexion par biométrie ou code PIN à 4 chiffres | Transverse | EXI-T04 |
+| Verrouillage automatique après 5 minutes d'inactivité | Livreur, Exploitation | EXI-SEC07 |
+| Effacement complet des données locales à la déconnexion | Transverse | EXI-SEC10 |
+| Écran de profil et modification du compte | Transverse | §12.2 |
+
+### Module 2 — Expéditeur : création de course
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Adresse composite : point GPS, quartier, point de repère, téléphone | Expéditeur | EXI-C02 |
+| Saisie par carte, position actuelle, favoris ou point relais | Expéditeur | EXI-C01 |
+| Photo de façade attachable et réutilisée au prochain envoi | Expéditeur | EXI-C03 |
+| Note vocale d'itinéraire de 30 secondes | Expéditeur | EXI-C04 |
+| Carnet d'adresses avec favoris nommés | Expéditeur | EXI-C05 |
+| Type de course, dont achat pour compte | Expéditeur | EXI-C06 |
+| Déclaration du colis : poids, dimensions, valeur | Expéditeur | EXI-C08 |
+| Photo du colis obligatoire à la création | Expéditeur | EXI-C09 |
+| Estimation de prix ventilée, affichée avant confirmation | Expéditeur | EXI-C10 |
+| Créneau immédiat ou programmé | Expéditeur | EXI-C11 |
+| Création de course entièrement hors ligne, mise en file | Expéditeur | EXI-C13 |
+| Historique consultable hors ligne, reçu partageable | Expéditeur | EXI-C33, EXI-C34 |
+
+### Module 3 — Suivi et notifications
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Carte temps réel, tuiles pré-téléchargeables hors ligne | Expéditeur | EXI-C20, §9.2 |
+| Rafraîchissement adaptatif : 10 s en 4G, 45 s en 2G | Expéditeur | EXI-C20 |
+| Frise chronologique horodatée des statuts | Expéditeur | EXI-C21 |
+| Fiche livreur : photo, note, plaque, véhicule | Expéditeur | EXI-C22 |
+| Appel et messagerie interne, numéros masqués des deux côtés | Expéditeur, Livreur | EXI-C23, EXI-B07 |
+| Lien de suivi public partageable par SMS, sans installation | Destinataire | EXI-C24, D9 |
+| Notifications distantes, canaux Android paramétrables | Transverse | EXI-N01, EXI-N02 |
+| Ouverture de l'écran concerné par lien profond | Transverse | EXI-N04 |
+| Notification traduite selon la langue du compte | Transverse | EXI-N05 |
+| Repli SMS sous 60 s pour les événements critiques | Transverse | EXI-N06 |
+| Annulation avant prise en charge, grille de frais affichée | Expéditeur | EXI-C26 |
+
+### Module 4 — Livreur : KYC, file et progression
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Dossier KYC : CIN, permis, visage, carte grise, véhicule, plaque | Livreur | EXI-L01 |
+| Suivi de l'état du dossier, refus motivé | Livreur | EXI-L02 |
+| Interrupteur en ligne et hors ligne, persistant après redémarrage | Livreur | EXI-L03 |
+| File des courses disponibles, triée par distance, gain estimé | Livreur | EXI-L04 |
+| Acceptation en un geste, compte à rebours de 30 secondes | Livreur | EXI-L05 |
+| Navigation déléguée à l'application cartographique installée | Livreur | EXI-L07 |
+| Progression par bouton unique plein écran | Livreur | EXI-L08, §15.3 |
+| Émission de position en arrière-plan, écran verrouillé | Livreur | EXI-L09 |
+| Cadence adaptative : 15 s en mouvement, 60 s à l'arrêt | Livreur | EXI-L11 |
+| Tableau de bord des gains par jour, semaine et mois | Livreur | EXI-L12 |
+| Signalement d'incident avec photo et conséquence définie | Livreur | EXI-L14 |
+| Notation reçue et historique | Livreur | EXI-L16 |
+
+### Module 5 — Chaîne de responsabilité et preuve
+
+Coeur différenciant du produit (D2, D11). Le principe : à chaque transfert de
+responsabilité, l'application produit un constat contradictoire, horodaté,
+géolocalisé, photographié et signé par les deux parties.
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Constat de prise en charge : 4 photos guidées par gabarit | Livreur, Expéditeur | EXI-CC10 |
+| Prise de vue dans l'application uniquement, import galerie interdit | Livreur | EXI-CC11 |
+| Grille d'état à cocher, photo et commentaire imposés par anomalie | Livreur | EXI-CC12, EXI-CC13 |
+| Numéro de scellé par saisie ou scan de code-barres | Livreur | EXI-CC14 |
+| Signature manuscrite de l'expéditeur et contre-signature du livreur | Expéditeur, Livreur | EXI-CC16, EXI-CC17 |
+| Constat de remise au même gabarit, affichage côte à côte | Livreur, Destinataire | EXI-CC20, EXI-CC21 |
+| Vérification du scellé, incident automatique si rompu ou absent | Livreur | EXI-CC22 |
+| Signature du destinataire et code OTP, double preuve d'identité | Destinataire | EXI-CC24 |
+| Réception avec réserves, refus de réception, remise à un tiers | Destinataire | EXI-CC26 à EXI-CC28 |
+| Écran comparateur avant et après, écarts surlignés | Expéditeur, Livreur, Exploitation | EXI-CC30, EXI-CC31 |
+| Signature capturée en vectoriel, rendu PNG dérivé | Transverse | EXI-CC40 |
+| Empreinte SHA-256 du constat, chaînage remise sur prise en charge | Transverse | EXI-CC43, EXI-CC44 |
+| Constat scellé à la validation, aucune modification ultérieure | Transverse | EXI-CC04 |
+| Constat stocké chiffré tant qu'il n'est pas accusé par le serveur | Transverse | EXI-CC46 |
+| Export du constat en PDF signé | Expéditeur, Exploitation | EXI-CC32 |
+
+### Module 6 — Mode hors ligne intégral
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| File de synchronisation, écriture locale avant toute tentative réseau | Transverse | §10.2 |
+| Ordre de priorité : constats, transitions, positions, notations | Transverse | EXI-S02 |
+| Reprise exponentielle jusqu'à 15 essais, puis signalement | Transverse | §10.2 |
+| Conflit détecté : le serveur fait foi, l'utilisateur est informé | Transverse | EXI-S04 |
+| Un constat n'est jamais abandonné automatiquement | Transverse | EXI-S05 |
+| Écran « éléments en attente » : liste, âge, cause, relance manuelle | Transverse | EXI-S06 |
+| Positions en tampon local, envoi par lots compressés de 50 points | Livreur | EXI-L10, EXI-S03 |
+| Purge des photos transmises et accusées | Transverse | EXI-S07 |
+| Parcours livreur complet exécutable hors ligne | Livreur | EXI-L15, EXI-P07 |
+
+### Module 7 — Paiement délégué à MajiPay
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Simulateur MajiPay implémentant le contrat, avant livraison du vrai | Transverse | EXI-MP12 |
+| Intention de paiement créée côté serveur, aucun secret sur le mobile | Transverse | EXI-MP02 |
+| Ouverture app-to-app par lien profond, retour automatique | Expéditeur | EXI-MP03 |
+| Écran d'attente et consigne USSD si MajiPay n'est pas installé | Expéditeur | EXI-MP04 |
+| État du paiement par notification, sondage de repli plafonné à 120 s | Expéditeur | EXI-MP05 |
+| Idempotence stricte, jamais deux débits pour une intention | Transverse | EXI-MP06 |
+| Repli espèces automatique, la course n'est jamais bloquée | Expéditeur | EXI-MP08, EXI-C43 |
+| Reçu consultable et partageable depuis l'historique | Expéditeur | EXI-MP10 |
+| Aucune donnée de paiement dans les journaux | Transverse | EXI-MP11 |
+
+### Module 8 — Supervision depuis mobile
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Tableau de bord : courses, livreurs en ligne, incidents, chiffre du jour | Exploitation | EXI-A01 |
+| Carte de flotte temps réel, filtrable par statut | Exploitation | EXI-A02 |
+| File de validation KYC, visionneuse de pièces, refus motivé | Exploitation | EXI-A03 |
+| Liste des courses, filtres multicritères, accès aux deux constats | Exploitation | EXI-A04 |
+| Gestion des litiges : comparateur, échange, décision, clôture | Exploitation | EXI-A05 |
+| Suspension et réactivation d'un compte, motif obligatoire | Exploitation | EXI-A06 |
+| Réaffectation manuelle d'une course | Exploitation | EXI-A07 |
+
+### Module 9 — Différenciants concurrentiels
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Achat pour compte : liste d'articles, plafond, photo du ticket | Expéditeur, Livreur | EXI-C07, D5 |
+| Groupage de 2 à 3 courses sur un même axe | Livreur | EXI-L06, D7 |
+| Bouton d'urgence accessible en deux appuis | Livreur | EXI-L13, D10 |
+| Réseau de points relais partenaires | Expéditeur, Destinataire | D6 |
+| Mode économie : tuiles pré-téléchargées, photos différées | Transverse | EXI-T08 |
+| Option assurance sur valeur déclarée | Expéditeur | EXI-C12 |
+| Payeur désignable, port dû | Expéditeur, Destinataire | EXI-C42 |
+
+### Module 10 — Durcissement et recette terrain
+
+| Tâche | Profil | Exigences |
+|---|---|---|
+| Budgets tenus : démarrage, mémoire, taille, batterie, données | Transverse | EXI-P01 à EXI-P06 |
+| Épinglage de certificat à double empreinte et rotation | Transverse | EXI-SEC02 |
+| Détection d'appareil rooté, capture d'écran interdite sur les écrans sensibles | Transverse | EXI-SEC05, EXI-SEC06 |
+| Accessibilité : contraste AA, cibles de 48 dp, TalkBack | Transverse | EXI-T09 |
+| Les 8 scénarios de recette du §16.2 sur trois appareils réels | Transverse | §16.2 |
+| Recette terrain par 10 livreurs sur 5 jours | Livreur | Critère 10 du §18 |
+| Préparation de la publication iOS | Transverse | §2.1 |
+
+---
+
+## 8. Tests
+
+| Suite | Ce qu'elle verrouille |
+|---|---|
+| `mock_transport_test.dart` | Comportement du transport simulé : hors ligne, latence 2G, erreurs au format du §12.1, compteur de données |
+| `idempotency_test.dart` | La clé d'idempotence est posée sur les écritures et **reste identique entre deux reprises** |
+| `error_mapper_test.dart` | Traduction des codes HTTP en erreurs typées, état serveur conservé en cas de conflit |
+| `redaction_test.dart` | Numéros, OTP, soldes et positions absents des journaux |
+| `translation_completeness_test.dart` | Aucune clé manquante ni orpheline entre français et malgache, paramètres cohérents |
+| `no_literal_strings_test.dart` | Aucun libellé écrit en dur dans les widgets |
+| `widget_test.dart` | Démarrage, bascule de langue, coquille par profil, permanence du bandeau réseau |
+
+Deux de ces tests méritent une explication, car ils protègent contre des défauts
+qui ne cassent rien à la compilation :
+
+- **Complétude des traductions.** Une clé oubliée dans `app_mg.arb` ne provoque
+  aucune erreur : Flutter retombe silencieusement sur le français. Le défaut ne
+  se verrait qu'en recette terrain, chez un livreur malgachophone.
+- **Absence de chaînes littérales.** Un libellé écrit en dur reste en français
+  au milieu d'un écran par ailleurs traduit. C'est arrivé sur l'accueil du socle
+  et cela ne se voyait qu'à l'écran, en malgache.
+
+---
+
+## 9. Environnement de développement
+
+### JDK
+
+Gradle doit utiliser le JDK 21 fourni par Android Studio. Avec un JDK plus
+récent, la compilation Kotlin échoue par intermittence sur des verrous de cache
+sous Windows.
 
 ```bash
 flutter config --jdk-dir "C:\Program Files\Android\Android Studio\jbr"
 ```
 
-Cette configuration permet d'utiliser le même environnement JDK que celui fourni avec Android Studio.
+La compilation incrémentale Kotlin est désactivée dans `android/gradle.properties`
+pour la même raison. Le coût est de quelques dizaines de secondes par
+compilation, le gain est un build reproductible.
+
+### Tests sur le poste
+
+`flutter test` s'exécute sur la machine de développement, où la bibliothèque
+native SQLite livrée pour Android n'est pas chargée. Les tests de widget
+n'ouvrent donc pas la base locale : ils substituent les providers concernés. La
+file de synchronisation aura ses propres tests d'intégration au module 6.
 
 ---
 
-## Décisions produit à finaliser
+## 10. Décisions à arbitrer
 
-Certaines décisions métier doivent encore être arbitrées :
+Reprises du §19.2 du cahier des charges, dans l'ordre où elles bloquent le
+développement mobile.
 
-- **Valeur juridique des constats** : Mentions affichées lors des signatures
-- **Choix du fournisseur cartographique** : Coût et couverture géographique
-- **Commission et grille tarifaire** : Prix client et revenus livreur
-- **Cadre réglementaire MajiPay** : Architecture du paiement
-- **Réseau de points relais** : Couverture hors Antananarivo
-- **Publication iOS** : Planning et coût de développement
-
-Ces décisions peuvent influencer certaines parties du développement mobile.
-
----
-
-## Roadmap
-
-```text
-Socle Flutter
-      |
-      v
-Authentification
-      |
-      v
-Création de course
-      |
-      v
-Suivi et carte
-      |
-      v
-Livreur
-      |
-      v
-Preuves de livraison
-      |
-      v
-Mode hors ligne
-      |
-      v
-Paiement MajiPay
-      |
-      v
-Supervision
-      |
-      v
-Optimisations
-      |
-      v
-Tests terrain
-      |
-      v
-Publication
-```
+| Décision | Échéance | Impact sur le mobile |
+|---|---|---|
+| DO-5 — valeur juridique des constats, à valider par un conseil juridique local | Avant le module 5 | Fixe la rédaction des mentions d'engagement affichées au-dessus des signatures |
+| DO-2 — fond cartographique : OpenStreetMap seul ou repli commercial | Avant le module 3 | Coût récurrent et qualité de la carte en province |
+| DO-3 — modèle de commission et grille tarifaire | Avant le module 2 | Écrans d'estimation de prix et de gains |
+| DO-1 — trajectoire réglementaire de MajiPay : passerelle ou établissement de monnaie électronique | Avant le module 7 | Détermine 4 des 26 modules MajiPay. En l'absence d'arbitrage, la trajectoire passerelle est retenue |
+| DO-4 — recrutement du réseau de points relais | Avant le module 9 | Couverture hors Antananarivo |
+| DO-6 — publication iOS en phase 1 ou 2 | Avant le module 10 | Coût du compte développeur et de la recette |
 
 ---
 
-## Documentation
+## Déploiement de l'API
 
-Le développement est basé sur le cahier des charges :
+Le fichier `render.yaml` déploie `server/` sur Render avec `npm start`. La
+variable secrète `DATABASE_URL` doit être ajoutée dans Render (le fichier ne
+contient aucune valeur). Sans cette variable, l'API reste utilisable en mode
+démonstration mémoire local. `/health` expose le mode actif dans le champ
+`persistence`; les migrations SQL sont appliquées automatiquement au démarrage.
 
-`MajiChrono_Cahier_des_Charges_Mobile_Flutter.md`
-
-Les références `§x.y` et `EXI-xx##` présentes dans le code correspondent aux exigences du cahier des charges.
-
----
-
-## Développement
-
-Pour récupérer et lancer le projet :
-
-```bash
-git clone <repository-url>
-cd MajiChrono
-flutter pub get
-flutter gen-l10n
-dart run build_runner build --delete-conflicting-outputs
-flutter analyze
-flutter test
-flutter run --dart-define=API_MODE=mock
-```
-
----
-
-## Résumé
-
-MajiChrono est une application Flutter de livraison conçue pour les contraintes du contexte malgache.
-
-Les principaux objectifs du projet sont :
-
-- fonctionnement hors ligne
-- adaptation aux réseaux 2G, 3G et 4G
-- gestion complète du parcours client
-- gestion complète du parcours livreur
-- suivi GPS
-- preuves de livraison sécurisées
-- paiement MajiPay
-- supervision depuis mobile
-- support du français et du malagasy
-- architecture maintenable et testable
-- backend simulé pour le développement
-
----
-
-## Statut
-
-Application largement implémentée et fonctionnelle.
-
-Les prochaines étapes principales concernent la finalisation de certaines fonctionnalités, les tests sur appareils réels, la recette terrain et la préparation de la publication.
+Pour un déploiement manuel : `cd server && npm install && npm start`.

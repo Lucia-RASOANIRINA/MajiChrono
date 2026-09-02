@@ -109,6 +109,12 @@ class ApiClient {
     if (token != null) {
       options.headers['Authorization'] = 'Bearer $token';
     }
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer ' + token;
+    }
+    if (token != null) {
+      options.headers['Authorization'] = 'Bearer ' + token;
+    }
     handler.next(options);
   }
 
@@ -125,7 +131,7 @@ class ApiClient {
         final other => other,
       };
       final version = Platform.operatingSystemVersion.trim();
-      return version.isEmpty ? os : '$os · ${version.split(RegExp(r"[ (]")).first}';
+      return version.isEmpty ? os : '$os - ${version.split(RegExp(r"[ (]")).first}';
     } catch (_) {
       return 'Appareil';
     }
@@ -215,6 +221,7 @@ class ApiClient {
       final response = await call();
       return response.data as T;
     } catch (error, stackTrace) {
+      AppLogger.instance.warn('http_request_failed', error: error);
       throw mapDioException(error, stackTrace);
     }
   }
@@ -224,13 +231,18 @@ class ApiClient {
   /// Retourne le temps d'aller-retour mesure, ou `null` si le serveur est
   /// injoignable. C'est ce chiffre qui qualifie le profil reseau reel.
   Future<int?> probe() async {
-    final started = DateTime.now();
-    try {
-      await get<Map<String, dynamic>>('/health');
-      return DateTime.now().difference(started).inMilliseconds;
-    } on Failure {
-      return null;
+    for (var attempt = 0; attempt < 3; attempt++) {
+      final started = DateTime.now();
+      try {
+        await get<Map<String, dynamic>>('/health');
+        return DateTime.now().difference(started).inMilliseconds;
+      } on Failure {
+        if (attempt < 2) {
+          await Future<void>.delayed(const Duration(seconds: 2));
+        }
+      }
     }
+    return null;
   }
 
   AppConfig get config => _config;

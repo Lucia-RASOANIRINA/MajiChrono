@@ -45,6 +45,7 @@ class LoggingInterceptor extends Interceptor {
         'type': err.type.name,
         'ms': _elapsed(err.requestOptions),
       },
+      error: err.error,
     );
     handler.next(err);
   }
