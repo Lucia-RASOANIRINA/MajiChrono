@@ -509,6 +509,9 @@ class AppLocalizationsFr extends AppLocalizations {
   String get networkOfflineNoPending => 'Hors ligne';
 
   @override
+  String get networkConnecting => 'Connexion au serveur...';
+
+  @override
   String get networkSyncing => 'Synchronisation en cours...';
 
   @override

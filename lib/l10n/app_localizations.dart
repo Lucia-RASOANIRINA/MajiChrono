@@ -1046,6 +1046,12 @@ abstract class AppLocalizations {
   /// **'Hors ligne'**
   String get networkOfflineNoPending;
 
+  /// No description provided for @networkConnecting.
+  ///
+  /// In fr, this message translates to:
+  /// **'Connexion au serveur...'**
+  String get networkConnecting;
+
   /// No description provided for @networkSyncing.
   ///
   /// In fr, this message translates to:

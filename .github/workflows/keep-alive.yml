@@ -1,0 +1,30 @@
+# Garde le serveur Render eveille.
+#
+# L'offre gratuite Render met le service en veille apres ~15 min sans trafic,
+# et le reveil prend « 50 secondes ou plus » — assez pour faire echouer la
+# premiere connexion depuis l'application (« Le reseau est indisponible »).
+# Ce job appelle /health regulierement pour que le serveur ne s'endorme jamais :
+# plus de reveil a froid, connexion immediate.
+#
+# Note : le cron de GitHub Actions peut etre retarde par moments, et les jobs
+# planifies sont desactives apres 60 jours sans commit sur le depot. Pour une
+# fiabilite maximale, doubler avec un pinger externe gratuit (UptimeRobot,
+# cron-job.org) sur la meme URL.
+name: keep-render-awake
+
+on:
+  schedule:
+    # Toutes les 10 minutes (Render s'endort apres ~15 min d'inactivite).
+    - cron: "*/10 * * * *"
+  # Permet aussi de lancer un reveil a la main depuis l'onglet Actions.
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /health
+        run: |
+          curl -fsS --max-time 120 https://majichrono.onrender.com/health \
+            && echo "Serveur eveille." \
+            || (echo "Ping echoue (reveil en cours ou service indisponible)." && exit 1)

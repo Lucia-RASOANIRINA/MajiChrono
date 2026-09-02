@@ -510,6 +510,9 @@ class AppLocalizationsMg extends AppLocalizations {
   String get networkOfflineNoPending => 'Tsy misy aterineto';
 
   @override
+  String get networkConnecting => 'Mifandray amin\'ny serivera...';
+
+  @override
   String get networkSyncing => 'Manao fampifanarahana...';
 
   @override

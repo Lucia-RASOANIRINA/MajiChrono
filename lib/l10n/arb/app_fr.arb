@@ -173,6 +173,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "networkOfflineNoPending": "Hors ligne",
+  "networkConnecting": "Connexion au serveur...",
   "networkSyncing": "Synchronisation en cours...",
 
   "welcomeTagline": "Délivrer la confiance, partout, instantanément.",

@@ -36,10 +36,15 @@ class ApiClient {
     _dio = Dio(
       BaseOptions(
         baseUrl: config.apiBaseUrl,
-        connectTimeout: const Duration(seconds: 20),
-        // Genereux : en 2G un corps de constat met plusieurs dizaines de secondes.
-        receiveTimeout: const Duration(seconds: 60),
-        sendTimeout: const Duration(seconds: 60),
+        // Genereux a dessein : sur l'offre gratuite Render, le serveur s'endort
+        // apres inactivite et met « 50 secondes ou plus » a se reveiller au
+        // premier acces. Des delais trop courts feraient echouer la toute
+        // premiere requete (connexion, sonde) alors que le serveur repond
+        // parfaitement une fois reveille.
+        connectTimeout: const Duration(seconds: 30),
+        // En 2G un corps de constat met aussi plusieurs dizaines de secondes.
+        receiveTimeout: const Duration(seconds: 90),
+        sendTimeout: const Duration(seconds: 90),
         headers: {Headers.contentTypeHeader: Headers.jsonContentType},
         // Tous les statuts remontent : c'est `mapDioException` qui tranche.
         validateStatus: (status) => status != null && status < 400,

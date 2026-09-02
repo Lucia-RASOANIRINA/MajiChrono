@@ -171,6 +171,7 @@
     "placeholders": { "count": { "type": "int" } }
   },
   "networkOfflineNoPending": "Tsy misy aterineto",
+  "networkConnecting": "Mifandray amin'ny serivera...",
   "networkSyncing": "Manao fampifanarahana...",
 
   "welcomeTagline": "Mitondra fahatokisana, na aiza na aiza, avy hatrany.",

@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
+import 'package:majichrono/core/network/network_status.dart';
 import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 
@@ -13,10 +14,21 @@ import 'package:majichrono/l10n/app_localizations.dart';
 /// rien, et cette marge doit revenir aux ecrans — sinon leur titre passe sous
 /// l'heure et la batterie.
 final networkBannerVisibleProvider = Provider<bool>((ref) {
-  final online = ref.watch(networkStatusProvider).valueOrNull?.isOnline ?? false;
+  final value = ref.watch(networkStatusProvider).valueOrNull;
   final pending = ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
-  return !online || pending > 0;
+  return _bannerTrulyOffline(value) || pending > 0;
 });
+
+/// Vrai seulement quand l'appareil n'a **aucune** interface reseau et qu'une
+/// sonde a deja tranche. On distingue ainsi une vraie coupure (a annoncer) du
+/// simple reveil du serveur (connecte, mais pas encore de reponse) : ce dernier
+/// reste silencieux — pas de bandeau « Connexion au serveur ».
+bool _bannerTrulyOffline(NetworkStatus? value) {
+  if (value == null || value.isOnline) return false;
+  final firstProbePending = value.lastProbeAt == null;
+  final hasTransport = value.transport != NetworkTransport.none;
+  return !firstProbePending && !hasTransport;
+}
 
 /// Bandeau permanent d'etat reseau (EXI-T06).
 ///
@@ -32,33 +44,34 @@ class McNetworkBanner extends ConsumerWidget {
     final status = ref.watch(networkStatusProvider);
     final pending = ref.watch(pendingSyncCountProvider);
 
-    final online = status.valueOrNull?.isOnline ?? false;
+    final value = status.valueOrNull;
     final pendingCount = pending.valueOrNull ?? 0;
 
-    // Un bandeau vert permanent qui annonce « tout va bien » occupe la bande
-    // systeme en permanence pour ne rien apprendre, et desapprend a le lire : le
-    // jour ou il vire au gris, personne ne le remarque plus. Le bandeau ne parle
-    // donc que lorsqu'il a quelque chose a dire — hors ligne, ou en attente de
-    // synchronisation. Le §15.2.5 exige que le **hors ligne** soit visible en
-    // permanence, pas que la connexion le soit.
-    if (online && pendingCount == 0) return const _SilentBanner();
+    // Le bandeau ne parle que pour deux choses : une **vraie** coupure reseau,
+    // ou des elements en attente de synchronisation. Tout le reste — en ligne au
+    // repos, ou serveur en cours de reveil (connecte mais pas encore de reponse)
+    // — reste silencieux. En particulier, on n'affiche plus « Connexion au
+    // serveur » : le reveil du plan gratuit Render est invisible, l'utilisateur
+    // n'a rien a faire sinon patienter quelques secondes.
+    final trulyOffline = _bannerTrulyOffline(value);
+    if (!trulyOffline && pendingCount == 0) return const _SilentBanner();
 
     final String label;
     final Color background;
     final IconData icon;
 
-    if (online) {
-      // En ligne mais des elements attendent encore : c'est une information
-      // utile, et elle porte la couleur de la marque, jamais le vert.
-      background = AppColors.primary;
-      icon = Icons.cloud_upload_outlined;
-      label = l10n.networkOfflinePending(pendingCount);
-    } else {
+    if (trulyOffline) {
       background = AppColors.offline;
       icon = Icons.cloud_off_outlined;
       label = pendingCount > 0
           ? l10n.networkOfflinePending(pendingCount)
           : l10n.networkOfflineNoPending;
+    } else {
+      // Des elements attendent encore d'etre transmis : information utile, a la
+      // couleur de la marque, jamais le vert.
+      background = AppColors.primary;
+      icon = Icons.cloud_upload_outlined;
+      label = l10n.networkOfflinePending(pendingCount);
     }
 
     // Le fond deborde volontairement sous la barre d'etat : le bandeau occupe
