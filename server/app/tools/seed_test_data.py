@@ -12,6 +12,7 @@ mais valides (prefixes reels d'Antananarivo).
 from __future__ import annotations
 
 import json
+import base64
 from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
@@ -25,6 +26,8 @@ from app.models import (
     DeliveryStatus,
     DriverState,
     KycStatus,
+    KycDocument,
+    DriverVehicle,
     UserRole,
 )
 
@@ -72,6 +75,7 @@ def main() -> int:
             role=UserRole.client,
             name="Rina Rakoto",
             email="rina.client@example.mg",
+            password="MajiClient2026!",
             rating=4.8,
         )
         driver = _upsert_account(
@@ -80,6 +84,7 @@ def main() -> int:
             role=UserRole.driver,
             name="Tovo Livreur",
             email="tovo.driver@example.mg",
+            password="MajiDriver2026!",
             rating=4.9,
             kyc=KycStatus.approved,
         )
@@ -91,6 +96,35 @@ def main() -> int:
             email="test.client@majichrono.mg",
             password="MajiTest2026!",
         )
+        db.flush()
+
+        # Dossier de demonstration complet : les octets sont une image PNG
+        # neutre, uniquement pour permettre de parcourir l'ecran valide sans
+        # utiliser de vrais documents d'identite.
+        placeholder = base64.b64decode(
+            "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk"
+            "YAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+        )
+        for kind in ("cin_front", "cin_back", "licence", "selfie", "registration", "vehicle", "plate"):
+            document = db.get(KycDocument, (driver.id, kind))
+            if document is None:
+                document = KycDocument(account_id=driver.id, kind=kind)
+                db.add(document)
+            document.data = placeholder
+            document.content_type = "image/png"
+            document.updated_at = _now()
+
+        vehicle = db.get(DriverVehicle, driver.id)
+        if vehicle is None:
+            vehicle = DriverVehicle(account_id=driver.id)
+            db.add(vehicle)
+        vehicle.vehicle_type = "moto"
+        vehicle.brand = "Honda"
+        vehicle.model = "Click 125"
+        vehicle.plate = "1234 TAB"
+        vehicle.insurance_expiry = "2027-12-31"
+        vehicle.validation = "validated"
+        vehicle.updated_at = _now()
         db.flush()
 
         # Livreur en ligne, derniere position a Ankorondrano.

@@ -11,6 +11,7 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
+import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/auth/presentation/widgets/auth_branding.dart';
 import 'package:majichrono/features/auth/presentation/widgets/google_account_sheet.dart';
@@ -27,13 +28,16 @@ class PhoneInputScreen extends ConsumerStatefulWidget {
 
 class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   MalagasyPhone? _phone;
   bool _busy = false;
+  bool _passwordRequired = false;
   String? _error;
 
   @override
   void dispose() {
     _controller.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -41,6 +45,8 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     setState(() {
       _phone = MalagasyPhone.tryParse(value);
       _error = null;
+      _passwordRequired = false;
+      _passwordController.clear();
     });
   }
 
@@ -54,11 +60,28 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     });
 
     try {
-      final challenge = await ref
-          .read(authRepositoryProvider)
-          .requestOtp(phone);
+      final result = await ref.read(authRepositoryProvider).loginWithPhone(
+        phone: phone,
+        password: _passwordRequired ? _passwordController.text : null,
+      );
       if (!mounted) return;
-      unawaited(context.push(AppRoutes.authOtp, extra: challenge));
+      switch (result) {
+        case PhoneOtpRequired(:final challenge):
+          unawaited(context.push(AppRoutes.authOtp, extra: challenge));
+        case PhonePasswordVerified(:final verification):
+          await ref
+              .read(authControllerProvider.notifier)
+              .onOtpVerified(verification);
+      }
+    } on ConflictFailure catch (failure) {
+      if (!mounted) return;
+      if (failure.details?['code'] == 'password_required' ||
+          _passwordController.text.isEmpty) {
+        setState(() {
+          _passwordRequired = true;
+          _error = 'Ce compte utilise un mot de passe.';
+        });
+      }
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(
@@ -331,6 +354,25 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                             onChanged: _onChanged,
                             onSubmitted: (_) => _submit(),
                           ),
+                          if (_passwordRequired) ...[
+                            const SizedBox(height: AppSpacing.sm),
+                            TextField(
+                              controller: _passwordController,
+                              obscureText: true,
+                              textInputAction: TextInputAction.done,
+                              onSubmitted: (_) => _submit(),
+                              decoration: InputDecoration(
+                                labelText: 'Mot de passe',
+                                prefixIcon: const Icon(Icons.lock_outline),
+                                filled: true,
+                                fillColor: const Color(0xFFF8FAFC),
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(14),
+                                  borderSide: BorderSide.none,
+                                ),
+                              ),
+                            ),
+                          ],
                           if (_error != null) ...[
                             const SizedBox(height: AppSpacing.xs),
                             Container(
