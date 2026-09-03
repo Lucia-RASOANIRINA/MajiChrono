@@ -16,7 +16,7 @@ from datetime import datetime, timedelta, timezone
 
 from sqlalchemy import select
 
-from app.core.security import new_opaque_token
+from app.core.security import hash_secret, new_opaque_token
 from app.db import SessionLocal, ensure_schema
 from app.models import (
     Account,
@@ -37,7 +37,9 @@ def _place(lat: float, lng: float, summary: str) -> str:
     return json.dumps({"point": {"lat": lat, "lng": lng}, "summary": summary})
 
 
-def _upsert_account(db, phone, *, role, name, email=None, rating=None, kyc=None):
+def _upsert_account(
+    db, phone, *, role, name, email=None, password=None, rating=None, kyc=None
+):
     account = db.scalar(select(Account).where(Account.phone == phone))
     if account is None:
         account = Account(phone=phone)
@@ -45,6 +47,8 @@ def _upsert_account(db, phone, *, role, name, email=None, rating=None, kyc=None)
     account.role = role
     account.display_name = name
     account.email = email
+    if password is not None:
+        account.password_hash = hash_secret(password)
     account.rating = rating
     account.kyc_status = kyc
     return account
@@ -79,6 +83,14 @@ def main() -> int:
             rating=4.9,
             kyc=KycStatus.approved,
         )
+        test_account = _upsert_account(
+            db,
+            "+261340000003",
+            role=UserRole.client,
+            name="Compte Test",
+            email="test.client@majichrono.mg",
+            password="MajiTest2026!",
+        )
         db.flush()
 
         # Livreur en ligne, derniere position a Ankorondrano.
@@ -98,7 +110,7 @@ def main() -> int:
         if existing is not None:
             db.commit()
             print("Comptes a jour. Courses deja presentes — rien de plus a semer.")
-            _summary(client, driver)
+            _summary(client, driver, test_account)
             return 0
 
         # (statut, livreur assigne ?, depart, arrivee, prix Ar, colis)
@@ -168,15 +180,16 @@ def main() -> int:
 
         db.commit()
         print(f"{len(plan)} courses semees pour {client.display_name}.")
-        _summary(client, driver)
+        _summary(client, driver, test_account)
     return 0
 
 
-def _summary(client: Account, driver: Account) -> None:
+def _summary(client: Account, driver: Account, test_account: Account) -> None:
     print()
     print("Comptes de test :")
     print(f"  Expediteur : {client.phone}  ({client.display_name})")
     print(f"  Livreur    : {driver.phone}  ({driver.display_name})")
+    print(f"  Test e-mail: {test_account.email} / mot de passe: MajiTest2026!")
     print()
     print("Connexion depuis l'app (mode live) : ecran telephone -> le code OTP")
     print("est renvoye dans la reponse (debugCode) et journalise cote serveur.")

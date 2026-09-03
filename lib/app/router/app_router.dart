@@ -320,6 +320,11 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
     final l10n = AppLocalizations.of(context);
     return RoleShell(
       navigationShell: shell,
+      showNavigationBar: const [
+        AppRoutes.clientHome,
+        AppRoutes.clientDeliveries,
+        AppRoutes.clientProfile,
+      ].contains(state.uri.path),
       destinations: [
         ShellDestination(
           icon: Icons.home_outlined,
@@ -383,6 +388,12 @@ StatefulShellRoute _driverShell() => StatefulShellRoute.indexedStack(
     final l10n = AppLocalizations.of(context);
     return RoleShell(
       navigationShell: shell,
+      showNavigationBar: const [
+        AppRoutes.driverHome,
+        AppRoutes.driverDeliveries,
+        AppRoutes.driverEarnings,
+        AppRoutes.driverProfile,
+      ].contains(state.uri.path),
       destinations: [
         ShellDestination(
           icon: Icons.home_outlined,
@@ -455,6 +466,12 @@ StatefulShellRoute _adminShell() => StatefulShellRoute.indexedStack(
     final l10n = AppLocalizations.of(context);
     return RoleShell(
       navigationShell: shell,
+      showNavigationBar: const [
+        AppRoutes.adminHome,
+        AppRoutes.adminFleet,
+        AppRoutes.adminDisputes,
+        AppRoutes.adminProfile,
+      ].contains(state.uri.path),
       destinations: [
         ShellDestination(
           icon: Icons.dashboard_outlined,

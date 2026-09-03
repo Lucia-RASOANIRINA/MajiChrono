@@ -29,11 +29,13 @@ class RoleShell extends StatelessWidget {
   const RoleShell({
     required this.navigationShell,
     required this.destinations,
+    this.showNavigationBar = true,
     super.key,
   });
 
   final StatefulNavigationShell navigationShell;
   final List<ShellDestination> destinations;
+  final bool showNavigationBar;
 
   @override
   Widget build(BuildContext context) {
@@ -46,18 +48,20 @@ class RoleShell extends StatelessWidget {
       // dans `MajiChronoApp.builder` : porte par la coquille, il disparaitrait
       // au premier ecran empile.
       body: navigationShell,
-      bottomNavigationBar: _ModernNavBar(
-        currentIndex: navigationShell.currentIndex,
-        destinations: destinations,
-        onSelected: (index) {
-          HapticFeedback.selectionClick();
-          navigationShell.goBranch(
-            index,
-            // Un second appui sur l'onglet actif revient a sa racine.
-            initialLocation: index == navigationShell.currentIndex,
-          );
-        },
-      ),
+      bottomNavigationBar: showNavigationBar
+          ? _ModernNavBar(
+              currentIndex: navigationShell.currentIndex,
+              destinations: destinations,
+              onSelected: (index) {
+                HapticFeedback.selectionClick();
+                navigationShell.goBranch(
+                  index,
+                  // Un second appui sur l'onglet actif revient a sa racine.
+                  initialLocation: index == navigationShell.currentIndex,
+                );
+              },
+            )
+          : null,
     );
   }
 }
