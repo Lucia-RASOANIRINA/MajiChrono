@@ -45,6 +45,35 @@ class AuthRepositoryImpl implements AuthRepository {
   }
 
   @override
+  Future<PhoneLoginResult> loginWithPhone({
+    required MalagasyPhone phone,
+    String? password,
+  }) async {
+    final json = await _remote.phoneLogin(
+      phone: phone.e164,
+      password: password,
+    );
+    if (json['challengeId'] != null) {
+      return PhoneOtpRequired(
+        OtpChallenge(
+          challengeId: json['challengeId'] as String,
+          phone: phone,
+          expiresAt: DateTime.parse(json['expiresAt'] as String).toLocal(),
+          attemptsLeft: (json['attemptsLeft'] as num?)?.toInt() ?? 3,
+          debugCode: json['debugCode'] as String?,
+        ),
+      );
+    }
+    final session = _sessionFrom(json['session'] as Map<String, dynamic>);
+    await _persist(session);
+    final accountJson = json['account'] as Map<String, dynamic>;
+    await _local.saveAccount(accountJson);
+    return PhonePasswordVerified(
+      OtpVerification(session: session, account: _accountFrom(accountJson)),
+    );
+  }
+
+  @override
   Future<OtpVerification> verifyOtp({
     required String challengeId,
     required String code,

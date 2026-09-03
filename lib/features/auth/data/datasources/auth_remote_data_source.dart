@@ -17,6 +17,14 @@ class AuthRemoteDataSource {
         body: {'phone': phoneE164},
       );
 
+  Future<Map<String, dynamic>> phoneLogin({
+    required String phone,
+    String? password,
+  }) => _client.post<Map<String, dynamic>>(
+    ApiEndpoints.phoneLogin,
+    body: {'phone': phone, 'password': ?password},
+  );
+
   Future<Map<String, dynamic>> verifyOtp({
     required String challengeId,
     required String code,

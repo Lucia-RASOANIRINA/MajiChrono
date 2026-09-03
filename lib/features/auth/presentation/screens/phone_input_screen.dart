@@ -11,6 +11,7 @@ import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
 import 'package:majichrono/core/i18n/locale_controller.dart';
 import 'package:majichrono/features/auth/domain/value_objects/malagasy_phone.dart';
+import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/features/auth/presentation/widgets/auth_branding.dart';
 import 'package:majichrono/features/auth/presentation/widgets/google_account_sheet.dart';
@@ -27,6 +28,7 @@ class PhoneInputScreen extends ConsumerStatefulWidget {
 
 class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   final TextEditingController _controller = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
   MalagasyPhone? _phone;
   bool _busy = false;
   String? _error;
@@ -34,6 +36,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   @override
   void dispose() {
     _controller.dispose();
+    _passwordController.dispose();
     super.dispose();
   }
 
@@ -54,11 +57,29 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     });
 
     try {
-      final challenge = await ref
-          .read(authRepositoryProvider)
-          .requestOtp(phone);
+      final result = await ref.read(authRepositoryProvider).loginWithPhone(
+        phone: phone,
+        password: _passwordController.text.trim().isEmpty
+            ? null
+            : _passwordController.text,
+      );
       if (!mounted) return;
-      unawaited(context.push(AppRoutes.authOtp, extra: challenge));
+      switch (result) {
+        case PhoneOtpRequired(:final challenge):
+          unawaited(context.push(AppRoutes.authOtp, extra: challenge));
+        case PhonePasswordVerified(:final verification):
+          await ref
+              .read(authControllerProvider.notifier)
+              .onOtpVerified(verification);
+      }
+    } on ConflictFailure {
+      if (!mounted) return;
+      setState(
+        () => _error = 'Ce compte exige le mot de passe du numero de telephone.',
+      );
+    } on UnauthorizedFailure {
+      if (!mounted) return;
+      setState(() => _error = 'Numero de telephone ou mot de passe incorrect.');
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(
@@ -330,6 +351,23 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                             ),
                             onChanged: _onChanged,
                             onSubmitted: (_) => _submit(),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          TextField(
+                            controller: _passwordController,
+                            obscureText: true,
+                            textInputAction: TextInputAction.done,
+                            onSubmitted: (_) => _submit(),
+                            decoration: InputDecoration(
+                              labelText: 'Mot de passe (si vous en avez un)',
+                              prefixIcon: const Icon(Icons.lock_outline),
+                              filled: true,
+                              fillColor: const Color(0xFFF8FAFC),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(14),
+                                borderSide: BorderSide.none,
+                              ),
+                            ),
                           ),
                           if (_error != null) ...[
                             const SizedBox(height: AppSpacing.xs),

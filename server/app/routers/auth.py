@@ -62,6 +62,10 @@ class PhoneRequest(BaseModel):
     phone: str
 
 
+class PhoneLoginRequest(PhoneRequest):
+    password: str | None = None
+
+
 class VerifyRequest(BaseModel):
     challengeId: str
     code: str
@@ -192,6 +196,51 @@ async def request_otp(body: PhoneRequest, db: Session = Depends(get_db)) -> dict
     if settings.environment != "prod":
         body_out["debugCode"] = code
     return body_out
+
+
+@router.post("/phone/login")
+async def phone_login(
+    body: PhoneLoginRequest,
+    db: Session = Depends(get_db),
+    x_device: str | None = Header(default=None, alias="X-Device"),
+) -> dict:
+    if not PHONE_PATTERN.match(body.phone):
+        raise unprocessable("invalid_phone", "Numero de telephone malgache invalide")
+
+    account = db.scalar(select(Account).where(Account.phone == body.phone))
+    if account is not None and account.password_hash:
+        if not body.password:
+            raise conflict(
+                "password_required",
+                "Ce compte utilise un mot de passe",
+            )
+        if not verify_secret(account.password_hash, body.password):
+            raise unauthorized("Numero de telephone ou mot de passe incorrect")
+        return {
+            "linked": True,
+            "session": _issue_session(db, account, device_label=x_device),
+            "account": account.to_json(),
+        }
+
+    challenge, code = _open_challenge(db, ChallengeChannel.sms, body.phone)
+    try:
+        await send_sms_code(body.phone, code)
+    except Exception:  # noqa: BLE001 — la cause est deja journalisee
+        challenge.consumed_at = datetime.now(timezone.utc)
+        db.commit()
+        raise ApiError(
+            502, "sms_delivery_failed", "Impossible d'envoyer le SMS pour le moment"
+        ) from None
+
+    settings = get_settings()
+    response = {
+        "challengeId": challenge.id,
+        "expiresAt": challenge.expires_at.isoformat(),
+        "attemptsLeft": challenge.attempts_left,
+    }
+    if settings.environment != "prod":
+        response["debugCode"] = code
+    return response
 
 
 @router.post("/otp/verify")

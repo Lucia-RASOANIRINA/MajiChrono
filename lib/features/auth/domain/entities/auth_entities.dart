@@ -191,6 +191,22 @@ class OtpVerification {
   final AccountResult account;
 }
 
+sealed class PhoneLoginResult {
+  const PhoneLoginResult();
+}
+
+class PhoneOtpRequired extends PhoneLoginResult {
+  const PhoneOtpRequired(this.challenge);
+
+  final OtpChallenge challenge;
+}
+
+class PhonePasswordVerified extends PhoneLoginResult {
+  const PhonePasswordVerified(this.verification);
+
+  final OtpVerification verification;
+}
+
 /// Une session active : un appareil connecte au compte. L'utilisateur peut les
 /// lister et en revoquer un a distance (« deconnecter cet autre telephone »).
 class SessionInfo {

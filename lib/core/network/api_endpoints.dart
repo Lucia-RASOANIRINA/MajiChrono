@@ -12,6 +12,7 @@ class ApiEndpoints {
   // --- Authentification ------------------------------------------------
   static const String otpRequest = '/auth/otp/request';
   static const String otpVerify = '/auth/otp/verify';
+  static const String phoneLogin = '/auth/phone/login';
   static const String refresh = '/auth/refresh';
   static const String logout = '/auth/logout';
 

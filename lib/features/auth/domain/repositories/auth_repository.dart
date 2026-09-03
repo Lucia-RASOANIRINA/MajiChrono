@@ -11,6 +11,11 @@ abstract interface class AuthRepository {
   /// Demande l'envoi d'un code OTP (EXI-T01).
   Future<OtpChallenge> requestOtp(MalagasyPhone phone);
 
+  Future<PhoneLoginResult> loginWithPhone({
+    required MalagasyPhone phone,
+    String? password,
+  });
+
   /// Verifie un code. Leve une [ValidationFailure] si le code est faux, en
   /// indiquant le nombre de tentatives restantes.
   Future<OtpVerification> verifyOtp({
