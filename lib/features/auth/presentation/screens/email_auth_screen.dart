@@ -157,6 +157,13 @@ class _EmailAuthScreenState extends ConsumerState<EmailAuthScreen>
             ? l10n.authPasswordTooShort
             : failure.localizedMessage(l10n),
       );
+    } on ServerFailure catch (failure) {
+      if (!mounted) return;
+      setState(
+        () => _error = failure.code == 'mail_delivery_failed'
+            ? "Le service e-mail n'est pas configure. Ajoutez les parametres Resend dans Render."
+            : failure.localizedMessage(l10n),
+      );
     } on Failure catch (failure) {
       if (!mounted) return;
       setState(() => _error = failure.localizedMessage(l10n));

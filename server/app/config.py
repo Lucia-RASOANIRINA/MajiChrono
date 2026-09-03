@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     # --- Codes a usage unique ---------------------------------------------
     otp_ttl_minutes: int = 5
     otp_max_attempts: int = 3
+    otp_debug_codes: bool = False
 
     # --- Envoi d'e-mail (SMTP) ---------------------------------------------
     #

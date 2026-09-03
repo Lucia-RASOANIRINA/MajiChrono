@@ -193,7 +193,7 @@ async def request_otp(body: PhoneRequest, db: Session = Depends(get_db)) -> dict
         "expiresAt": challenge.expires_at.isoformat(),
         "attemptsLeft": challenge.attempts_left,
     }
-    if settings.environment != "prod":
+    if settings.otp_debug_codes:
         body_out["debugCode"] = code
     return body_out
 
@@ -238,7 +238,7 @@ async def phone_login(
         "expiresAt": challenge.expires_at.isoformat(),
         "attemptsLeft": challenge.attempts_left,
     }
-    if settings.environment != "prod":
+    if settings.otp_debug_codes:
         response["debugCode"] = code
     return response
 
@@ -319,7 +319,7 @@ async def request_email_code(body: EmailRequest, db: Session = Depends(get_db)) 
         "expiresAt": challenge.expires_at.isoformat(),
         "attemptsLeft": challenge.attempts_left,
     }
-    if settings.environment != "prod":
+    if settings.otp_debug_codes:
         body_out["debugCode"] = code
     return body_out
 
@@ -598,7 +598,7 @@ async def request_email_change(
         "expiresAt": challenge.expires_at.isoformat(),
         "attemptsLeft": challenge.attempts_left,
     }
-    if settings.environment != "prod":
+    if settings.otp_debug_codes:
         body_out["debugCode"] = code
     return body_out
 
@@ -657,7 +657,7 @@ async def request_phone_change(
         "expiresAt": challenge.expires_at.isoformat(),
         "attemptsLeft": challenge.attempts_left,
     }
-    if settings.environment != "prod":
+    if settings.otp_debug_codes:
         body_out["debugCode"] = code
     return body_out
 
