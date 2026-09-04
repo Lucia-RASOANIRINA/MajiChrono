@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:majichrono/shared/widgets/mc_loader.dart';
+import 'package:majichrono/core/map/tile_source.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/admin/domain/entities/admin_entities.dart';
@@ -55,6 +56,7 @@ class FleetMap extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final tiles = ref.watch(tileProviderProvider);
+    final tileConfig = TileConfig.forBuild();
 
     // Seuls les livreurs localises se placent. Un livreur hors service n'a pas
     // de position, et lui en inventer une serait pire que de ne pas l'afficher.
@@ -97,7 +99,7 @@ class FleetMap extends ConsumerWidget {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: tileConfig.urlTemplate,
                 tileProvider: tileProvider,
                 userAgentPackageName: 'mg.majichrono',
                 // Les tuiles absentes restent transparentes : le fond se

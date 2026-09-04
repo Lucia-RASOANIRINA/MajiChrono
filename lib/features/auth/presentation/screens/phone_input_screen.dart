@@ -20,7 +20,9 @@ import 'package:majichrono/shared/l10n/failure_messages.dart';
 import 'package:majichrono/shared/widgets/mc_patterns.dart';
 
 class PhoneInputScreen extends ConsumerStatefulWidget {
-  const PhoneInputScreen({super.key});
+  const PhoneInputScreen({this.isSignUp = false, super.key});
+
+  final bool isSignUp;
 
   @override
   ConsumerState<PhoneInputScreen> createState() => _PhoneInputScreenState();
@@ -31,7 +33,6 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
   final TextEditingController _passwordController = TextEditingController();
   MalagasyPhone? _phone;
   bool _busy = false;
-  bool _passwordRequired = false;
   String? _error;
 
   @override
@@ -45,8 +46,6 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     setState(() {
       _phone = MalagasyPhone.tryParse(value);
       _error = null;
-      _passwordRequired = false;
-      _passwordController.clear();
     });
   }
 
@@ -60,10 +59,23 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
     });
 
     try {
-      final result = await ref.read(authRepositoryProvider).loginWithPhone(
-        phone: phone,
-        password: _passwordRequired ? _passwordController.text : null,
-      );
+      if (widget.isSignUp) {
+        final challenge = await ref
+            .read(authRepositoryProvider)
+            .requestOtp(phone);
+        if (!mounted) return;
+        unawaited(context.push(AppRoutes.authOtp, extra: challenge));
+        return;
+      }
+
+      final result = await ref
+          .read(authRepositoryProvider)
+          .loginWithPhone(
+            phone: phone,
+            password: _passwordController.text.trim().isEmpty
+                ? null
+                : _passwordController.text,
+          );
       if (!mounted) return;
       switch (result) {
         case PhoneOtpRequired(:final challenge):
@@ -77,10 +89,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
       if (!mounted) return;
       if (failure.details?['code'] == 'password_required' ||
           _passwordController.text.isEmpty) {
-        setState(() {
-          _passwordRequired = true;
-          _error = 'Ce compte utilise un mot de passe.';
-        });
+        setState(() => _error = 'Ce compte utilise un mot de passe.');
       }
     } on Failure catch (failure) {
       if (!mounted) return;
@@ -252,8 +261,8 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                               showSelectedIcon: false,
                               style: SegmentedButton.styleFrom(
                                 backgroundColor: Colors.transparent,
-                                selectedBackgroundColor:
-                                    AppColors.primary.withValues(alpha: 0.1),
+                                selectedBackgroundColor: AppColors.primary
+                                    .withValues(alpha: 0.1),
                                 selectedForegroundColor: AppColors.primary,
                                 foregroundColor: Colors.grey.shade500,
                                 side: BorderSide.none,
@@ -267,9 +276,7 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                               ),
                               onSelectionChanged: (selection) => ref
                                   .read(localeProvider.notifier)
-                                  .set(AppLocales.fromCode(
-                                    selection.first,
-                                  )),
+                                  .set(AppLocales.fromCode(selection.first)),
                             ),
                           ),
                           const SizedBox(height: AppSpacing.xs),
@@ -304,20 +311,21 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                                 color: AppColors.primary,
                                 size: 22,
                               ),
-                              errorText: _controller.text.isNotEmpty &&
-                                      _phone == null
+                              errorText:
+                                  _controller.text.isNotEmpty && _phone == null
                                   ? (MalagasyPhone.isUnknownOperator(
-                                          _controller.text)
-                                      ? l10n.authPhoneUnknownOperator
-                                      : l10n.authPhoneInvalid)
+                                          _controller.text,
+                                        )
+                                        ? l10n.authPhoneUnknownOperator
+                                        : l10n.authPhoneInvalid)
                                   : null,
                               helperText: switch (operator) {
                                 null => null,
                                 MobileOperator.unknown => null,
-                                MobileOperator.telmaFixe =>
-                                  l10n.authPhoneNoSms,
-                                final known =>
-                                  l10n.authPhoneOperator(known.label),
+                                MobileOperator.telmaFixe => l10n.authPhoneNoSms,
+                                final known => l10n.authPhoneOperator(
+                                  known.label,
+                                ),
                               },
                               helperMaxLines: 1,
                               errorMaxLines: 1,
@@ -354,22 +362,16 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                             onChanged: _onChanged,
                             onSubmitted: (_) => _submit(),
                           ),
-                          if (_passwordRequired) ...[
+                          if (!widget.isSignUp) ...[
                             const SizedBox(height: AppSpacing.sm),
                             TextField(
                               controller: _passwordController,
                               obscureText: true,
                               textInputAction: TextInputAction.done,
                               onSubmitted: (_) => _submit(),
-                              decoration: InputDecoration(
-                                labelText: 'Mot de passe',
-                                prefixIcon: const Icon(Icons.lock_outline),
-                                filled: true,
-                                fillColor: const Color(0xFFF8FAFC),
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(14),
-                                  borderSide: BorderSide.none,
-                                ),
+                              decoration: const InputDecoration(
+                                labelText: 'Mot de passe (si vous en avez un)',
+                                prefixIcon: Icon(Icons.lock_outline),
                               ),
                             ),
                           ],
@@ -392,11 +394,12 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                                   Expanded(
                                     child: Text(
                                       _error!,
-                                      style: theme.textTheme.bodyMedium?.copyWith(
-                                        color: Colors.red.shade700,
-                                        fontWeight: FontWeight.w500,
-                                        fontSize: 14,
-                                      ),
+                                      style: theme.textTheme.bodyMedium
+                                          ?.copyWith(
+                                            color: Colors.red.shade700,
+                                            fontWeight: FontWeight.w500,
+                                            fontSize: 14,
+                                          ),
                                     ),
                                   ),
                                 ],
@@ -409,8 +412,9 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                           SizedBox(
                             height: 52,
                             child: ElevatedButton(
-                              onPressed:
-                                  _phone == null || _busy ? null : _submit,
+                              onPressed: _phone == null || _busy
+                                  ? null
+                                  : _submit,
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
                                 foregroundColor: Colors.white,
@@ -450,6 +454,17 @@ class _PhoneInputScreenState extends ConsumerState<PhoneInputScreen> {
                                     ),
                             ),
                           ),
+                          const SizedBox(height: AppSpacing.xs),
+                          if (!widget.isSignUp)
+                            TextButton(
+                              onPressed: _busy
+                                  ? null
+                                  : () =>
+                                        context.push(AppRoutes.authPhoneSignUp),
+                              child: Text(
+                                '${l10n.authNoAccount} ${l10n.authSignUp}',
+                              ),
+                            ),
 
                           // Séparateur et Google
                           if (googleAccounts.isNotEmpty) ...[
@@ -583,11 +598,7 @@ class _DeliveryBackgroundIcons extends StatelessWidget {
                 top: y,
                 child: Opacity(
                   opacity: 0.04 + (size / 200),
-                  child: Icon(
-                    iconData,
-                    size: size,
-                    color: Colors.white,
-                  ),
+                  child: Icon(iconData, size: size, color: Colors.white),
                 ),
               );
             }).toList(),
@@ -603,10 +614,7 @@ class _DeliveryBackgroundIcons extends StatelessWidget {
 // ============================================================
 
 class _CompactHeader extends StatelessWidget {
-  const _CompactHeader({
-    required this.title,
-    required this.subtitle,
-  });
+  const _CompactHeader({required this.title, required this.subtitle});
 
   final String title;
   final String subtitle;
@@ -618,11 +626,7 @@ class _CompactHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.local_shipping,
-          size: 44,
-          color: Colors.white,
-        ),
+        Icon(Icons.local_shipping, size: 44, color: Colors.white),
         const SizedBox(height: 6),
         Text(
           title,
@@ -661,12 +665,7 @@ class _BuildDivider extends StatelessWidget {
   Widget build(BuildContext context) {
     return Row(
       children: [
-        Expanded(
-          child: Divider(
-            color: Colors.grey.shade200,
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: Colors.grey.shade200, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
           child: Text(
@@ -678,12 +677,7 @@ class _BuildDivider extends StatelessWidget {
             ),
           ),
         ),
-        Expanded(
-          child: Divider(
-            color: Colors.grey.shade200,
-            thickness: 1,
-          ),
-        ),
+        Expanded(child: Divider(color: Colors.grey.shade200, thickness: 1)),
       ],
     );
   }

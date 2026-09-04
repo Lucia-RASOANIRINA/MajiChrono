@@ -114,7 +114,7 @@ class _SessionCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final label = session.deviceLabel ?? l10n.sessionUnknownDevice;
-    final since = _formatDate(session.createdAt);
+    final since = _formatDateTime(session.createdAt);
 
     return Card(
       child: Padding(
@@ -167,9 +167,11 @@ class _SessionCard extends StatelessWidget {
     );
   }
 
-  String _formatDate(DateTime date) =>
+  String _formatDateTime(DateTime date) =>
       '${date.day.toString().padLeft(2, '0')}/'
-      '${date.month.toString().padLeft(2, '0')}/${date.year}';
+      '${date.month.toString().padLeft(2, '0')}/${date.year} '
+      '${date.hour.toString().padLeft(2, '0')}:'
+      '${date.minute.toString().padLeft(2, '0')}';
 }
 
 class _CurrentChip extends StatelessWidget {

@@ -43,7 +43,9 @@ class RoleShell extends StatelessWidget {
       // Le fond suit la charte du home (ardoise clair / bleu nuit) pour que la
       // barre flottante se detache du contenu.
       backgroundColor: Colors.transparent,
-      extendBody: true,
+      // Keep the last controls above the navigation bar. Extending the body
+      // underneath the floating bar hid buttons on smaller phones.
+      extendBody: false,
       // Le bandeau reseau (EXI-T06) n'est pas ici mais au-dessus du Navigator,
       // dans `MajiChronoApp.builder` : porte par la coquille, il disparaitrait
       // au premier ecran empile.
@@ -103,7 +105,9 @@ class _ModernNavBar extends StatelessWidget {
             border: Border.all(color: border),
             boxShadow: [
               BoxShadow(
-                color: AppColors.primary.withValues(alpha: isDark ? 0.28 : 0.10),
+                color: AppColors.primary.withValues(
+                  alpha: isDark ? 0.28 : 0.10,
+                ),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),
@@ -144,7 +148,9 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final activeColor = isDark ? const Color(0xFF93C5FD) : AppColors.primary;
-    final idleColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B);
+    final idleColor = isDark
+        ? const Color(0xFF94A3B8)
+        : const Color(0xFF64748B);
     final color = selected ? activeColor : idleColor;
 
     return Semantics(

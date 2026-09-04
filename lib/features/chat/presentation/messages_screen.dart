@@ -46,11 +46,18 @@ class MessagesScreen extends ConsumerWidget {
                   await ref.read(conversationsProvider.future);
                 },
                 child: ListView.separated(
+                  padding: const EdgeInsets.fromLTRB(
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.md,
+                    AppSpacing.xxl,
+                  ),
                   itemCount: items.length,
                   separatorBuilder: (_, _) =>
-                      const Divider(height: 1, indent: 72),
-                  itemBuilder: (context, index) =>
-                      _ConversationTile(conversation: items[index]),
+                      const SizedBox(height: AppSpacing.sm),
+                  itemBuilder: (context, index) => Card(
+                    child: _ConversationTile(conversation: items[index]),
+                  ),
                 ),
               ),
       ),
@@ -69,8 +76,7 @@ class _ConversationTile extends ConsumerWidget {
     final theme = Theme.of(context);
     final myId = _currentAccountId(ref);
     final fromMe =
-        conversation.lastSenderId != null &&
-        conversation.lastSenderId == myId;
+        conversation.lastSenderId != null && conversation.lastSenderId == myId;
     final preview = fromMe
         ? l10n.messagesYouPrefix(conversation.lastMessage)
         : conversation.lastMessage;
@@ -159,9 +165,8 @@ class _ConversationTile extends ConsumerWidget {
   String _formatTime(DateTime at) {
     final now = DateTime.now();
     String two(int n) => n.toString().padLeft(2, '0');
-    final sameDay = at.year == now.year &&
-        at.month == now.month &&
-        at.day == now.day;
+    final sameDay =
+        at.year == now.year && at.month == now.month && at.day == now.day;
     if (sameDay) return '${two(at.hour)}:${two(at.minute)}';
     return '${two(at.day)}/${two(at.month)}';
   }

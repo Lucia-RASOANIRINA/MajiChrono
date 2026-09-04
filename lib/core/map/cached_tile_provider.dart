@@ -12,7 +12,8 @@ import 'package:path/path.dart' as p;
 /// Fournisseur de tuiles avec cache disque persistant.
 ///
 /// C'est la piece qui rend la carte utilisable a Madagascar. Le §9.2 impose
-/// OpenStreetMap precisement parce que ses tuiles sont **pre-telechargeables** :
+/// la source raster configuree precisement parce que ses tuiles sont
+/// **pre-telechargeables** :
 /// une tuile deja vue reste affichable sans reseau, et le §10.1 accorde a ce
 /// cache 150 Mo sur 30 jours glissants.
 ///
@@ -87,7 +88,7 @@ class CachedTileProvider extends TileProvider {
 
     try {
       final request = await _client.getUrl(Uri.parse(url));
-      // OpenStreetMap exige un agent identifiant l'application.
+      // Les fournisseurs de tuiles exigent un agent identifiant l'application.
       request.headers.set(HttpHeaders.userAgentHeader, 'MajiChrono/1.0 (mg)');
       final response = await request.close();
       if (response.statusCode != 200) return await _fallback(file);

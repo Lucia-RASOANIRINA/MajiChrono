@@ -22,6 +22,10 @@ du code renvoient à ce cahier des charges.
 8. [Tests](#8-tests)
 9. [Environnement de développement](#9-environnement-de-développement)
 10. [Décisions à arbitrer](#10-décisions-à-arbitrer)
+11. [Fonctionnalités disponibles](#11-fonctionnalités-disponibles)
+12. [Technologies utilisées](#12-technologies-utilisées)
+13. [Base de données](#13-base-de-données)
+14. [Comptes de test](#14-comptes-de-test)
 
 ---
 
@@ -465,10 +469,128 @@ développement mobile.
 
 ## Déploiement de l'API
 
-Le fichier `render.yaml` déploie `server/` sur Render avec `npm start`. La
-variable secrète `DATABASE_URL` doit être ajoutée dans Render (le fichier ne
-contient aucune valeur). Sans cette variable, l'API reste utilisable en mode
-démonstration mémoire local. `/health` expose le mode actif dans le champ
-`persistence`; les migrations SQL sont appliquées automatiquement au démarrage.
+Le fichier `render.yaml` déploie `server/` sur Render avec Uvicorn. La variable
+secrète `DATABASE_URL` doit être ajoutée dans Render (le fichier ne contient
+aucune valeur). Sans cette variable, l'API reste utilisable avec SQLite local.
+`/health` expose le mode actif dans le champ `persistence`; le schéma est créé
+automatiquement au démarrage.
 
-Pour un déploiement manuel : `cd server && npm install && npm start`.
+Pour un déploiement manuel : `cd server && python -m venv .venv && pip install -r requirements.txt && uvicorn app.main:app`.
+
+---
+
+## 11. Fonctionnalités disponibles
+
+### Fonctionnalités communes
+
+- Connexion par téléphone + mot de passe ou code OTP, et inscription par e-mail.
+- Sessions sécurisées avec renouvellement de jeton, déconnexion et appareils
+  connectés (date et heure).
+- Profil, avatar, modification des informations, changement de mot de passe et
+  suppression des sessions.
+- Français et malgache, changement immédiat de langue, thème clair et sombre.
+- Bandeau réseau, reprise automatique, file hors ligne et synchronisation.
+- Notifications locales, appels, liens de suivi et partage du reçu.
+
+### Client / expéditeur
+
+- Carnet d'adresses, favoris, GPS et points relais.
+- Création d'une course en plusieurs étapes : adresses, colis, photo, poids,
+  dimensions, valeur, créneau et mode de paiement.
+- Estimation détaillée, historique, suivi cartographique et chronologie des
+  statuts.
+- Messagerie avec le livreur, incidents, paiement, notation et litiges.
+
+### Livreur
+
+- Dossier KYC et suivi de validation, véhicule et plaque.
+- Passage en ligne/hors ligne, courses disponibles et acceptation.
+- Navigation, progression de course, partage de position et preuve de remise.
+- Photos guidées, signatures, constats PDF, incidents, gains et évaluations.
+
+### Exploitation / administration
+
+- Tableau de bord, statistiques, utilisateurs et flotte.
+- Validation ou refus KYC avec motif, modération et suspension de compte.
+- Suivi des courses, litiges, messages KYC et décisions administratives.
+
+---
+
+## 12. Technologies utilisées
+
+### Application mobile
+
+- **Flutter 3.47 / Dart 3.12** : application Android et architecture UI.
+- **Riverpod** : état, injection et synchronisation des providers.
+- **GoRouter** : navigation et liens profonds.
+- **Dio** : client HTTP, intercepteurs, reprise et idempotence.
+- **Drift + SQLite WAL** : cache local et file de synchronisation hors ligne.
+- **SharedPreferences** : préférences de langue et de thème.
+- **flutter_secure_storage** : jetons et secrets dans le Keystore Android.
+- **flutter_map + OpenStreetMap** : cartes et suivi.
+- **geolocator** : position du livreur.
+- **camera, image_picker, image** : capture et compression des images.
+- **signature, pdf, printing** : signatures et constats PDF.
+- **flutter_local_notifications** : notifications locales.
+- **local_auth + crypto** : biométrie et protection PIN.
+- **connectivity_plus** : état de connectivité.
+- **mobile_scanner / qr_flutter** : scan et affichage de QR codes.
+
+### Serveur et exploitation
+
+- **Python 3.12 + FastAPI + Uvicorn** : API REST.
+- **Pydantic Settings** : configuration par variables d'environnement.
+- **SQLAlchemy + Alembic** : modèle de données et schéma SQL.
+- **PostgreSQL Neon** : base de production ; SQLite pour le développement local.
+- **psycopg v3** : connexion PostgreSQL.
+- **Argon2** : hachage des mots de passe et secrets.
+- **JWT** : jetons d'accès et de rafraîchissement.
+- **Render** : hébergement de l'API.
+
+---
+
+## 13. Base de données
+
+Les tables principales utilisées par l'API sont :
+
+| Table | Usage |
+|---|---|
+| `accounts` | Comptes, rôles, profils, KYC et suspension |
+| `avatars`, `media` | Avatars et photos envoyées |
+| `saved_addresses` | Carnet d'adresses et favoris |
+| `challenges` | Défis OTP e-mail/téléphone |
+| `refresh_tokens` | Sessions et renouvellement des accès |
+| `idempotency_records` | Protection contre les doublons réseau |
+| `deliveries`, `delivery_events` | Courses et historique des statuts |
+| `messages`, `kyc_messages` | Messagerie de course et échanges KYC |
+| `driver_states`, `position_samples` | Disponibilité et positions |
+| `driver_vehicles`, `kyc_documents` | Véhicules et pièces KYC |
+| `payment_intents`, `majipay_sandbox_accounts`, `majipay_sandbox_txns` | Paiements |
+| `reviews` | Notes et avis |
+| `delivery_incidents` | Incidents de livraison |
+| `disputes`, `dispute_messages` | Litiges et messages associés |
+| `moderation_logs` | Journal des actions d'administration |
+
+---
+
+## 14. Comptes de test
+
+Les comptes ci-dessous sont créés par `server/app/tools/seed_test_data.py`.
+Ils utilisent des données fictives et ne doivent pas être utilisés en production.
+
+| Profil | Téléphone | E-mail | Accès |
+|---|---|---|---|
+| Client — Rina Rakoto | `+261340000001` | `rina.client@example.mg` | OTP téléphone |
+| Livreur — Tovo Livreur | `+261330000002` | `tovo.driver@example.mg` | OTP téléphone ; KYC approuvé |
+| Client e-mail — Compte Test | `+261340000003` | `test.client@majichrono.mg` | Mot de passe : `MajiTest2026!` |
+
+Pour créer ou actualiser les données :
+
+```bash
+cd server
+.venv\Scripts\python -m app.tools.seed_test_data
+```
+
+Les comptes téléphone reçoivent un OTP via le fournisseur SMS configuré. En
+production, `OTP_DEBUG_CODES=false` doit rester désactivé ; sans fournisseur
+SMS, aucun code de test ne doit être affiché dans l'application.

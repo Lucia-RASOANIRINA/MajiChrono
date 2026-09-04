@@ -288,7 +288,15 @@ async def kyc_queue(
 ) -> dict:
     pending = db.scalars(
         select(Account)
-        .where(Account.kyc_status.in_([KycStatus.submitted, KycStatus.under_review]))
+        .where(
+            Account.kyc_status.in_([KycStatus.submitted, KycStatus.under_review])
+            | select(KycMessage.id)
+            .where(
+                KycMessage.account_id == Account.id,
+                KycMessage.from_admin.is_(False),
+            )
+            .exists()
+        )
         .order_by(Account.created_at)
     ).all()
 

@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:latlong2/latlong.dart';
 
 import 'package:majichrono/shared/widgets/mc_loader.dart';
+import 'package:majichrono/core/map/tile_source.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart';
@@ -39,6 +40,7 @@ class DeliveryMap extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final tiles = ref.watch(tileProviderProvider);
+    final tileConfig = TileConfig.forBuild();
 
     final center =
         driverPosition ??
@@ -67,7 +69,7 @@ class DeliveryMap extends ConsumerWidget {
             ),
             children: [
               TileLayer(
-                urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                urlTemplate: tileConfig.urlTemplate,
                 tileProvider: tileProvider,
                 userAgentPackageName: 'mg.majichrono',
                 // Les tuiles absentes restent transparentes : le fond de carte

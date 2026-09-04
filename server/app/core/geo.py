@@ -19,6 +19,7 @@ import math
 # l'agglomeration d'Antananarivo sans imposer une course a l'autre bout de la
 # ville. C'est un choix de produit, pose ici en un seul endroit.
 MAX_ACCEPT_KM = 10.0
+MADAGASCAR_BOUNDS = (-26.0, -11.0, 43.0, 51.5)
 
 _EARTH_RADIUS_KM = 6371.0
 
@@ -33,6 +34,12 @@ def haversine_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
         + math.cos(phi1) * math.cos(phi2) * math.sin(dlambda / 2) ** 2
     )
     return 2 * _EARTH_RADIUS_KM * math.asin(math.sqrt(a))
+
+
+def is_in_madagascar(lat: float, lng: float) -> bool:
+    """Reject impossible map points before they become delivery data."""
+    south, north, west, east = MADAGASCAR_BOUNDS
+    return south <= lat <= north and west <= lng <= east
 
 
 def point_of(place_json: str) -> tuple[float, float] | None:

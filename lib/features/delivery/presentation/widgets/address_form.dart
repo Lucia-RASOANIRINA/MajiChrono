@@ -78,6 +78,7 @@ class _AddressFormState extends State<AddressForm> {
       return null;
     }
 
+    if (!_point.isInMadagascar) return null;
     return Address(
       point: _point,
       district: _district.text.trim(),

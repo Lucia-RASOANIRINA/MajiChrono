@@ -33,8 +33,9 @@ class ProfileScreen extends ConsumerWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       body: auth.when(
         loading: () => const Center(child: McLoader()),
         error: (_, _) => Center(child: Text(l10n.errorUnknown)),
@@ -228,30 +229,33 @@ class _ProfileHeader extends StatelessWidget {
               ),
               child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.all(3),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        width: 2,
+                  Align(
+                    alignment: Alignment.center,
+                    child: Container(
+                      padding: const EdgeInsets.all(3),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.5),
+                          width: 2,
+                        ),
                       ),
-                    ),
-                    child: CircleAvatar(
-                      radius: AppSizes.avatarLg / 2,
-                      backgroundColor: Colors.white,
-                      foregroundImage: avatarImage(account.avatarUrl),
-                      child: Text(
-                        initial,
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontSize: 30,
-                          fontWeight: FontWeight.w700,
+                      child: CircleAvatar(
+                        radius: AppSizes.avatarLg / 2,
+                        backgroundColor: Colors.white,
+                        foregroundImage: avatarImage(account.avatarUrl),
+                        child: Text(
+                          initial,
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w700,
+                          ),
                         ),
                       ),
                     ),
                   ),
-                  const SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.lg),
                   Text(
                     account.displayName.isEmpty
                         ? roleLabel
@@ -262,7 +266,7 @@ class _ProfileHeader extends StatelessWidget {
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     // Numero complet : c'est son telephone. Le masque (EXI-T10)
                     // protege l'autre partie, pas soi-meme.
@@ -389,7 +393,9 @@ class _Tile extends StatelessWidget {
               border: Border.all(color: border),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.primary.withValues(alpha: isDark ? 0.10 : 0.04),
+                  color: AppColors.primary.withValues(
+                    alpha: isDark ? 0.10 : 0.04,
+                  ),
                   blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
@@ -416,7 +422,9 @@ class _Tile extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w700,
-                          color: isDark ? Colors.white : const Color(0xFF0F172A),
+                          color: isDark
+                              ? Colors.white
+                              : const Color(0xFF0F172A),
                         ),
                       ),
                       if (subtitle != null) ...[

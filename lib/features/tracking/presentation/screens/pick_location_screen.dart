@@ -10,6 +10,7 @@ import 'package:majichrono/features/delivery/domain/value_objects/geo_point.dart
 import 'package:majichrono/features/tracking/presentation/providers/tracking_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
 import 'package:majichrono/shared/widgets/mc_primary_action.dart';
+import 'package:majichrono/core/map/tile_source.dart';
 
 /// Placement du point GPS d'une adresse sur la carte (EXI-C01).
 ///
@@ -45,6 +46,7 @@ class _PickLocationScreenState extends ConsumerState<PickLocationScreen> {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final tiles = ref.watch(tileProviderProvider);
+    final tileConfig = TileConfig.forBuild();
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.pickLocationTitle)),
@@ -74,8 +76,7 @@ class _PickLocationScreenState extends ConsumerState<PickLocationScreen> {
                     ),
                     children: [
                       TileLayer(
-                        urlTemplate:
-                            'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        urlTemplate: tileConfig.urlTemplate,
                         tileProvider: tileProvider,
                         userAgentPackageName: 'mg.majichrono',
                       ),

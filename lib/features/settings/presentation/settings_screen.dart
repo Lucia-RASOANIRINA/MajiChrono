@@ -50,7 +50,6 @@ class SettingsScreen extends ConsumerWidget {
     final theme = Theme.of(context);
     final locale = ref.watch(localeProvider);
     final themeMode = ref.watch(themeModeProvider);
-    final config = ref.watch(appConfigProvider);
 
     return Scaffold(
       appBar: AppBar(title: Text(l10n.settingsTitle)),
@@ -78,9 +77,11 @@ class SettingsScreen extends ConsumerWidget {
               ),
             ],
             selected: {locale.languageCode},
-            onSelectionChanged: (selection) => ref
-                .read(localeProvider.notifier)
-                .set(AppLocales.fromCode(selection.first)),
+            onSelectionChanged: (selection) async {
+              await ref
+                  .read(localeProvider.notifier)
+                  .set(AppLocales.fromCode(selection.first));
+            },
           ),
           const SizedBox(height: AppSpacing.xl),
           Text(
@@ -102,8 +103,9 @@ class SettingsScreen extends ConsumerWidget {
             ],
             selected: {themeMode},
             showSelectedIcon: false,
-            onSelectionChanged: (selection) =>
-                ref.read(themeModeProvider.notifier).set(selection.first),
+            onSelectionChanged: (selection) async {
+              await ref.read(themeModeProvider.notifier).set(selection.first);
+            },
           ),
           const SizedBox(height: AppSpacing.xl),
           Card(
@@ -181,15 +183,6 @@ class SettingsScreen extends ConsumerWidget {
                         .set(enabled: on),
                   ),
                 ),
-                if (config.enableDevPanel) ...[
-                  const Divider(height: 1),
-                  ListTile(
-                    leading: const Icon(Icons.bug_report_outlined),
-                    title: Text(l10n.devPanelTitle),
-                    trailing: const Icon(Icons.chevron_right),
-                    onTap: () => context.push(AppRoutes.devPanel),
-                  ),
-                ],
                 const Divider(height: 1),
                 ListTile(
                   leading: const Icon(Icons.edit_outlined),

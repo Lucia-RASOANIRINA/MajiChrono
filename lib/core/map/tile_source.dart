@@ -23,7 +23,7 @@ enum TileSource {
     productionReady: false,
   ),
 
-  /// OpenFreeMap — tuiles gratuites, sans cle, sans quota.
+  /// OpenFreeMap — source vectorielle gratuite, sans cle, sans quota.
   ///
   /// Finance par son fondateur et servi depuis des serveurs dedies, avec pour
   /// principe affiche qu'il n'y aura ni cle ni facturation. C'est le meilleur
@@ -35,8 +35,19 @@ enum TileSource {
   /// aide, elle ne decide pas. Une panne de fond de carte degrade le confort,
   /// pas le service.
   openFreeMap(
-    url: 'https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.png',
+    url: 'https://tiles.openfreemap.org/styles/liberty/{z}/{x}/{y}.pbf',
     attribution: '© OpenFreeMap © OpenStreetMap',
+    needsKey: false,
+    productionReady: true,
+  ),
+
+  /// CARTO Voyager — tuiles raster HTTPS, adaptees a `flutter_map`.
+  ///
+  /// OpenFreeMap fournit des tuiles vectorielles PBF et ne peut donc pas etre
+  /// branche directement sur `TileLayer`, qui attend une image raster.
+  cartoVoyager(
+    url: 'https://a.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
+    attribution: '© CARTO © OpenStreetMap',
     needsKey: false,
     productionReady: true,
   ),
@@ -47,8 +58,7 @@ enum TileSource {
   /// support, et statistiques d'usage. Le passage se fait en changeant cette
   /// valeur et en posant la cle.
   mapTiler(
-    url:
-        'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
+    url: 'https://api.maptiler.com/maps/streets-v2/{z}/{x}/{y}.png?key={key}',
     attribution: '© MapTiler © OpenStreetMap',
     needsKey: true,
     productionReady: true,
@@ -95,11 +105,10 @@ class TileConfig {
 
   /// Configuration retenue.
   ///
-  /// En debogage, le serveur d'OSM suffit et evite de dependre d'un tiers pour
-  /// travailler. En release, OpenFreeMap : gratuit, sans cle, et utilisable en
-  /// production — les deux conditions que vous avez posees.
+  /// En debogage, le serveur d'OSM suffit. En release, CARTO Voyager fournit
+  /// bien des images raster, contrairement aux tuiles PBF d'OpenFreeMap.
   factory TileConfig.forBuild() => TileConfig(
-    source: kDebugMode ? TileSource.osmDev : TileSource.openFreeMap,
+    source: kDebugMode ? TileSource.osmDev : TileSource.cartoVoyager,
   );
 
   final TileSource source;

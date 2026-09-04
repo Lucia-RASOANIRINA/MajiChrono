@@ -11,6 +11,12 @@ class GeoPoint {
   /// disponible — phase 1 du deploiement (§2.1).
   static const GeoPoint antananarivo = GeoPoint(-18.8792, 47.5079);
 
+  bool get isInMadagascar =>
+      latitude >= -26 &&
+      latitude <= -11 &&
+      longitude >= 43 &&
+      longitude <= 51.5;
+
   static const double _earthRadiusKm = 6371;
 
   /// Distance a vol d'oiseau, en kilometres.

@@ -31,7 +31,6 @@ class SocleHomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final config = ref.watch(appConfigProvider);
     final status = ref.watch(networkStatusProvider);
     final pending = ref.watch(pendingSyncCountProvider).valueOrNull ?? 0;
     final online = status.valueOrNull?.isOnline ?? false;
@@ -48,13 +47,15 @@ class SocleHomeScreen extends ConsumerWidget {
     final statusLabel = online
         ? l10n.networkOnline
         : (pending > 0
-            ? l10n.networkOfflinePending(pending)
-            : l10n.networkOfflineNoPending);
+              ? l10n.networkOfflinePending(pending)
+              : l10n.networkOfflineNoPending);
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
@@ -72,12 +73,6 @@ class SocleHomeScreen extends ConsumerWidget {
                 HapticFeedback.lightImpact();
                 context.push(AppRoutes.settings);
               },
-              onDevPanel: config.enableDevPanel
-                  ? () {
-                      HapticFeedback.lightImpact();
-                      context.push(AppRoutes.devPanel);
-                    }
-                  : null,
             ),
           ),
 
@@ -95,6 +90,7 @@ class SocleHomeScreen extends ConsumerWidget {
                     online: online,
                     pending: pending,
                     deliveriesCount: deliveries.length,
+                    onDeliveries: () => context.go(AppRoutes.clientDeliveries),
                   ).animate().fade(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
                   if (role == UserRole.client) ...[
@@ -113,7 +109,9 @@ class SocleHomeScreen extends ConsumerWidget {
                     style: TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
-                      color: isDark ? const Color(0xFFE2E8F0) : const Color(0xFF1E293B),
+                      color: isDark
+                          ? const Color(0xFFE2E8F0)
+                          : const Color(0xFF1E293B),
                       letterSpacing: -0.3,
                     ),
                   ).animate().fade(delay: 100.ms),
@@ -121,16 +119,15 @@ class SocleHomeScreen extends ConsumerWidget {
                   const SizedBox(height: AppSpacing.sm),
 
                   _QuickActionsGrid(
-                    onNewDelivery: () => context.push(AppRoutes.clientNewDelivery),
+                    onNewDelivery: () =>
+                        context.push(AppRoutes.clientNewDelivery),
                     onDeliveries: () => context.go(AppRoutes.clientDeliveries),
                     onDataUsage: () => context.push(AppRoutes.dataUsage),
                     onSync: () => context.push(AppRoutes.pendingSync),
                   ).animate().fade(delay: 150.ms).slideY(begin: 0.1, end: 0),
 
                   if (role == UserRole.client)
-                    const _FavoritesStrip()
-                        .animate()
-                        .fade(delay: 180.ms),
+                    const _FavoritesStrip().animate().fade(delay: 180.ms),
 
                   const SizedBox(height: AppSpacing.xl),
 
@@ -155,7 +152,9 @@ class SocleHomeScreen extends ConsumerWidget {
                         color: isDark ? const Color(0xFF1E293B) : Colors.white,
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
-                          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+                          color: isDark
+                              ? const Color(0xFF334155)
+                              : const Color(0xFFE2E8F0),
                         ),
                       ),
                       child: McEmptyState(
@@ -212,7 +211,6 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
     required this.statusOnline,
     required this.pendingCount,
     this.onSettings,
-    this.onDevPanel,
   });
 
   final String greeting;
@@ -222,7 +220,6 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
   final bool statusOnline;
   final int pendingCount;
   final VoidCallback? onSettings;
-  final VoidCallback? onDevPanel;
 
   @override
   double get minExtent => 140.0;
@@ -231,7 +228,11 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
   double get maxExtent => 200.0;
 
   @override
-  Widget build(BuildContext context, double shrinkOffset, bool overlapsContent) {
+  Widget build(
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     final percent = shrinkOffset / maxExtent;
     final isCompact = percent > 0.4;
 
@@ -291,12 +292,6 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
                   ),
                   Row(
                     children: [
-                      if (onDevPanel != null)
-                        _HeaderIconButton(
-                          icon: Icons.bug_report_outlined,
-                          onPressed: onDevPanel!,
-                        ),
-                      const SizedBox(width: 8),
                       const _HeaderMessages(),
                       const SizedBox(width: 8),
                       const _HeaderBell(),
@@ -317,7 +312,7 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
                     vertical: 5,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.12),
+                    color: Colors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
                       color: Colors.white.withValues(alpha: 0.2),
@@ -338,12 +333,13 @@ class _SliverCustomHeaderDelegate extends SliverPersistentHeaderDelegate {
                               : const Color(0xFFF87171),
                           boxShadow: [
                             BoxShadow(
-                              color: (statusOnline
-                                      ? const Color(0xFF38BDF8)
-                                      : const Color(0xFFF87171))
-                                  .withValues(alpha: 0.6),
+                              color:
+                                  (statusOnline
+                                          ? const Color(0xFF38BDF8)
+                                          : const Color(0xFFF87171))
+                                      .withValues(alpha: 0.6),
                               blurRadius: 6,
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -440,9 +436,9 @@ class _HeaderIconButton extends StatelessWidget {
       ),
       child: IconButton(
         onPressed: onPressed,
-        constraints: const BoxConstraints(minWidth: 38, minHeight: 38),
+        constraints: const BoxConstraints(minWidth: 42, minHeight: 42),
         padding: EdgeInsets.zero,
-        icon: Icon(icon, color: Colors.white, size: 20),
+        icon: Icon(icon, color: const Color(0xFFEAF2FF), size: 22),
       ),
     );
   }
@@ -457,61 +453,78 @@ class _EnhancedStatsCard extends StatelessWidget {
     required this.online,
     required this.pending,
     required this.deliveriesCount,
+    required this.onDeliveries,
   });
 
   final bool online;
   final int pending;
   final int deliveriesCount;
+  final VoidCallback onDeliveries;
 
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark
+        ? const Color(0xFF93C5FD)
+        : const Color(0xFF1D4ED8);
 
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF1E293B) : Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+    return InkWell(
+      onTap: onDeliveries,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        decoration: BoxDecoration(
+          color: isDark ? const Color(0xFF1E293B) : Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark ? const Color(0xFF334155) : const Color(0xFFE2E8F0),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
+            ),
+          ],
         ),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: _StatTile(
-              icon: Icons.local_shipping_outlined,
-              value: '$deliveriesCount',
-              label: 'Courses',
-              color: AppColors.primary,
+        child: Row(
+          children: [
+            Expanded(
+              child: _StatTile(
+                icon: Icons.local_shipping_outlined,
+                value: '$deliveriesCount',
+                label: 'Courses',
+                color: iconColor,
+              ),
             ),
-          ),
-          _buildDivider(isDark),
-          Expanded(
-            child: _StatTile(
-              icon: online ? Icons.wifi : Icons.wifi_off_rounded,
-              value: online ? 'En ligne' : 'Hors-ligne',
-              label: 'Réseau',
-              color: online ? AppColors.primary : const Color(0xFFE11D48),
+            _buildDivider(isDark),
+            Expanded(
+              child: _StatTile(
+                icon: online ? Icons.wifi : Icons.wifi_off_rounded,
+                value: online ? 'En ligne' : 'Hors-ligne',
+                label: 'Réseau',
+                color: online
+                    ? iconColor
+                    : (isDark
+                          ? const Color(0xFFFB7185)
+                          : const Color(0xFFBE123C)),
+              ),
             ),
-          ),
-          _buildDivider(isDark),
-          Expanded(
-            child: _StatTile(
-              icon: Icons.sync_rounded,
-              value: pending > 0 ? '$pending à synchro' : 'À jour',
-              label: 'Données',
-              color: pending > 0 ? const Color(0xFFD97706) : AppColors.primary,
+            _buildDivider(isDark),
+            Expanded(
+              child: _StatTile(
+                icon: Icons.sync_rounded,
+                value: pending > 0 ? '$pending à synchro' : 'À jour',
+                label: 'Données',
+                color: pending > 0
+                    ? (isDark
+                          ? const Color(0xFFFBBF24)
+                          : const Color(0xFFB45309))
+                    : iconColor,
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -541,6 +554,9 @@ class _StatTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark
+        ? const Color(0xFF93C5FD)
+        : const Color(0xFF1D4ED8);
 
     return Column(
       children: [
@@ -550,7 +566,7 @@ class _StatTile extends StatelessWidget {
             color: color.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 20, color: color),
+          child: Icon(icon, size: 22, color: iconColor),
         ),
         const SizedBox(height: 8),
         Text(
@@ -595,43 +611,48 @@ class _QuickActionsGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: AppSpacing.md,
-      mainAxisSpacing: AppSpacing.md,
-      childAspectRatio: 1.5,
-      children: [
-        _ModernActionCard(
-          title: 'Nouvelle course',
-          subtitle: 'Commander un coursier',
-          icon: Icons.add_circle_outline_rounded,
-          accentColor: AppColors.primary,
-          onTap: onNewDelivery,
-        ),
-        _ModernActionCard(
-          title: 'Mes courses',
-          subtitle: 'Suivre mes colis',
-          icon: Icons.inventory_2_outlined,
-          accentColor: AppColors.primary,
-          onTap: onDeliveries,
-        ),
-        _ModernActionCard(
-          title: 'Données',
-          subtitle: 'Utilisation & Stockage',
-          icon: Icons.pie_chart_outline_rounded,
-          accentColor: AppColors.primary,
-          onTap: onDataUsage,
-        ),
-        _ModernActionCard(
-          title: 'Synchronisation',
-          subtitle: 'Gérer le hors-ligne',
-          icon: Icons.cloud_sync_outlined,
-          accentColor: AppColors.primary,
-          onTap: onSync,
-        ),
-      ],
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 360;
+        return GridView.count(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          crossAxisCount: 2,
+          crossAxisSpacing: AppSpacing.md,
+          mainAxisSpacing: AppSpacing.md,
+          childAspectRatio: compact ? 1.15 : 1.32,
+          children: [
+            _ModernActionCard(
+              title: 'Nouvelle course',
+              subtitle: 'Commander un coursier',
+              icon: Icons.add_circle_outline_rounded,
+              accentColor: AppColors.primary,
+              onTap: onNewDelivery,
+            ),
+            _ModernActionCard(
+              title: 'Mes courses',
+              subtitle: 'Suivre mes colis',
+              icon: Icons.inventory_2_outlined,
+              accentColor: AppColors.primary,
+              onTap: onDeliveries,
+            ),
+            _ModernActionCard(
+              title: 'Données',
+              subtitle: 'Utilisation & Stockage',
+              icon: Icons.pie_chart_outline_rounded,
+              accentColor: AppColors.primary,
+              onTap: onDataUsage,
+            ),
+            _ModernActionCard(
+              title: 'Synchronisation',
+              subtitle: 'Gérer le hors-ligne',
+              icon: Icons.cloud_sync_outlined,
+              accentColor: AppColors.primary,
+              onTap: onSync,
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -661,6 +682,9 @@ class _ModernActionCardState extends State<_ModernActionCard> {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final iconColor = isDark
+        ? const Color(0xFF93C5FD)
+        : const Color(0xFF1D4ED8);
 
     return GestureDetector(
       onTapDown: (_) => setState(() => _isPressed = true),
@@ -684,7 +708,9 @@ class _ModernActionCardState extends State<_ModernActionCard> {
             ),
             boxShadow: [
               BoxShadow(
-                color: widget.accentColor.withValues(alpha: isDark ? 0.05 : 0.06),
+                color: widget.accentColor.withValues(
+                  alpha: isDark ? 0.05 : 0.06,
+                ),
                 blurRadius: 12,
                 offset: const Offset(0, 4),
               ),
@@ -703,16 +729,14 @@ class _ModernActionCardState extends State<_ModernActionCard> {
                       color: widget.accentColor.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Icon(
-                      widget.icon,
-                      size: 22,
-                      color: widget.accentColor,
-                    ),
+                    child: Icon(widget.icon, size: 22, color: iconColor),
                   ),
                   Icon(
                     Icons.arrow_forward_ios_rounded,
-                    size: 12,
-                    color: isDark ? const Color(0xFF64748B) : const Color(0xFF94A3B8),
+                    size: 16,
+                    color: isDark
+                        ? const Color(0xFFCBD5E1)
+                        : const Color(0xFF64748B),
                   ),
                 ],
               ),
@@ -736,7 +760,9 @@ class _ModernActionCardState extends State<_ModernActionCard> {
                     overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                       fontSize: 10,
-                      color: isDark ? const Color(0xFF94A3B8) : const Color(0xFF64748B),
+                      color: isDark
+                          ? const Color(0xFFB6C3D6)
+                          : const Color(0xFF64748B),
                     ),
                   ),
                 ],
@@ -777,9 +803,7 @@ class _WalletBalanceCard extends ConsumerWidget {
         decoration: BoxDecoration(
           color: isDark ? const Color(0xFF1E293B) : Colors.white,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: AppColors.primary.withValues(alpha: 0.2),
-          ),
+          border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
         ),
         child: Row(
           children: [
@@ -874,17 +898,18 @@ class _FavoritesStrip extends ConsumerWidget {
     final addresses = ref.watch(addressBookProvider).valueOrNull ?? const [];
     if (addresses.isEmpty) return const SizedBox.shrink();
 
-    final sorted = [...addresses]..sort((a, b) {
-      int rank(AddressKind k) => switch (k) {
-        AddressKind.home => 0,
-        AddressKind.work => 1,
-        AddressKind.favorite => 2,
-        AddressKind.other => 3,
-      };
-      final byKind = rank(a.kind).compareTo(rank(b.kind));
-      if (byKind != 0) return byKind;
-      return b.useCount.compareTo(a.useCount);
-    });
+    final sorted = [...addresses]
+      ..sort((a, b) {
+        int rank(AddressKind k) => switch (k) {
+          AddressKind.home => 0,
+          AddressKind.work => 1,
+          AddressKind.favorite => 2,
+          AddressKind.other => 3,
+        };
+        final byKind = rank(a.kind).compareTo(rank(b.kind));
+        if (byKind != 0) return byKind;
+        return b.useCount.compareTo(a.useCount);
+      });
     final visible = sorted.take(6).toList();
 
     return Column(

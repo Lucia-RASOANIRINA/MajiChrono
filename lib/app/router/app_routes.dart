@@ -20,7 +20,9 @@ class AppRoutes {
   static const String authSignIn = '/auth/signin';
   static const String authSignUp = '/auth/signup';
   static const String authPhone = '/auth/phone';
+  static const String authPhoneSignUp = '/auth/phone/signup';
   static const String authOtp = '/auth/otp';
+
   /// Code recu par e-mail, apres « Continuer avec Google ».
   static const String authEmailCode = '/auth/email';
   static const String authProfile = '/auth/profile';
@@ -50,6 +52,7 @@ class AppRoutes {
 
   /// Espace « Messages » : la boite de reception des conversations.
   static const String messages = '/messages';
+  static const String clientMessages = '/client/messages';
 
   /// Litiges de l'utilisateur : liste et detail (§13, assistance).
   static const String disputes = '/support/disputes';
@@ -73,7 +76,6 @@ class AppRoutes {
 
   /// Elements en attente de synchronisation (EXI-S06).
   static const String pendingSync = '/settings/sync';
-  static const String devPanel = '/dev';
 
   // --- Client ----------------------------------------------------------
   static const String clientHome = '/client';

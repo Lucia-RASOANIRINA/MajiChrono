@@ -10,7 +10,6 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
-import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/features/auth/domain/entities/auth_entities.dart';
 import 'package:majichrono/features/auth/presentation/providers/auth_providers.dart';
 import 'package:majichrono/l10n/app_localizations.dart';
@@ -55,13 +54,13 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
       parent: _animationController,
       curve: Curves.easeInOut,
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.05),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animationController,
-      curve: Curves.easeOutQuart,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.05), end: Offset.zero).animate(
+          CurvedAnimation(
+            parent: _animationController,
+            curve: Curves.easeOutQuart,
+          ),
+        );
     _animationController.forward();
 
     _pulseController = AnimationController(
@@ -175,9 +174,6 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final expired = _remaining == Duration.zero;
-    final showDebugCode =
-        ref.watch(appConfigProvider).enableDevPanel &&
-        _challenge.debugCode != null;
 
     return Scaffold(
       backgroundColor: AppColors.primary,
@@ -299,10 +295,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                         ),
                                         style: theme.textTheme.bodyMedium
                                             ?.copyWith(
-                                          color: Colors.grey.shade700,
-                                          fontSize: 14,
-                                          fontWeight: FontWeight.w500,
-                                        ),
+                                              color: Colors.grey.shade700,
+                                              fontSize: 14,
+                                              fontWeight: FontWeight.w500,
+                                            ),
                                       ),
                                     ),
                                   ],
@@ -358,99 +354,17 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                             ),
                                       style: theme.textTheme.titleMedium
                                           ?.copyWith(
-                                        color: expired
-                                            ? Colors.red.shade600
-                                            : AppColors.primary,
-                                        fontWeight: FontWeight.w700,
-                                        fontSize: 16,
-                                      ),
+                                            color: expired
+                                                ? Colors.red.shade600
+                                                : AppColors.primary,
+                                            fontWeight: FontWeight.w700,
+                                            fontSize: 16,
+                                          ),
                                     ),
                                   ],
                                 ),
                               ),
 
-                              // Code de débogage
-                              if (showDebugCode) ...[
-                                const SizedBox(height: AppSpacing.md),
-                                AnimatedBuilder(
-                                  animation: _pulseController,
-                                  builder: (context, child) {
-                                    return Container(
-                                      padding: const EdgeInsets.all(
-                                        AppSpacing.sm,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        gradient: LinearGradient(
-                                          colors: [
-                                            AppColors.primary.withValues(
-                                              alpha: 0.06,
-                                            ),
-                                            AppColors.primary.withValues(
-                                              alpha: 0.02,
-                                            ),
-                                          ],
-                                        ),
-                                        borderRadius:
-                                            BorderRadius.circular(12),
-                                        border: Border.all(
-                                          color: AppColors.primary.withValues(
-                                            alpha: 0.1 +
-                                                0.05 *
-                                                    _pulseController.value,
-                                          ),
-                                          width: 1,
-                                        ),
-                                      ),
-                                      child: Row(
-                                        children: [
-                                          Icon(
-                                            Icons.bug_report_outlined,
-                                            color: AppColors.primary,
-                                            size: 20,
-                                          ),
-                                          const SizedBox(width: AppSpacing.sm),
-                                          Expanded(
-                                            child: Text(
-                                              l10n.authOtpSimulated(
-                                                _challenge.debugCode!,
-                                              ),
-                                              style: theme.textTheme
-                                                  .titleMedium
-                                                  ?.copyWith(
-                                                color: AppColors.primary,
-                                                fontWeight: FontWeight.w700,
-                                                fontSize: 18,
-                                                letterSpacing: 2,
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                              horizontal: AppSpacing.sm,
-                                              vertical: AppSpacing.xs,
-                                            ),
-                                            decoration: BoxDecoration(
-                                              color: AppColors.primary
-                                                  .withValues(alpha: 0.1),
-                                              borderRadius:
-                                                  BorderRadius.circular(6),
-                                            ),
-                                            child: Text(
-                                              'DEV',
-                                              style: TextStyle(
-                                                color: AppColors.primary,
-                                                fontSize: 10,
-                                                fontWeight: FontWeight.w700,
-                                                letterSpacing: 1,
-                                              ),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                    );
-                                  },
-                                ),
-                              ],
                               const SizedBox(height: AppSpacing.lg),
 
                               // Champ de saisie du code (CORRIGÉ)
@@ -469,9 +383,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                               if (_error != null) ...[
                                 const SizedBox(height: AppSpacing.md),
                                 Container(
-                                  padding: const EdgeInsets.all(
-                                    AppSpacing.sm,
-                                  ),
+                                  padding: const EdgeInsets.all(AppSpacing.sm),
                                   decoration: BoxDecoration(
                                     color: Colors.red.shade50,
                                     borderRadius: BorderRadius.circular(10),
@@ -489,10 +401,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                           _error!,
                                           style: theme.textTheme.bodyMedium
                                               ?.copyWith(
-                                            color: Colors.red.shade700,
-                                            fontWeight: FontWeight.w500,
-                                            fontSize: 14,
-                                          ),
+                                                color: Colors.red.shade700,
+                                                fontWeight: FontWeight.w500,
+                                                fontSize: 14,
+                                              ),
                                         ),
                                       ),
                                     ],
@@ -527,7 +439,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                               SizedBox(
                                 height: 52,
                                 child: ElevatedButton(
-                                  onPressed: expired ||
+                                  onPressed:
+                                      expired ||
                                           _busy ||
                                           _controller.text.length != 6
                                       ? null
@@ -535,8 +448,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen>
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: AppColors.primary,
                                     foregroundColor: Colors.white,
-                                    disabledBackgroundColor: Colors.grey
-                                        .shade300,
+                                    disabledBackgroundColor:
+                                        Colors.grey.shade300,
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(14),
                                     ),
@@ -711,10 +624,7 @@ class _OtpInputFieldState extends State<_OtpInputField> {
                   decoration: BoxDecoration(
                     color: backgroundColor,
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: borderColor,
-                      width: borderWidth,
-                    ),
+                    border: Border.all(color: borderColor, width: borderWidth),
                     boxShadow: isActive
                         ? [
                             BoxShadow(
@@ -769,10 +679,7 @@ class _OtpInputFieldState extends State<_OtpInputField> {
 // ============================================================
 
 class _OtpHeader extends StatelessWidget {
-  const _OtpHeader({
-    required this.title,
-    required this.phone,
-  });
+  const _OtpHeader({required this.title, required this.phone});
 
   final String title;
   final String phone;
@@ -784,11 +691,7 @@ class _OtpHeader extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          Icons.sms_outlined,
-          size: 44,
-          color: Colors.white,
-        ),
+        Icon(Icons.sms_outlined, size: 44, color: Colors.white),
         const SizedBox(height: 6),
         Text(
           title,
@@ -823,28 +726,25 @@ class _TrustIcons extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _TrustIcon(icon: Icons.shield, size: 24),
-        const SizedBox(width: AppSpacing.sm),
-        _TrustIcon(icon: Icons.lock_outline, size: 22),
-        const SizedBox(width: AppSpacing.sm),
-        _TrustIcon(icon: Icons.verified, size: 24),
-        const SizedBox(width: AppSpacing.sm),
-        _TrustIcon(icon: Icons.security, size: 24),
-      ],
-    ).animate().fadeIn(duration: 600.ms).slideY(
-      begin: 0.1,
-      curve: Curves.easeOut,
-    );
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _TrustIcon(icon: Icons.shield, size: 24),
+            const SizedBox(width: AppSpacing.sm),
+            _TrustIcon(icon: Icons.lock_outline, size: 22),
+            const SizedBox(width: AppSpacing.sm),
+            _TrustIcon(icon: Icons.verified, size: 24),
+            const SizedBox(width: AppSpacing.sm),
+            _TrustIcon(icon: Icons.security, size: 24),
+          ],
+        )
+        .animate()
+        .fadeIn(duration: 600.ms)
+        .slideY(begin: 0.1, curve: Curves.easeOut);
   }
 }
 
 class _TrustIcon extends StatelessWidget {
-  const _TrustIcon({
-    required this.icon,
-    required this.size,
-  });
+  const _TrustIcon({required this.icon, required this.size});
 
   final IconData icon;
   final double size;
@@ -861,11 +761,7 @@ class _TrustIcon extends StatelessWidget {
         ),
         color: Colors.white.withValues(alpha: 0.04),
       ),
-      child: Icon(
-        icon,
-        color: Colors.white.withValues(alpha: 0.6),
-        size: size,
-      ),
+      child: Icon(icon, color: Colors.white.withValues(alpha: 0.6), size: size),
     );
   }
 }
@@ -921,11 +817,7 @@ class _OtpBackgroundIcons extends StatelessWidget {
                 top: y,
                 child: Opacity(
                   opacity: 0.04 + (size / 200),
-                  child: Icon(
-                    iconData,
-                    size: size,
-                    color: Colors.white,
-                  ),
+                  child: Icon(iconData, size: size, color: Colors.white),
                 ),
               );
             }).toList(),

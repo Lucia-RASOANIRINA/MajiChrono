@@ -42,7 +42,6 @@ import 'package:majichrono/features/tracking/presentation/screens/tracking_scree
 import 'package:majichrono/features/settings/presentation/data_usage_screen.dart';
 import 'package:majichrono/features/notifications/presentation/screens/notification_center_screen.dart';
 import 'package:majichrono/features/settings/presentation/pending_sync_screen.dart';
-import 'package:majichrono/features/settings/presentation/dev_panel_screen.dart';
 import 'package:majichrono/features/chat/presentation/chat_screen.dart';
 import 'package:majichrono/features/profile/presentation/change_password_screen.dart';
 import 'package:majichrono/features/profile/presentation/edit_profile_screen.dart';
@@ -156,6 +155,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const PhoneInputScreen(),
       ),
       GoRoute(
+        path: AppRoutes.authPhoneSignUp,
+        builder: (_, _) => const PhoneInputScreen(isSignUp: true),
+      ),
+      GoRoute(
         path: AppRoutes.authOtp,
         // Le defi voyage dans `extra`. S'il manque — rebuild du routeur, retour
         // arriere, lien profond direct — on renvoie a la saisie du numero plutot
@@ -221,19 +224,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: AppRoutes.helpCenter,
         builder: (_, _) => const HelpCenterScreen(),
       ),
-      GoRoute(
-        path: AppRoutes.wallet,
-        builder: (_, _) => const WalletScreen(),
-      ),
+      GoRoute(path: AppRoutes.wallet, builder: (_, _) => const WalletScreen()),
       GoRoute(
         path: AppRoutes.messages,
         builder: (_, _) => const MessagesScreen(),
       ),
       GoRoute(
         path: AppRoutes.adminUsers,
-        builder: (context, state) => AdminUsersScreen(
-          initialRole: state.uri.queryParameters['role'],
-        ),
+        builder: (context, state) =>
+            AdminUsersScreen(initialRole: state.uri.queryParameters['role']),
       ),
       GoRoute(
         path: AppRoutes.adminStats,
@@ -300,10 +299,6 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, _) => const AdminDeliveriesScreen(),
       ),
       GoRoute(
-        path: AppRoutes.devPanel,
-        builder: (_, _) => const DevPanelScreen(),
-      ),
-      GoRoute(
         path: AppRoutes.publicTrack,
         builder: (context, state) =>
             PublicTrackingScreen(token: state.pathParameters['token'] ?? ''),
@@ -323,6 +318,7 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
       showNavigationBar: const [
         AppRoutes.clientHome,
         AppRoutes.clientDeliveries,
+        AppRoutes.clientMessages,
         AppRoutes.clientProfile,
       ].contains(state.uri.path),
       destinations: [
@@ -335,6 +331,11 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
           icon: Icons.inventory_2_outlined,
           selectedIcon: Icons.inventory_2,
           label: l10n.navDeliveries,
+        ),
+        ShellDestination(
+          icon: Icons.chat_bubble_outline,
+          selectedIcon: Icons.chat_bubble,
+          label: l10n.messagesTitle,
         ),
         ShellDestination(
           icon: Icons.person_outline,
@@ -369,6 +370,14 @@ StatefulShellRoute _clientShell() => StatefulShellRoute.indexedStack(
         GoRoute(
           path: AppRoutes.clientDeliveries,
           builder: (_, _) => const DeliveriesScreen(),
+        ),
+      ],
+    ),
+    StatefulShellBranch(
+      routes: [
+        GoRoute(
+          path: AppRoutes.clientMessages,
+          builder: (_, _) => const MessagesScreen(),
         ),
       ],
     ),

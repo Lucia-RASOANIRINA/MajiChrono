@@ -68,9 +68,7 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
       'kind': kind.wireName,
       'address': address.toJson(),
     };
-    final path = id == null
-        ? ApiEndpoints.addresses
-        : ApiEndpoints.address(id);
+    final path = id == null ? ApiEndpoints.addresses : ApiEndpoints.address(id);
     try {
       final json = id == null
           ? await _client.post<Map<String, dynamic>>(path, body: body)
@@ -208,6 +206,13 @@ class DeliveryRepositoryImpl implements DeliveryRepository {
         .whereType<Map<String, dynamic>>()
         .map(Delivery.fromJson)
         .whereType<Delivery>()
+        // Une reponse API ne doit jamais produire deux cartes pour la meme
+        // course, meme si un proxy ou une pagination renvoie un doublon.
+        .fold<Map<String, Delivery>>({}, (unique, delivery) {
+          unique[delivery.id] = delivery;
+          return unique;
+        })
+        .values
         .toList();
     await _local.replaceAll(items);
   }

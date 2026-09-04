@@ -25,7 +25,12 @@ from sqlalchemy.orm import Session
 
 from app.core.deps import Idempotency, current_account, idempotency, require_role
 from app.core.errors import conflict, forbidden, not_found, unprocessable
-from app.core.geo import MAX_ACCEPT_KM, haversine_km, point_of
+from app.core.geo import (
+    MAX_ACCEPT_KM,
+    haversine_km,
+    is_in_madagascar,
+    point_of,
+)
 from app.core.security import new_opaque_token
 from app.db import get_db
 from app.models import (
@@ -115,6 +120,32 @@ async def create_delivery(
     if account.role is not UserRole.client:
         raise forbidden("role_forbidden", "Seul un expediteur cree une course")
 
+    pickup_point = body.pickup.point
+    dropoff_point = body.dropoff.point
+    if pickup_point is None or dropoff_point is None:
+        raise unprocessable(
+            "location_required",
+            "Les localisations de depart et d'arrivee sont obligatoires",
+        )
+    if not is_in_madagascar(pickup_point.lat, pickup_point.lng) or not is_in_madagascar(
+        dropoff_point.lat, dropoff_point.lng
+    ):
+        raise unprocessable(
+            "location_outside_madagascar",
+            "Les localisations doivent se trouver a Madagascar",
+        )
+    distance_km = haversine_km(
+        pickup_point.lat,
+        pickup_point.lng,
+        dropoff_point.lat,
+        dropoff_point.lng,
+    )
+    if distance_km < 0.05:
+        raise unprocessable(
+            "invalid_distance",
+            "Le depart et l'arrivee doivent etre differents",
+        )
+
     # Code de retrait au relais : six chiffres, assez pour identifier un colis
     # au comptoir sans etre un secret durable. Genere seulement si un relais est
     # choisi (§7 : selection, code de retrait).
@@ -128,6 +159,7 @@ async def create_delivery(
         pickup_json=body.pickup.model_dump_json(),
         dropoff_json=body.dropoff.model_dump_json(),
         package_json=json.dumps(body.package),
+        distance_km=round(distance_km, 3),
         price_ariary=body.price,
         relay_point_id=body.relayPointId,
         relay_pickup_code=relay_code,

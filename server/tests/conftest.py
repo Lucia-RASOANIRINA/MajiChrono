@@ -37,11 +37,13 @@ def _no_real_mail_or_sms():
         settings.smtp_user,
         settings.smtp_password,
         settings.sms_api_key,
+        settings.otp_debug_codes,
     )
     settings.smtp_host = ""
     settings.smtp_user = ""
     settings.smtp_password = ""
     settings.sms_api_key = ""
+    settings.otp_debug_codes = True
     try:
         yield
     finally:
@@ -50,6 +52,7 @@ def _no_real_mail_or_sms():
             settings.smtp_user,
             settings.smtp_password,
             settings.sms_api_key,
+            settings.otp_debug_codes,
         ) = saved
 
 

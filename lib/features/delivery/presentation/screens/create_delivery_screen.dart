@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 
+import 'package:majichrono/app/app.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
@@ -116,7 +117,10 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   }
 
   bool get _canContinue => switch (_step) {
-    0 => _pickup != null && _dropoff != null,
+    0 =>
+      _pickup != null &&
+          _dropoff != null &&
+          _pickup!.point.distanceKmTo(_dropoff!.point) >= 0.05,
     1 => true,
     2 => _shopping?.isComplete ?? true,
     _ => true,
@@ -133,10 +137,11 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
       );
 
   Future<void> _submit() async {
+    if (_busy) return;
     setState(() => _busy = true);
     final l10n = AppLocalizations.of(context);
-    final messenger = ScaffoldMessenger.of(context);
     final router = GoRouter.of(context);
+    final messenger = ScaffoldMessenger.of(context);
 
     try {
       final delivery = await ref
@@ -167,19 +172,24 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
             ),
           );
 
-      messenger.showSnackBar(
-        SnackBar(
-          content: Text(
-            delivery.pendingSync ? l10n.deliveryQueued : l10n.deliveryCreated,
-          ),
-          backgroundColor: Colors.green.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
-        ),
-      );
       router.pop();
+      // Le formulaire est retire de l'arbre au retour : le message doit etre
+      // emis par le messenger racine pour rester visible sur la liste.
+      MajiChronoApp.messengerKey.currentState
+        ?..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              delivery.pendingSync ? l10n.deliveryQueued : l10n.deliveryCreated,
+            ),
+            backgroundColor: Colors.green.shade700,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 3),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+        );
     } on Failure catch (failure) {
       messenger.showSnackBar(
         SnackBar(
@@ -199,6 +209,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     final titles = [
       l10n.stepAddresses,
@@ -208,15 +219,13 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF5F7FA),
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         title: Text(
           l10n.newDeliveryTitle,
-          style: const TextStyle(
-            fontWeight: FontWeight.w700,
-          ),
+          style: const TextStyle(fontWeight: FontWeight.w700),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: theme.appBarTheme.backgroundColor,
         elevation: 0,
         centerTitle: false,
         bottom: PreferredSize(
@@ -224,7 +233,7 @@ class _CreateDeliveryScreenState extends ConsumerState<CreateDeliveryScreen> {
           child: LinearProgressIndicator(
             value: (_step + 1) / 4,
             minHeight: 4,
-            backgroundColor: Colors.grey.shade200,
+            backgroundColor: theme.colorScheme.surfaceContainerHighest,
             valueColor: AlwaysStoppedAnimation<Color>(AppColors.primary),
           ),
         ),
@@ -343,10 +352,11 @@ class _BottomActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.colorScheme.surface,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -362,7 +372,7 @@ class _BottomActionBar extends StatelessWidget {
           style: ElevatedButton.styleFrom(
             backgroundColor: isLastStep ? AppColors.primary : AppColors.primary,
             foregroundColor: Colors.white,
-            disabledBackgroundColor: Colors.grey.shade300,
+            disabledBackgroundColor: theme.colorScheme.surfaceContainerHighest,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(14),
             ),
@@ -373,8 +383,7 @@ class _BottomActionBar extends StatelessWidget {
             children: [
               if (isLastStep && onPressed != null)
                 const Icon(Icons.check, size: 20),
-              if (isLastStep && onPressed != null)
-                const SizedBox(width: 8),
+              if (isLastStep && onPressed != null) const SizedBox(width: 8),
               Text(
                 label,
                 style: const TextStyle(
@@ -411,13 +420,16 @@ class _ModernStepChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(
         vertical: AppSpacing.xs,
         horizontal: AppSpacing.sm,
       ),
       decoration: BoxDecoration(
-        color: active ? AppColors.primary : Colors.grey.shade100,
+        color: active
+            ? AppColors.primary
+            : theme.colorScheme.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: active ? AppColors.primary : Colors.transparent,
@@ -453,7 +465,9 @@ class _ModernStepChip extends StatelessWidget {
               style: TextStyle(
                 fontSize: 10,
                 fontWeight: active ? FontWeight.w700 : FontWeight.w500,
-                color: active ? Colors.white : Colors.grey.shade600,
+                color: active
+                    ? Colors.white
+                    : theme.colorScheme.onSurfaceVariant,
               ),
               overflow: TextOverflow.ellipsis,
             ),
@@ -597,9 +611,7 @@ class _SavedAddressPicker extends ConsumerWidget {
             ListTile(
               leading: Icon(kindIcon(entry.kind)),
               title: Text(
-                entry.label.isEmpty
-                    ? kindLabel(l10n, entry.kind)
-                    : entry.label,
+                entry.label.isEmpty ? kindLabel(l10n, entry.kind) : entry.label,
               ),
               subtitle: Text(
                 entry.address.summary,
@@ -626,6 +638,7 @@ class _ModernSectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Row(
       children: [
         Container(
@@ -634,19 +647,15 @@ class _ModernSectionHeader extends StatelessWidget {
             color: AppColors.primary.withValues(alpha: 0.1),
             shape: BoxShape.circle,
           ),
-          child: Icon(
-            icon,
-            size: 20,
-            color: AppColors.primary,
-          ),
+          child: Icon(icon, size: 20, color: AppColors.primary),
         ),
         const SizedBox(width: AppSpacing.sm),
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF1A1A2E),
+            color: theme.colorScheme.onSurface,
           ),
         ),
       ],
@@ -666,29 +675,32 @@ class _DimField extends StatelessWidget {
   final String label;
 
   @override
-  Widget build(BuildContext context) => TextField(
-    controller: controller,
-    keyboardType: TextInputType.number,
-    textAlign: TextAlign.center,
-    decoration: InputDecoration(
-      labelText: label,
-      isDense: true,
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide.none,
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return TextField(
+      controller: controller,
+      keyboardType: TextInputType.number,
+      textAlign: TextAlign.center,
+      decoration: InputDecoration(
+        labelText: label,
+        isDense: true,
+        filled: true,
+        fillColor: theme.colorScheme.surfaceContainerHighest,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide.none,
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: BorderSide(color: theme.colorScheme.outlineVariant),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(14),
+          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+        ),
       ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: BorderSide(color: Colors.grey.shade200),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.primary, width: 2),
-      ),
-    ),
-  );
+    );
+  }
 }
 
 class _PackageStep extends StatelessWidget {
@@ -844,21 +856,30 @@ class _PackageStep extends StatelessWidget {
             keyboardType: TextInputType.number,
             decoration: InputDecoration(
               labelText: '${l10n.pkgValue} (${l10n.addrOptional})',
-              prefixIcon: Icon(Icons.payments_outlined, color: AppColors.primary),
+              prefixIcon: Icon(
+                Icons.payments_outlined,
+                color: AppColors.primary,
+              ),
               suffixText: 'Ar',
               filled: true,
-              fillColor: Colors.white,
+              fillColor: theme.colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1,
+                ),
               ),
             ),
           ),
@@ -869,18 +890,24 @@ class _PackageStep extends StatelessWidget {
               labelText: '${l10n.pkgDescription} (${l10n.addrOptional})',
               prefixIcon: Icon(Icons.notes_outlined, color: AppColors.primary),
               filled: true,
-              fillColor: Colors.white,
+              fillColor: theme.colorScheme.surfaceContainerHighest,
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
                 borderSide: BorderSide.none,
               ),
               focusedBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: const BorderSide(color: AppColors.primary, width: 2),
+                borderSide: const BorderSide(
+                  color: AppColors.primary,
+                  width: 2,
+                ),
               ),
               enabledBorder: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.grey.shade200, width: 1),
+                borderSide: BorderSide(
+                  color: theme.colorScheme.outlineVariant,
+                  width: 1,
+                ),
               ),
             ),
           ),
@@ -895,11 +922,17 @@ class _PackageStep extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
-              Expanded(child: _DimField(controller: length, label: l10n.pkgLength)),
+              Expanded(
+                child: _DimField(controller: length, label: l10n.pkgLength),
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _DimField(controller: width, label: l10n.pkgWidth)),
+              Expanded(
+                child: _DimField(controller: width, label: l10n.pkgWidth),
+              ),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: _DimField(controller: height, label: l10n.pkgHeight)),
+              Expanded(
+                child: _DimField(controller: height, label: l10n.pkgHeight),
+              ),
             ],
           ),
           const SizedBox(height: AppSpacing.md),
@@ -1032,6 +1065,7 @@ class _ModernChoiceChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1040,10 +1074,14 @@ class _ModernChoiceChip extends StatelessWidget {
           vertical: AppSpacing.xs,
         ),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary : Colors.white,
+          color: selected
+              ? AppColors.primary
+              : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: selected ? AppColors.primary : Colors.grey.shade300,
+            color: selected
+                ? AppColors.primary
+                : theme.colorScheme.outlineVariant,
             width: 1.5,
           ),
           boxShadow: selected
@@ -1060,7 +1098,7 @@ class _ModernChoiceChip extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? Colors.white : Colors.grey.shade700,
+            color: selected ? Colors.white : theme.colorScheme.onSurfaceVariant,
           ),
         ),
       ),
@@ -1087,6 +1125,7 @@ class _ModernRadioTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -1096,18 +1135,26 @@ class _ModernRadioTile extends StatelessWidget {
         ),
         margin: const EdgeInsets.only(bottom: 4),
         decoration: BoxDecoration(
-          color: selected ? AppColors.primary.withValues(alpha: 0.05) : Colors.white,
+          color: selected
+              ? AppColors.primary.withValues(alpha: 0.12)
+              : theme.colorScheme.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: selected ? AppColors.primary : Colors.grey.shade200,
+            color: selected
+                ? AppColors.primary
+                : theme.colorScheme.outlineVariant,
             width: selected ? 2 : 1,
           ),
         ),
         child: Row(
           children: [
             Icon(
-              selected ? Icons.radio_button_checked : Icons.radio_button_unchecked,
-              color: selected ? AppColors.primary : Colors.grey.shade400,
+              selected
+                  ? Icons.radio_button_checked
+                  : Icons.radio_button_unchecked,
+              color: selected
+                  ? AppColors.primary
+                  : theme.colorScheme.onSurfaceVariant,
               size: 20,
             ),
             const SizedBox(width: AppSpacing.md),
@@ -1120,7 +1167,9 @@ class _ModernRadioTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
-                      color: selected ? AppColors.primary : Colors.grey.shade800,
+                      color: selected
+                          ? AppColors.primary
+                          : theme.colorScheme.onSurface,
                     ),
                   ),
                   if (subtitle != null) ...[
@@ -1129,7 +1178,7 @@ class _ModernRadioTile extends StatelessWidget {
                       subtitle!,
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey.shade500,
+                        color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
                   ],
@@ -1169,6 +1218,7 @@ class _ReviewStep extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -1178,7 +1228,7 @@ class _ReviewStep extends StatelessWidget {
           // Récapitulatif des adresses
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -1212,7 +1262,7 @@ class _ReviewStep extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(AppSpacing.md),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
@@ -1227,10 +1277,10 @@ class _ReviewStep extends StatelessWidget {
               children: [
                 Text(
                   l10n.estimateTitle,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w700,
-                    color: Color(0xFF1A1A2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -1264,6 +1314,7 @@ class _ReviewItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Padding(
       padding: const EdgeInsets.all(AppSpacing.md),
       child: Row(
@@ -1274,11 +1325,7 @@ class _ReviewItem extends StatelessWidget {
               color: iconColor.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
-            child: Icon(
-              icon,
-              size: 20,
-              color: iconColor,
-            ),
+            child: Icon(icon, size: 20, color: iconColor),
           ),
           const SizedBox(width: AppSpacing.md),
           Expanded(
@@ -1287,10 +1334,10 @@ class _ReviewItem extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF1A1A2E),
+                    color: theme.colorScheme.onSurface,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -1298,7 +1345,7 @@ class _ReviewItem extends StatelessWidget {
                   subtitle,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey.shade500,
+                    color: theme.colorScheme.onSurfaceVariant,
                   ),
                 ),
               ],

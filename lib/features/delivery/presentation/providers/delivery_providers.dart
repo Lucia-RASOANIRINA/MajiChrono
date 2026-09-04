@@ -33,9 +33,17 @@ final addressBookProvider = StreamProvider<List<SavedAddress>>(
   (ref) => ref.watch(deliveryRepositoryProvider).watchAddressBook(),
 );
 
-final deliveriesProvider = StreamProvider<List<Delivery>>(
-  (ref) => ref.watch(deliveryRepositoryProvider).watchDeliveries(),
-);
+final deliveriesProvider = StreamProvider<List<Delivery>>((ref) async* {
+  final repository = ref.watch(deliveryRepositoryProvider);
+  // Hydrate le cache a chaque ouverture de session : l'accueil ne doit pas
+  // rester vide simplement parce que la course a ete creee sur un autre appareil.
+  try {
+    await repository.refreshDeliveries();
+  } catch (_) {
+    // Le cache local reste la source d'affichage hors connexion.
+  }
+  yield* repository.watchDeliveries();
+});
 
 /// Courses en cours, pour l'accueil expediteur.
 final activeDeliveriesProvider = Provider<List<Delivery>>((ref) {

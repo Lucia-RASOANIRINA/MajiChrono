@@ -51,20 +51,27 @@ class NotificationCenterScreen extends ConsumerWidget {
               message: l10n.notifCenterEmpty,
             )
           : ListView.separated(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.md,
+                AppSpacing.xxl,
+              ),
               itemCount: items.length,
-              separatorBuilder: (_, _) => const Divider(height: 1),
+              separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
                 final item = items[index];
-                return _NotificationTile(
-                  item: item,
-                  onTap: () {
-                    controller.markRead(index);
-                    final route = item.route;
-                    if (route != null && route.isNotEmpty) {
-                      context.go(route);
-                    }
-                  },
+                return Card(
+                  child: _NotificationTile(
+                    item: item,
+                    onTap: () {
+                      controller.markRead(index);
+                      final route = item.route;
+                      if (route != null && route.isNotEmpty) {
+                        context.go(route);
+                      }
+                    },
+                  ),
                 );
               },
             ),

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,6 +9,8 @@ import 'package:majichrono/app/router/app_routes.dart';
 import 'package:majichrono/app/theme/app_colors.dart';
 import 'package:majichrono/app/theme/design_tokens.dart';
 import 'package:majichrono/core/error/failure.dart';
+import 'package:majichrono/core/network/api_endpoints.dart';
+import 'package:majichrono/core/providers/core_providers.dart';
 import 'package:majichrono/features/delivery/domain/entities/price_estimate.dart';
 import 'package:majichrono/features/driver/domain/entities/driver_entities.dart';
 import 'package:majichrono/features/driver/presentation/providers/driver_providers.dart';
@@ -132,111 +135,100 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
     final expired = _remaining == 0;
 
     return Card(
-      child: Padding(
-        padding: AppSpacing.card,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    l10n.driverEarning,
-                    style: theme.textTheme.bodyMedium?.copyWith(
-                      color: theme.colorScheme.onSurfaceVariant,
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        onTap: () => _showDetails(context, l10n),
+        child: Padding(
+          padding: AppSpacing.card,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      l10n.driverEarning,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
                     ),
                   ),
+                  Text(
+                    formatAriary(offer.estimatedEarningAriary),
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      color: AppColors.success,
+                    ),
+                  ),
+                ],
+              ),
+
+              _PackageThumbnail(photoId: offer.delivery.package.photoId),
+
+              const SizedBox(height: AppSpacing.md),
+              _Line(
+                icon: Icons.trip_origin,
+                text: offer.delivery.pickup.summary,
+                // La distance a vide est mise en avant : c'est du carburant que
+                // le livreur avance sans etre paye (EXI-L04).
+                trailing: l10n.driverPickupDistance(
+                  offer.pickupDistanceKm.toStringAsFixed(1),
                 ),
-                Text(
-                  formatAriary(offer.estimatedEarningAriary),
-                  style: theme.textTheme.titleLarge?.copyWith(
-                    color: AppColors.success,
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              _Line(
+                icon: Icons.place_outlined,
+                text: offer.delivery.dropoff.summary,
+                trailing: l10n.deliveryDistance(
+                  offer.delivery.distanceKm.toStringAsFixed(1),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              // Temps estime de la course (EXI-L04, §15) : une approximation a
+              // partir de la distance et d'une vitesse urbaine moyenne, de quoi
+              // juger l'engagement sans promettre une precision qu'on n'a pas.
+              _Line(
+                icon: Icons.schedule,
+                text: l10n.driverEtaLabel,
+                trailing: l10n.driverEta(_etaMinutes(offer)),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              SizedBox(
+                height: AppSizes.minTouchTarget,
+                width: double.infinity,
+                child: FilledButton(
+                  onPressed: expired || _busy ? null : _accept,
+                  child: Text(
+                    expired
+                        ? l10n.driverAccept
+                        : l10n.driverAcceptIn(_remaining),
                   ),
                 ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              SizedBox(
+                width: double.infinity,
+                child: TextButton(
+                  // Refuser (EXI-L05, §15) : l'offre est ecartee et ne remonte
+                  // plus. Cote serveur il n'y a rien a faire — ne pas accepter
+                  // suffit — mais la masquer evite qu'elle revienne en boucle.
+                  onPressed: _busy
+                      ? null
+                      : () => ref
+                            .read(dismissedOffersProvider.notifier)
+                            .dismiss(offer.delivery.id),
+                  child: Text(l10n.driverRefuse),
+                ),
+              ),
+              if (!expired) ...[
+                const SizedBox(height: AppSpacing.sm),
+                LinearProgressIndicator(
+                  value: _remaining / windowSeconds,
+                  minHeight: 4,
+                  borderRadius: AppRadii.componentAll,
+                ),
               ],
-            ),
-
-            // Ce que le livreur doit savoir **avant** d'accepter : fragile,
-            // lourd, precieux. L'information existait dans la declaration
-            // (EXI-C08) sans etre montree nulle part.
-            PackageTraits(delivery: offer.delivery),
-
-            const SizedBox(height: AppSpacing.md),
-            _Line(
-              icon: Icons.trip_origin,
-              text: offer.delivery.pickup.summary,
-              // La distance a vide est mise en avant : c'est du carburant que
-              // le livreur avance sans etre paye (EXI-L04).
-              trailing: l10n.driverPickupDistance(
-                offer.pickupDistanceKm.toStringAsFixed(1),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            _Line(
-              icon: Icons.place_outlined,
-              text: offer.delivery.dropoff.summary,
-              trailing: l10n.deliveryDistance(
-                offer.delivery.distanceKm.toStringAsFixed(1),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            // Temps estime de la course (EXI-L04, §15) : une approximation a
-            // partir de la distance et d'une vitesse urbaine moyenne, de quoi
-            // juger l'engagement sans promettre une precision qu'on n'a pas.
-            _Line(
-              icon: Icons.schedule,
-              text: l10n.driverEtaLabel,
-              trailing: l10n.driverEta(_etaMinutes(offer)),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            Align(
-              alignment: Alignment.centerLeft,
-              child: TextButton.icon(
-                onPressed: () => _showDetails(context, l10n),
-                icon: const Icon(Icons.info_outline, size: 18),
-                label: Text(l10n.driverDetails),
-                style: TextButton.styleFrom(
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 0),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SizedBox(
-              height: AppSizes.minTouchTarget,
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: expired || _busy ? null : _accept,
-                child: Text(
-                  expired ? l10n.driverAccept : l10n.driverAcceptIn(_remaining),
-                ),
-              ),
-            ),
-            const SizedBox(height: AppSpacing.xs),
-            SizedBox(
-              width: double.infinity,
-              child: TextButton(
-                // Refuser (EXI-L05, §15) : l'offre est ecartee et ne remonte
-                // plus. Cote serveur il n'y a rien a faire — ne pas accepter
-                // suffit — mais la masquer evite qu'elle revienne en boucle.
-                onPressed: _busy
-                    ? null
-                    : () => ref
-                          .read(dismissedOffersProvider.notifier)
-                          .dismiss(offer.delivery.id),
-                child: Text(l10n.driverRefuse),
-              ),
-            ),
-            if (!expired) ...[
-              const SizedBox(height: AppSpacing.sm),
-              LinearProgressIndicator(
-                value: _remaining / windowSeconds,
-                minHeight: 4,
-                borderRadius: AppRadii.componentAll,
-              ),
             ],
-          ],
+          ),
         ),
       ),
     );
@@ -281,18 +273,18 @@ class _AvailableDeliveryCardState extends ConsumerState<AvailableDeliveryCard> {
                 ),
                 _DetailRow(
                   icon: Icons.straighten,
-                  label: l10n.deliveryDistance(
-                    d.distanceKm.toStringAsFixed(1),
-                  ),
+                  label: l10n.deliveryDistance(d.distanceKm.toStringAsFixed(1)),
                 ),
                 _DetailRow(
                   icon: Icons.schedule,
-                  label: '${l10n.driverEtaLabel} : '
+                  label:
+                      '${l10n.driverEtaLabel} : '
                       '${l10n.driverEta(_etaMinutes(offer))}',
                 ),
                 _DetailRow(
                   icon: Icons.payments_outlined,
-                  label: '${l10n.driverEarning} : '
+                  label:
+                      '${l10n.driverEarning} : '
                       '${formatAriary(offer.estimatedEarningAriary)}',
                 ),
                 const SizedBox(height: AppSpacing.sm),
@@ -326,6 +318,59 @@ class _DetailRow extends StatelessWidget {
           Expanded(child: Text(label, style: theme.textTheme.bodyLarge)),
         ],
       ),
+    );
+  }
+}
+
+class _PackageThumbnail extends ConsumerWidget {
+  const _PackageThumbnail({required this.photoId});
+
+  final String? photoId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final placeholder = Container(
+      height: 96,
+      width: double.infinity,
+      margin: const EdgeInsets.only(bottom: AppSpacing.md),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surfaceContainerHighest,
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(
+        Icons.inventory_2_outlined,
+        size: 34,
+        color: theme.colorScheme.primary,
+      ),
+    );
+    if (photoId == null || photoId!.isEmpty) return placeholder;
+    return FutureBuilder<List<int>>(
+      future: ref
+          .read(apiClientProvider)
+          .getBytes(ApiEndpoints.mediaItem(photoId!)),
+      builder: (context, snapshot) {
+        if (snapshot.hasError) return placeholder;
+        if (!snapshot.hasData) {
+          return const SizedBox(
+            height: 96,
+            child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+          );
+        }
+        return ClipRRect(
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            height: 96,
+            width: double.infinity,
+            margin: const EdgeInsets.only(bottom: AppSpacing.md),
+            color: theme.colorScheme.surfaceContainerHighest,
+            child: Image.memory(
+              Uint8List.fromList(snapshot.data!),
+              fit: BoxFit.cover,
+            ),
+          ),
+        );
+      },
     );
   }
 }

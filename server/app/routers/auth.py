@@ -43,8 +43,18 @@ from app.db import get_db
 from app.models import Account, Challenge, ChallengeChannel, RefreshToken
 
 logger = logging.getLogger("majichrono.auth")
-
 router = APIRouter(prefix="/auth", tags=["auth"])
+
+
+async def _send_email_code_for_environment(email: str, code: str) -> None:
+    """Skip real e-mail delivery when development OTP codes are enabled."""
+    settings = get_settings()
+    if settings.environment == "dev" and settings.otp_debug_codes:
+        logger.warning(
+            "MODE TEST E-MAIL — aucun envoi réel ; code disponible via debugCode"
+        )
+        return
+    await send_login_code(email, code)
 
 # Plages reellement exploitees a Madagascar, telles que retenues par le projet :
 #   Telma  : 034, 038          Orange : 032, 037, 039          Airtel : 033
@@ -294,7 +304,7 @@ async def request_email_code(body: EmailRequest, db: Session = Depends(get_db)) 
     # et le code reste utilisable via `debugCode` — exactement la politique du
     # SMS. En production, l'echec reste une vraie panne, signalee par un 502.
     try:
-        await send_login_code(email, code)
+        await _send_email_code_for_environment(email, code)
     except Exception:  # noqa: BLE001 — la cause est deja journalisee
         if settings.environment == "dev":
             logger.warning(
@@ -582,7 +592,7 @@ async def request_email_change(
     challenge, code = _open_challenge(db, ChallengeChannel.email, email)
     settings = get_settings()
     try:
-        await send_login_code(email, code)
+        await _send_email_code_for_environment(email, code)
     except Exception:  # noqa: BLE001
         if settings.environment != "dev":
             challenge.consumed_at = datetime.now(timezone.utc)

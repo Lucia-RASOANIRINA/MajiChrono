@@ -65,9 +65,7 @@ class _DeliveriesScreenState extends ConsumerState<DeliveriesScreen> {
       _HistoryPeriod.days30 => 30,
     };
     if (days == null) return true;
-    return d.createdAt.isAfter(
-      DateTime.now().subtract(Duration(days: days)),
-    );
+    return d.createdAt.isAfter(DateTime.now().subtract(Duration(days: days)));
   }
 
   bool _matchesQuery(Delivery d) {
@@ -86,11 +84,13 @@ class _DeliveriesScreenState extends ConsumerState<DeliveriesScreen> {
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor:
-          isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+      backgroundColor: isDark
+          ? const Color(0xFF0F172A)
+          : const Color(0xFFF1F5F9),
       appBar: AppBar(
-        backgroundColor:
-            isDark ? const Color(0xFF0F172A) : const Color(0xFFF1F5F9),
+        backgroundColor: isDark
+            ? const Color(0xFF0F172A)
+            : const Color(0xFFF1F5F9),
         surfaceTintColor: Colors.transparent,
         scrolledUnderElevation: 0,
         title: Text(
@@ -130,14 +130,20 @@ class _DeliveriesScreenState extends ConsumerState<DeliveriesScreen> {
     // Le tri par date descendante est deja garanti en amont ; on ne fait
     // qu'appliquer les criteres successifs sur la meme liste.
     final filtered = items
+        // Protection d'affichage supplementaire : une course est identifiee
+        // par son id, jamais par le texte de ses adresses.
+        .fold<Map<String, Delivery>>({}, (unique, delivery) {
+          unique[delivery.id] = delivery;
+          return unique;
+        })
+        .values
         .where(_matchesTab)
         .where(_matchesPeriod)
         .where(_matchesQuery)
         .toList();
 
     return RefreshIndicator(
-      onRefresh: () =>
-          ref.read(deliveryRepositoryProvider).refreshDeliveries(),
+      onRefresh: () => ref.read(deliveryRepositoryProvider).refreshDeliveries(),
       child: ListView(
         padding: const EdgeInsets.all(AppSpacing.lg),
         children: [
@@ -161,9 +167,9 @@ class _DeliveriesScreenState extends ConsumerState<DeliveriesScreen> {
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs),
             child: Text(
               l10n.histResultCount(filtered.length),
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.neutral,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: AppColors.neutral),
             ),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -220,9 +226,7 @@ class _SearchField extends StatelessWidget {
                 },
               ),
         isDense: true,
-        border: const OutlineInputBorder(
-          borderRadius: AppRadii.componentAll,
-        ),
+        border: const OutlineInputBorder(borderRadius: AppRadii.componentAll),
       ),
     );
   }
